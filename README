@@ -1,0 +1,7 @@
+Python module to stack spectra in the image domain.
+
+Requirements:
+casapy
++ everything required to run casa
+
+
