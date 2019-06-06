@@ -280,8 +280,20 @@ class Coord:
         if numberOfZeroRightF!=0:
             self.weight[-numberOfZeroRightF:]=0
 
+def readCoordsGUI(unit='deg', lineON=True):
+    import Tkinter, Tkconstants, tkFileDialog
+    filez=  tkFileDialog.askopenfilenames(initialdir = ".",title = "Select file",filetypes = (("txt files","*.txt"),("all files","*.*")))
+    filez=list(filez)
+    coords=readCoords(filez, unit=unit, lineON=lineON)
+    return coords
 
-def readCoords(coordfiles, unit='deg', lineON=0):
+def selectImagesGUI():
+    import Tkinter, Tkconstants, tkFileDialog
+    filez=  tkFileDialog.askopenfilenames(initialdir = ".",title = "Select file",filetypes = (("txt files","*.txt"),("all files","*.*")))
+    return list(filez)
+
+
+def readCoords(coordfiles, unit='deg', lineON=True):
     """
         Reads coordinate files from disk and produces a list.
         /!\\ To each image should be associated one single coord file.
@@ -299,8 +311,8 @@ def readCoords(coordfiles, unit='deg', lineON=0):
             default 0
     """
     import csv
-    #delimiter='\t'
-    delimiter=','
+    delimiter='\t'
+    #delimiter=','
     coords = CoordList()
     if coordfiles==None:
         print 'coordfile is None, stacking on the center'

@@ -31,7 +31,7 @@ imagesizes = []
 
 
 def stack(  coords,
-            outfile,
+            outfile='stackResult',
             stampsize = 32,
             imagenames= [],
             method = 'mean',
