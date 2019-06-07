@@ -374,9 +374,6 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
 
         else:
             print blcx, trcx, blcy, trcy, imagesInfo['imagesizes'][coord.image][0]-1
-            errorFile=open('errorLog.txt','a')
-            errorFile.write(str(coord.image))
-            errorFile.close()
             raise Exception('the source located at '+str(coord.x)+' '+str(coord.y)+' on image '+str(coord.image)+' is too close to the edge, trying to stack out of boundaries, try stacking with smaller stampsize')
 
             data[i,:,:,0,:] = 0

@@ -450,22 +450,17 @@ def maximizeSNR(spectra):
 	toSTD=[]
 	leftLimSpectra=int(center-width*2.35)
 	rightLimSpectra=int(center+width*2.35)
-	np.save('jojo', spectra[rightLimSpectra:])
-	np.save('jojo2', spectra[:leftLimSpectra])
 	if rightLimSpectra<len(spectra)-1:
 		toSTD.append(spectra[rightLimSpectra:][:])
-		print toSTD
-		print 'oioio'
 	if leftLimSpectra>0:
 		toSTD.append(spectra[:leftLimSpectra][:])
-		print 'clouk'
-	if toSTD==[]:
+	if len(toSTD)==2:
+		toSTD=np.concatenate(toSTD)
+	elif len(toSTD)==1:
+		toSTD=toSTD[0]
+	else:
 		return 0
 	toSTD=np.array(toSTD).flatten()
-	print toSTD
-	print 'sad'
-	print len(toSTD)
-	print np.std(toSTD)
 	return float(amp)/np.std(toSTD)
 
 def maximizeOutflow(spectra):
@@ -473,8 +468,24 @@ def maximizeOutflow(spectra):
 
 def subsample_OneD(	images,
 					nRandom=10000,
-					maxTest=maximizeAmp,
+					maxTest=maximizeSNR,
 					**kwargs):
+	'''
+		Randomly ressamples spectra and grades them accordingly
+		to a given grade function
+
+		Parameters
+		---------
+
+		images
+			A list of stacker.OneD_Stacker.images
+		nRandom
+			Number of itterations of the Monte-Carlo process
+		maxTest
+			function test to grade the sources\r
+			build your own, or use existing: maximizeAmp, maximizeSNR, maximizeOutflow
+		Any other argument for LineStacker.OneD_Stacker.Stack
+	'''
 	import LineStacker.tools
 	import LineStacker.OneD_Stacker
 	imagesGrades={}
@@ -489,5 +500,4 @@ def subsample_OneD(	images,
 		testResult=maxTest(tempStack[0])
 		for image in newImages:
 			imagesGrades[str(image.name)]+=testResult
-
 	return imagesGrades

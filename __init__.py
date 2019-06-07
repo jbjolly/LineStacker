@@ -282,15 +282,22 @@ class Coord:
 
 def readCoordsGUI(unit='deg', lineON=True):
     import Tkinter, Tkconstants, tkFileDialog
-    filez=  tkFileDialog.askopenfilenames(initialdir = ".",title = "Select file",filetypes = (("txt files","*.txt"),("all files","*.*")))
+    filez=  tkFileDialog.askopenfilenames(initialdir = ".",title = "Select coord files",filetypes = (("txt files","*.txt"),("all files","*.*")))
     filez=list(filez)
     coords=readCoords(filez, unit=unit, lineON=lineON)
     return coords
 
-def selectImagesGUI():
+def readCoordsNamesGUI():
     import Tkinter, Tkconstants, tkFileDialog
-    filez=  tkFileDialog.askopenfilenames(initialdir = ".",title = "Select file",filetypes = (("txt files","*.txt"),("all files","*.*")))
-    return list(filez)
+    filez=  tkFileDialog.askopenfilenames(initialdir = ".",title = "Select coord files",filetypes = (("txt files","*.txt"),("all files","*.*")))
+    filez=list(filez)
+    return filez
+
+
+#def selectImagesGUI():
+#    import Tkinter, Tkconstants, tkFileDialog
+#    filez=  tkFileDialog.askopenfilenames(initialdir = ".",title = "Select image files",filetypes = (("casa im cubes","*.im"),("casa image cubes","*.image"),("all files","*.*")))
+#    return list(filez)
 
 
 def readCoords(coordfiles, unit='deg', lineON=True):
