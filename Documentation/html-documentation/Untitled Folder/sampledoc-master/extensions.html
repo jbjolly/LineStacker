@@ -1,0 +1,495 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Sphinx extensions for embedded plots, math and more &mdash; Line-Stacker beta documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     'beta',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Line-Stacker beta documentation" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="sphinx-extensions-for-embedded-plots-math-and-more">
+<span id="extensions"></span><h1>Sphinx extensions for embedded plots, math and more<a class="headerlink" href="#sphinx-extensions-for-embedded-plots-math-and-more" title="Permalink to this headline">¶</a></h1>
+<p>Sphinx is written in python, and supports the ability to write custom
+extensions.  We&#8217;ve written a few for the matplotlib documentation,
+some of which are part of matplotlib itself in the
+matplotlib.sphinxext module, some of which are included only in the
+sphinx doc directory, and there are other extensions written by other
+groups, eg numpy and ipython.  We&#8217;re collecting these in this tutorial
+and showing you how to install and use them for your own project.
+First let&#8217;s grab the python extension files from the <code class="file docutils literal"><span class="pre">sphinxext</span></code>
+directory from git (see <a class="reference internal" href="../../getting_started.html#fetching-the-data"><span>Fetching the data</span></a>), and install them in
+our <code class="file docutils literal"><span class="pre">sampledoc</span></code> project <code class="file docutils literal"><span class="pre">sphinxext</span></code> directory:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>home:~/tmp/sampledoc&gt; mkdir sphinxext
+home:~/tmp/sampledoc&gt; cp ../sampledoc_tut/sphinxext/*.py sphinxext/
+home:~/tmp/sampledoc&gt; ls sphinxext/
+apigen.py  docscrape.py  docscrape_sphinx.py  numpydoc.py
+</pre></div>
+</div>
+<p>In addition to the builtin matplotlib extensions for embedding pyplot
+plots and rendering math with matplotlib&#8217;s native math engine, we also
+have extensions for syntax highlighting ipython sessions, making
+inhertiance diagrams, and more.</p>
+<p>We need to inform sphinx of our new extensions in the <code class="file docutils literal"><span class="pre">conf.py</span></code>
+file by adding the following.  First we tell it where to find the extensions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># If your extensions are in another directory, add it here. If the</span>
+<span class="c1"># directory is relative to the documentation root, use</span>
+<span class="c1"># os.path.abspath to make it absolute, like shown here.</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s1">&#39;sphinxext&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>And then we tell it what extensions to load:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Add any Sphinx extension module names here, as strings. They can be extensions</span>
+<span class="c1"># coming with Sphinx (named &#39;sphinx.ext.*&#39;) or your custom ones.</span>
+<span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;matplotlib.sphinxext.only_directives&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;matplotlib.sphinxext.plot_directive&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;IPython.sphinxext.ipython_directive&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;IPython.sphinxext.ipython_console_highlighting&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;sphinx.ext.mathjax&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;sphinx.ext.autodoc&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;sphinx.ext.doctest&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;sphinx.ext.inheritance_diagram&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;numpydoc&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Now let&#8217;s look at some of these in action.  You can see the literal
+source for this file at <a class="reference internal" href="#extensions-literal"><span>This file</span></a>.</p>
+<div class="section" id="ipython-sessions">
+<span id="ipython-highlighting"></span><h2>ipython sessions<a class="headerlink" href="#ipython-sessions" title="Permalink to this headline">¶</a></h2>
+<p>Michael Droettboom contributed a sphinx extension which does <a class="reference external" href="http://pygments.org">pygments</a> syntax highlighting on <a class="reference external" href="http://ipython.scipy.org">ipython</a> sessions.  Just use ipython as the
+language in the <code class="docutils literal"><span class="pre">sourcecode</span></code> directive:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>.. sourcecode:: ipython
+
+    In [69]: lines = plot([1,2,3])
+
+    In [70]: setp(lines)
+      alpha: float
+      animated: [True | False]
+      antialiased or aa: [True | False]
+      ...snip
+</pre></div>
+</div>
+<p>and you will get the syntax highlighted output below.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>In [69]: lines = plot([1,2,3])
+
+In [70]: setp(lines)
+  alpha: float
+  animated: [True | False]
+  antialiased or aa: [True | False]
+  ...snip
+</pre></div>
+</div>
+<p>This support is included in this template, but will also be included
+in a future version of Pygments by default.</p>
+</div>
+<div class="section" id="using-math">
+<span id="id1"></span><h2>Using math<a class="headerlink" href="#using-math" title="Permalink to this headline">¶</a></h2>
+<p>In sphinx you can include inline math  or display math</p>
+<p>To include math in your document, just use the math directive; here is
+a simpler equation:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>.. math::
+
+  W^{3\beta}_{\delta_1 \rho_1 \sigma_2} \approx U^{3\beta}_{\delta_1 \rho_1}
+</pre></div>
+</div>
+<p>which is rendered as</p>
+<p>Recent versions of Sphinx include built-in support for math.
+There are three flavors:</p>
+<blockquote>
+<div><ul class="simple">
+<li>sphinx.ext.imgmath: uses dvipng to render the equation</li>
+<li>sphinx.ext.mathjax: renders the math in the browser using Javascript</li>
+<li>sphinx.ext.jsmath: it&#8217;s an older code, but it checks out</li>
+</ul>
+</div></blockquote>
+<p>Additionally, matplotlib has its own math support:</p>
+<blockquote>
+<div><ul class="simple">
+<li>matplotlib.sphinxext.mathmpl</li>
+</ul>
+</div></blockquote>
+<p>See the matplotlib <a class="reference external" href="https://matplotlib.org/users/mathtext.html">mathtext guide</a> for lots
+more information on writing mathematical expressions in matplotlib.</p>
+</div>
+<div class="section" id="inserting-matplotlib-plots">
+<span id="pyplots"></span><h2>Inserting matplotlib plots<a class="headerlink" href="#inserting-matplotlib-plots" title="Permalink to this headline">¶</a></h2>
+<p>Inserting automatically-generated plots is easy.  Simply put the
+script to generate the plot in the <code class="file docutils literal"><span class="pre">pyplots</span></code> directory, and
+refer to it using the <code class="docutils literal"><span class="pre">plot</span></code> directive.  First make a
+<code class="file docutils literal"><span class="pre">pyplots</span></code> directory at the top level of your project (next to
+:<code class="docutils literal"><span class="pre">conf.py</span></code>) and copy the <code class="file docutils literal"><span class="pre">ellipses.py`</span></code> file into it:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>home:~/tmp/sampledoc&gt; mkdir pyplots
+home:~/tmp/sampledoc&gt; cp ../sampledoc_tut/pyplots/ellipses.py pyplots/
+</pre></div>
+</div>
+<p>You can refer to this file in your sphinx documentation; by default it
+will just inline the plot with links to the source and PF and high
+resolution PNGS.  To also include the source code for the plot in the
+document, pass the <code class="docutils literal"><span class="pre">include-source</span></code> parameter:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>.. plot:: pyplots/ellipses.py
+   :include-source:
+</pre></div>
+</div>
+<p>In the HTML version of the document, the plot includes links to the
+original source code, a high-resolution PNG and a PDF.  In the PDF
+version of the document, the plot is included as a scalable PDF.</p>
+<p>You can also inline code for plots directly, and the code will be
+executed at documentation build time and the figure inserted into your
+docs; the following code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>.. plot::
+
+   import matplotlib.pyplot as plt
+   import numpy as np
+   x = np.random.randn(1000)
+   plt.hist( x, 20)
+   plt.grid()
+   plt.title(r&#39;Normal: $\mu=%.2f, \sigma=%.2f$&#39;%(x.mean(), x.std()))
+   plt.show()
+</pre></div>
+</div>
+<p>produces this output:</p>
+<p>See the matplotlib <a class="reference external" href="https://matplotlib.org/users/pyplot_tutorial.html">pyplot tutorial</a> and
+the <a class="reference external" href="https://matplotlib.org/gallery.html">gallery</a> for
+lots of examples of matplotlib plots.</p>
+</div>
+<div class="section" id="inheritance-diagrams">
+<h2>Inheritance diagrams<a class="headerlink" href="#inheritance-diagrams" title="Permalink to this headline">¶</a></h2>
+<p>Inheritance diagrams can be inserted directly into the document by
+providing a list of class or module names to the
+<code class="docutils literal"><span class="pre">inheritance-diagram</span></code> directive.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>.. inheritance-diagram:: codecs
+</pre></div>
+</div>
+<p>produces:</p>
+<p>See the <a class="reference internal" href="ipython_directive.html#ipython-directive"><span>IPython Directive</span></a> for a tutorial on embedding stateful,
+matplotlib aware ipython sessions into your rest docs with multiline
+and doctest support.</p>
+</div>
+<div class="section" id="this-file">
+<span id="extensions-literal"></span><h2>This file<a class="headerlink" href="#this-file" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span></span>.. _extensions:
+
+****************************************************
+Sphinx extensions for embedded plots, math and more
+****************************************************
+
+Sphinx is written in python, and supports the ability to write custom
+extensions.  We&#39;ve written a few for the matplotlib documentation,
+some of which are part of matplotlib itself in the
+matplotlib.sphinxext module, some of which are included only in the
+sphinx doc directory, and there are other extensions written by other
+groups, eg numpy and ipython.  We&#39;re collecting these in this tutorial
+and showing you how to install and use them for your own project.
+First let&#39;s grab the python extension files from the :file:`sphinxext`
+directory from git (see :ref:`fetching-the-data`), and install them in
+our :file:`sampledoc` project :file:`sphinxext` directory::
+
+    home:~/tmp/sampledoc&gt; mkdir sphinxext
+    home:~/tmp/sampledoc&gt; cp ../sampledoc_tut/sphinxext/*.py sphinxext/
+    home:~/tmp/sampledoc&gt; ls sphinxext/
+    apigen.py  docscrape.py  docscrape_sphinx.py  numpydoc.py
+
+In addition to the builtin matplotlib extensions for embedding pyplot
+plots and rendering math with matplotlib&#39;s native math engine, we also
+have extensions for syntax highlighting ipython sessions, making
+inhertiance diagrams, and more.
+
+We need to inform sphinx of our new extensions in the :file:`conf.py`
+file by adding the following.  First we tell it where to find the extensions::
+
+    # If your extensions are in another directory, add it here. If the
+    # directory is relative to the documentation root, use
+    # os.path.abspath to make it absolute, like shown here.
+    sys.path.append(os.path.abspath(&#39;sphinxext&#39;))
+
+And then we tell it what extensions to load::
+
+    # Add any Sphinx extension module names here, as strings. They can be extensions
+    # coming with Sphinx (named &#39;sphinx.ext.*&#39;) or your custom ones.
+    extensions = [&#39;matplotlib.sphinxext.only_directives&#39;,
+                  &#39;matplotlib.sphinxext.plot_directive&#39;,
+                  &#39;IPython.sphinxext.ipython_directive&#39;,
+                  &#39;IPython.sphinxext.ipython_console_highlighting&#39;,
+                  &#39;sphinx.ext.mathjax&#39;,
+                  &#39;sphinx.ext.autodoc&#39;,
+                  &#39;sphinx.ext.doctest&#39;,
+                  &#39;sphinx.ext.inheritance_diagram&#39;,
+                  &#39;numpydoc&#39;]
+
+Now let&#39;s look at some of these in action.  You can see the literal
+source for this file at :ref:`extensions-literal`.
+
+.. _ipython-highlighting:
+
+ipython sessions
+================
+
+Michael Droettboom contributed a sphinx extension which does `pygments
+&lt;http://pygments.org&gt;`_ syntax highlighting on `ipython
+&lt;http://ipython.scipy.org&gt;`_ sessions.  Just use ipython as the
+language in the ``sourcecode`` directive::
+
+    .. sourcecode:: ipython
+
+        In [69]: lines = plot([1,2,3])
+
+        In [70]: setp(lines)
+          alpha: float
+          animated: [True | False]
+          antialiased or aa: [True | False]
+          ...snip
+
+
+and you will get the syntax highlighted output below.
+
+.. sourcecode:: ipython
+
+    In [69]: lines = plot([1,2,3])
+
+    In [70]: setp(lines)
+      alpha: float
+      animated: [True | False]
+      antialiased or aa: [True | False]
+      ...snip
+
+This support is included in this template, but will also be included
+in a future version of Pygments by default.
+
+.. _using-math:
+
+Using math
+==========
+
+In sphinx you can include inline math :math:`x\leftarrow y\ x\forall
+y\ x-y` or display math
+
+.. math::
+
+  W^{3\beta}_{\delta_1 \rho_1 \sigma_2} = U^{3\beta}_{\delta_1 \rho_1} + \frac{1}{8 \pi 2} \int^{\alpha_2}_{\alpha_2} d \alpha^\prime_2 \left[\frac{ U^{2\beta}_{\delta_1 \rho_1} - \alpha^\prime_2U^{1\beta}_{\rho_1 \sigma_2} }{U^{0\beta}_{\rho_1 \sigma_2}}\right]
+
+To include math in your document, just use the math directive; here is
+a simpler equation::
+
+    .. math::
+
+      W^{3\beta}_{\delta_1 \rho_1 \sigma_2} \approx U^{3\beta}_{\delta_1 \rho_1}
+
+which is rendered as
+
+.. math::
+
+   W^{3\beta}_{\delta_1 \rho_1 \sigma_2} \approx U^{3\beta}_{\delta_1 \rho_1}
+
+Recent versions of Sphinx include built-in support for math.
+There are three flavors:
+
+  - sphinx.ext.imgmath: uses dvipng to render the equation
+
+  - sphinx.ext.mathjax: renders the math in the browser using Javascript
+
+  - sphinx.ext.jsmath: it&#39;s an older code, but it checks out
+
+Additionally, matplotlib has its own math support:
+
+  - matplotlib.sphinxext.mathmpl
+
+See the matplotlib `mathtext guide
+&lt;https://matplotlib.org/users/mathtext.html&gt;`_ for lots
+more information on writing mathematical expressions in matplotlib.
+
+.. _pyplots:
+
+Inserting matplotlib plots
+==========================
+
+Inserting automatically-generated plots is easy.  Simply put the
+script to generate the plot in the :file:`pyplots` directory, and
+refer to it using the ``plot`` directive.  First make a
+:file:`pyplots` directory at the top level of your project (next to
+:``conf.py``) and copy the :file:`ellipses.py`` file into it::
+
+    home:~/tmp/sampledoc&gt; mkdir pyplots
+    home:~/tmp/sampledoc&gt; cp ../sampledoc_tut/pyplots/ellipses.py pyplots/
+
+
+You can refer to this file in your sphinx documentation; by default it
+will just inline the plot with links to the source and PF and high
+resolution PNGS.  To also include the source code for the plot in the
+document, pass the ``include-source`` parameter::
+
+  .. plot:: pyplots/ellipses.py
+     :include-source:
+
+In the HTML version of the document, the plot includes links to the
+original source code, a high-resolution PNG and a PDF.  In the PDF
+version of the document, the plot is included as a scalable PDF.
+
+.. plot:: pyplots/ellipses.py
+   :include-source:
+
+
+You can also inline code for plots directly, and the code will be
+executed at documentation build time and the figure inserted into your
+docs; the following code::
+
+   .. plot::
+
+      import matplotlib.pyplot as plt
+      import numpy as np
+      x = np.random.randn(1000)
+      plt.hist( x, 20)
+      plt.grid()
+      plt.title(r&#39;Normal: $\mu=%.2f, \sigma=%.2f$&#39;%(x.mean(), x.std()))
+      plt.show()
+
+produces this output:
+
+.. plot::
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+    x = np.random.randn(1000)
+    plt.hist( x, 20)
+    plt.grid()
+    plt.title(r&#39;Normal: $\mu=%.2f, \sigma=%.2f$&#39;%(x.mean(), x.std()))
+    plt.show()
+
+
+See the matplotlib `pyplot tutorial
+&lt;https://matplotlib.org/users/pyplot_tutorial.html&gt;`_ and
+the `gallery &lt;https://matplotlib.org/gallery.html&gt;`_ for
+lots of examples of matplotlib plots.
+
+Inheritance diagrams
+====================
+
+Inheritance diagrams can be inserted directly into the document by
+providing a list of class or module names to the
+``inheritance-diagram`` directive.
+
+For example::
+
+  .. inheritance-diagram:: codecs
+
+produces:
+
+.. inheritance-diagram:: codecs
+
+
+See the :ref:`ipython_directive` for a tutorial on embedding stateful,
+matplotlib aware ipython sessions into your rest docs with multiline
+and doctest support.
+
+.. _extensions-literal:
+
+This file
+=========
+
+.. literalinclude:: extensions.rst
+
+
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Sphinx extensions for embedded plots, math and more</a><ul>
+<li><a class="reference internal" href="#ipython-sessions">ipython sessions</a></li>
+<li><a class="reference internal" href="#using-math">Using math</a></li>
+<li><a class="reference internal" href="#inserting-matplotlib-plots">Inserting matplotlib plots</a></li>
+<li><a class="reference internal" href="#inheritance-diagrams">Inheritance diagrams</a></li>
+<li><a class="reference internal" href="#this-file">This file</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/Untitled Folder/sampledoc-master/extensions.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/Untitled Folder/sampledoc-master/extensions.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

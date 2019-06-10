@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Customizing the look and feel of the site &mdash; Line-Stacker beta documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     'beta',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Line-Stacker beta documentation" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="customizing-the-look-and-feel-of-the-site">
+<span id="custom-look"></span><h1>Customizing the look and feel of the site<a class="headerlink" href="#customizing-the-look-and-feel-of-the-site" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference external" href="http://www.sphinx-doc.org">sphinx</a> site itself looks better than
+the sites created with the default css, so here we&#8217;ll
+invoke T. S. Eliot&#8217;s maxim &#8220;Talent imitates, but genius steals&#8221; and
+grab their css and part of their layout.  As before, you can either
+get the required files <code class="file docutils literal"><span class="pre">_static/default.css</span></code> and
+<code class="file docutils literal"><span class="pre">_templates/layout.html</span></code> from the website or git (see
+<a class="reference internal" href="../../getting_started.html#fetching-the-data"><span>Fetching the data</span></a>).  Since I did a git clone before, I will
+just copy the stuff I need from there:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>home:~/tmp/sampledoc&gt; cp ../sampledoc_tut/_static/default.css _static/
+home:~/tmp/sampledoc&gt; cp ../sampledoc_tut/_templates/layout.html _templates/
+home:~/tmp/sampledoc&gt; ls _static/ _templates/
+_static/:
+basic_screenshot.png        default.css
+
+_templates/:
+layout.html
+</pre></div>
+</div>
+<p>Sphinx will automatically pick up the css and layout html files since
+we put them in the default places with the default names, but we have
+to manually edit the top of <code class="file docutils literal"><span class="pre">layout.html</span></code> to style the title.
+Let&#8217;s take a look at the layout file: the first part puts a horizontal
+navigation bar at the top of our page, like you see on the Sphinx
+and <a class="reference external" href="https://matplotlib.org">matplotlib</a> sites, the second part
+includes a title that when we click on it will take us <cite>home</cite> and the last part
+moves the vertical navigation panels to the right side of the page:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>{% extends &quot;!layout.html&quot; %}
+
+
+{% block rootrellink %}
+        &lt;li&gt;&lt;a href=&quot;{{ pathto(&#39;index&#39;) }}&quot;&gt;home&lt;/a&gt;|&amp;nbsp;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;{{ pathto(&#39;search&#39;) }}&quot;&gt;search&lt;/a&gt;|&amp;nbsp;&lt;/li&gt;
+{% endblock %}
+
+
+{% block relbar1 %}
+
+&lt;div style=&quot;background-color: white; text-align: left; padding: 10px 10px 15px 15px&quot;&gt;
+&lt;a href=&quot;{{ pathto(&#39;index&#39;) }}&quot;&gt;&lt;h1 style=&quot;font-size: 3em;&quot;&gt;Sampledoc&lt;/h1&gt;&lt;/a&gt;
+&lt;/div&gt;
+{{ super() }}
+{% endblock %}
+
+{# put the sidebar before the body #}
+{% block sidebar1 %}{{ sidebar() }}{% endblock %}
+{% block sidebar2 %}{% endblock %}
+</pre></div>
+</div>
+<p>Lastly, we need to modify the html theme in <code class="file docutils literal"><span class="pre">sampledoc/conf.py</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">html_theme</span> <span class="o">=</span> <span class="s1">&#39;sphinxdoc&#39;</span>
+</pre></div>
+</div>
+<p>Once you rebuild the site with a <code class="docutils literal"><span class="pre">make</span> <span class="pre">html</span></code> and reload the page in your browser, you should see a fancier site that looks like this</p>
+<img alt="../../_images/fancy_screenshot.png" src="../../_images/fancy_screenshot.png" />
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/Untitled Folder/sampledoc-master/custom_look.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/Untitled Folder/sampledoc-master/custom_look.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
