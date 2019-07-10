@@ -254,7 +254,7 @@ class Coord:
         else:
             self.weight=np.array([X for i in range(chanWidth)])
 
-    def setZeroWeightLeft(self,numberOfZeroLeftF, chanWidth):
+    def setZeroWeightLeft(self,numberOfZeroLeftF, freqlen):
         """
             function used to ignore spectral bins outside of the stacking spectral window
         """
@@ -263,11 +263,12 @@ class Coord:
             if numberOfZeroLeftF!=0:
                 self.weight=np.concatenate((np.zeros(abs(numberOfZeroLeftF)), self.weight ))
         except TypeError: #if weights are not list
-            self.weight=np.ones(chanWidth)*self.weight
+            self.weight=np.ones(freqlen)*self.weight
             if numberOfZeroLeftF!=0:
-                self.weight[0:abs(numberOfZeroLeftF)]=0
+                #self.weight[0:abs(numberOfZeroLeftF)]=0
+                self.weight=np.concatenate((np.zeros(abs(numberOfZeroLeftF)), self.weight ))
 
-    def setZeroWeightRight(self,numberOfZeroRightF, chanWidth):
+    def setZeroWeightRight(self,numberOfZeroRightF, freqlen):
         """
             function used to ignore spectral bins outside of the stacking spectral window
         """
@@ -275,10 +276,12 @@ class Coord:
             len(self.weight)
             if numberOfZeroRightF!=0:
                 self.weight=np.concatenate((self.weight, np.zeros(numberOfZeroRightF)  ))
+
         except TypeError: #if weights are not list
-            self.weight=np.ones(chanWidth)*self.weight
-        if numberOfZeroRightF!=0:
-            self.weight[-numberOfZeroRightF:]=0
+            self.weight=np.ones(freqlen)*self.weight
+            if numberOfZeroRightF!=0:
+            #self.weight[-numberOfZeroRightF:]=0
+                self.weight=np.concatenate((self.weight, np.zeros(numberOfZeroRightF)  ))
 
 def readCoordsGUI(unit='deg', lineON=True):
     import Tkinter, Tkconstants, tkFileDialog
@@ -318,8 +321,8 @@ def readCoords(coordfiles, unit='deg', lineON=True):
             default 0
     """
     import csv
-    delimiter='\t'
-    #delimiter=','
+    #delimiter='\t'
+    delimiter=','
     coords = CoordList()
     if coordfiles==None:
         print 'coordfile is None, stacking on the center'
@@ -367,6 +370,7 @@ def readCoords(coordfiles, unit='deg', lineON=True):
                     raise Exception('too many rows in coordfile, structure should be x, y, z, w')
                 z = float(row[2])
                 coords.append(Coord(x, y, z=z, weight=weight, image=i))
+
     return coords
 
 

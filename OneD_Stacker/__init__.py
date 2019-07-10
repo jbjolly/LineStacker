@@ -136,23 +136,16 @@ class Image():
         elif self.centralFrequency!=None:
             self.centerIndex=int(round((self.centralFrequency-self.frequencies[0])/self.freqBin))
         if fit:#if fit is on, line parametres are estimated using gaussian fitting
-            try:
-                LineStacker.tools.fit
-            except NameError:
-                import LineStacker.tools.fit
-            #if 'LineStacker.tools.fit' not in sys.modules:
-            #    print 'fit module not imported'
-            #    import LineStacker.tools.fit
-            else:
-                print 'imported'
-            if velOrFreq=='vel':
-                import LineStacker.tools.fit
+            import LineStacker.tools.fit
+
+            if self.velOrFreq=='vel':
+
                 self.gaussfit=LineStacker.tools.fit.GaussFit(     fctToFit=self.amp,
                                                     fullFreq=self.velocities,
                                                     returnInfos=True)
                 self.velCenter=self.gaussfit[1][1]
                 self.centerIndex=int(round((self.velCenter-self.velocities[0])/self.velBin))
-            if velOrFreq=='freq':
+            if self.velOrFreq=='freq':
                 self.gaussfit=LineStacker.tools.fit.GaussFit(     fctToFit=self.amp,
                                                     fullFreq=self.frequencies,
                                                     returnInfos=True)
@@ -168,9 +161,9 @@ class Image():
         elif weights=='sigma2': #weights set to 1 over sigma**2
             if fit:
                 if velOrFreq=='vel':
-                    lineWidthInBins=self.lineWidth/velBin
+                    lineWidthInBins=self.lineWidth/self.velBin
                 else:
-                    lineWidthInBins=self.lineWidth/freqBin
+                    lineWidthInBins=self.lineWidth/self.freqBin
                 leftLimSpectra=int(self.centerIndex-lineWidthInBins*2.35)
                 rightLimSpectra=int(self.centerIndex+lineWidthInBins*2.35)
                 toSTD=[]
@@ -178,6 +171,8 @@ class Image():
                     toSTD.append(self.amp[rightLimSpectra:])
                 if leftLimSpectra>0:
                     toSTD.append(self.amp[:leftLimSpectra])
+                    if rightLimSpectra<len(self.amp)-1:
+                        toSTD=np.concatenate((toSTD[0], toSTD[1]))
                 if toSTD==[]:
                     raise Exception('it seems your line is too large to use sigma2 weighting')
                 self.weights=1./np.std(toSTD)**2
@@ -194,7 +189,21 @@ class Image():
         fObsLine=fEmLine/(1+z)
         deltaF=freq-fObsLine
         return c*((fObsLine/(fObsLine-deltaF))-1)
-
+    def fitAgain(self):
+        import LineStacker.tools.fit
+        if self.velOrFreq=='vel':
+            self.gaussfit=LineStacker.tools.fit.GaussFit(     fctToFit=self.amp,
+                                                fullFreq=self.velocities,
+                                                returnInfos=True)
+            self.velCenter=self.gaussfit[1][1]
+            self.centerIndex=int(round((self.velCenter-self.velocities[0])/self.velBin))
+        if self.velOrFreq=='freq':
+            self.gaussfit=LineStacker.tools.fit.GaussFit(     fctToFit=self.amp,
+                                                fullFreq=self.frequencies,
+                                                returnInfos=True)
+            self.velCenter=self.gaussfit[1][1]
+            self.centerIndex=int(round((self.velCenter-self.frequencies[0])/self.freqBin))
+        self.lineWidth=self.gaussfit[1][2]
 
 def Stack(  Images,
             chansStack='full',
@@ -226,18 +235,12 @@ def Stack(  Images,
             'vel' or 'freq', frequency or velocity mode
 
     """
-
     for (i,image) in enumerate(Images):
         #if image.centerIndex==None:
         if center=='fit':
             #if image.fit==True:
             #    centerIndex=image.centerIndex
             #else: #if the image was not fitted when initiated
-            if 'LineStacker.tools.fit' not in sys.modules:
-                print 'fit module not imported'
-                import LineStacker.tools.fit
-            '''/!\
-            '''
             import LineStacker.tools.fit
             if image.velocities!=[]:
                 tempGaussfit=LineStacker.tools.fit.GaussFit(     fctToFit=image.amp,
@@ -249,7 +252,6 @@ def Stack(  Images,
                 tempGaussfit=LineStacker.tools.fit.GaussFit(     fctToFit=image.amp,
                                                     returnInfos=True)[1]
                 image.centerIndex=tempGaussfit[1]
-
 
         elif center=='zero_vel': #center on v=0km/s
             try:
@@ -293,10 +295,12 @@ def Stack(  Images,
     max_size=[int(max([image.centerIndex for image in Images])),
         int(max([len(image.velocities)-image.centerIndex for image in Images]))] #determine the size of the stack output
     toStack=np.zeros(( len(Images), max_size[0]+max_size[1])) #create an array, to be filled that will be stacked
+    vliko=np.zeros(( len(Images), max_size[0]+max_size[1])) #create an array, to be filled that will be stacked
     for index in range(-max_size[0],max_size[1]):
         for (i,image) in enumerate(Images):
             if 0<=image.centerIndex+index<len(image.amp): #add to stack only if stacked spectrum defined at this distance from center
                 toStack[i][index+max_size[0]]=image.amp[image.centerIndex+index]
+                vliko[i][index+max_size[0]]=image.amp[image.centerIndex+index]
             else:
                 toStack[i][index+max_size[0]]=np.NaN
     stacked=np.zeros(max_size[0]+max_size[1]) #initialize the actual stack output

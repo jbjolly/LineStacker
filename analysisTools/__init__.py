@@ -315,7 +315,7 @@ def rebin_OneD(images):
 	minWidthIndex=1e9
 	allWidth=([0 for i in images])
 	if images[0].fit:
-		for (i, image) in images:
+		for (i, image) in enumerate(images):
 			tempWidth=image.gaussfit[1][2]
 			if tempWidth<minWidth:
 				minWidth=tempWidth
@@ -323,27 +323,50 @@ def rebin_OneD(images):
 			allWidth[i]=tempWidth
 	else:
 		import LineStacker.tools.fit
+		import matplotlib.pyplot as plt
+		fig=plt.figure()
 		for (i, image) in enumerate(images):
 			tempWidth=LineStacker.tools.fit.GaussFit(fctToFit=image.amp, returnInfos=True)[1][2]
+			fitos=LineStacker.tools.fit.GaussFit(fctToFit=image.amp)
+			ax=fig.add_subplot(6,5,i+1)
+			ax.plot(image.amp)
+			ax.plot(fitos,'r')
 			if tempWidth<minWidth:
 				minWidth=tempWidth
 				minWidthIndex=i
 			allWidth[i]=tempWidth
+		fig.show()
 	import copy
 	allNewImages=[]
+
 	for (i, image) in enumerate(images):
 		newImage=copy.deepcopy(image)
 		if i!=minWidthIndex:
 			lenRatio=minWidth/allWidth[i]
 			for attr in vars(newImage):
 				try:
-					len(vars(newImage)[attr])
+					newLen=int(len(vars(newImage)[attr])*lenRatio)
 					if type(vars(newImage)[attr])!=str:
-						newLen=int(len(vars(newImage)[attr])*lenRatio)
-						vars(newImage)[attr]=congrid(np.array(vars(newImage)[attr]), [newLen])
+						if attr=='spectrum':
+							if vars(newImage)[attr].shape[1]==2:
+								vars(newImage)[attr]=congrid(np.array(vars(newImage)[attr]), [newLen, 2])
+							elif vars(newImage)[attr].shape[0]==2:
+								vars(newImage)[attr]=congrid(np.array(vars(newImage)[attr]), [2, newLen])
+						elif attr=='gaussfit':
+							pass
+						else:
+							vars(newImage)[attr]=congrid(np.array(vars(newImage)[attr]), [newLen])
 				except TypeError:
 					pass
+				if attr=='velBin':
+					vars(newImage)[attr]=vars(newImage)[attr]/lenRatio
+				if attr=='freqbin':
+					vars(newImage)[attr]=vars(newImage)[attr]/lenRatio
+
+			if newImage.fit:
+				newImage.fitAgain()
 		allNewImages.append(newImage)
+	print '\nrebinning done\n'
 	return allNewImages
 
 
@@ -382,20 +405,26 @@ def rebin_CubesSpectra(	coords,
 		if coords.coord_type == 'physical':
 			coords = LineStacker.getPixelCoords(coords, imagenames)
 		allWidths=[]
-		minWidth=1e15
+		minWidth=1e30
+		import matplotlib.pyplot as plt
+		fig=plt.figure()
 		for (i,image) in enumerate(coords.imagenames):
 			coord=coords[i]
 			ia.open(image)
 			imageAsArray[i]=ia.getregion()
 			allCoordsSys[i]=ia.coordsys()
 			ia.done()
+			ax=fig.add_subplot(6,5,i+1)
 			if regionSize:
 				pixels=imageAsArray[i][coord.x-int(regionSize/2):coord.x+int(regionSize/2):, coord.y-int(regionSize/2):coord.y+int(regionSize/2),0,:]
-				spectra=sum(pixels, axis=(1,2))
+				spectra=np.sum(pixels, axis=(0,1))
 			else:
 				spectra=imageAsArray[i][coord.x, coord.y,0,:]
-			fitted=fitTools.GaussFit(fctToFit=spectra, returnInfos=True)[1]
-			allWidths.append(fitted[2])
+			fitted=fitTools.GaussFit(fctToFit=spectra, returnInfos=True)
+			ax.plot(spectra)
+			ax.plot(fitted[0], 'r')
+			ax.text(0.2, 0.8, str(fitted[1][2])[:6], horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
+			allWidths.append(fitted[1][2])
 			if allWidths[i]<minWidth:
 				minWidth=allWidths[i]
 	else:
@@ -403,8 +432,8 @@ def rebin_CubesSpectra(	coords,
 		allWidths=widths
 	widthsRatios=minWidth/np.array(allWidths)
 	for (i,image) in enumerate(imagenames):
+		LineStacker.tools.ProgressBar(i,len(coords))
 		if allWidths[i]!=minWidth:
-			LineStacker.tools.ProgressBar(i,len(coords))
 			if widths:
 				ia.open(image)
 				imageAsArray[i]=ia.getregion()
@@ -416,16 +445,43 @@ def rebin_CubesSpectra(	coords,
 			newShape[3]=int(newShape[3]*widthsRatios[i])
 			newShape=[newShape[0],newShape[1],newShape[3]]
 			newArray=congrid(imageAsArray[i][:,:,0,:], newShape)
+
 			newArray=newArray.reshape(newShape[0], newShape[1],1, newShape[2])
 			oldInc=allCoordsSys[i].increment()['numeric'][3]
 			allCoordsSys[i].setincrement(oldInc*imageAsArray[i].shape[3]/newShape[2],type='spectral')
-			rebinName=image+'_SpectralRebinned.image'
-			ia.fromarray(	rebinName,
+			tempOutname=image.split('.')
+			if len(tempOutname)==2:
+				outname=tempOutname[0]+'__ULTIMATE_SpectralRebinned.image'
+			elif tempOutname>2:
+				outname=''
+				for nameSplit in tempOutname[:-2]:
+					outname+=nameSplit+'.'
+				outname+=tempOutname[-2]
+				outname+='__ULTIMATE_SpectralRebinned.image'
+			else:
+				outname=tempOutname+'__ULTIMATE_SpectralRebinned.image'
+			print outname
+			ia.fromarray(	outname,
 							pixels=newArray,
 							csys=allCoordsSys[i].torecord(),
 							overwrite=True)
 			ia.done()
-
+		else:
+			ia.open(image)
+			tempOutname=image.split('.')
+			if len(tempOutname)==2:
+				outname=tempOutname[0]+'__ULTIMATE_SpectralRebinned.image'
+			elif tempOutname>2:
+				outname=''
+				for nameSplit in tempOutname[:-2]:
+					outname+=nameSplit+'.'
+				outname+=tempOutname[-2]
+				outname+='__ULTIMATE_SpectralRebinned.image'
+			else:
+				outname=tempOutname+'__ULTIMATE_SpectralRebinned.image'
+			print outname
+			ia.subimage(outfile=outname, overwrite=True)
+			ia.done()
 def randomizeSample(	sample,
 						minSize=3,
 						maxSize=None):
@@ -464,7 +520,19 @@ def maximizeSNR(spectra):
 	return float(amp)/np.std(toSTD)
 
 def maximizeOutflow(spectra):
-	return
+	import LineStacker.tools.fit as fitTools
+	try:
+		doubleFitos=fitTools.DoubleGaussFit(fctToFit=spectra, returnInfos=True)[1]
+	except RuntimeError:
+		return 0
+	if doubleFitos[0]>doubleFitos[1]:
+		secondCompIndex=1
+		area=doubleFitos[1]*doubleFitos[5]**2
+	else:
+		secondCompIndex=0
+		#area=doubleFitos[0]*doubleFitos[4]
+		area=doubleFitos[0]*doubleFitos[4]**2
+	return area
 
 def subsample_OneD(	images,
 					nRandom=10000,
@@ -501,3 +569,102 @@ def subsample_OneD(	images,
 		for image in newImages:
 			imagesGrades[str(image.name)]+=testResult
 	return imagesGrades
+
+def noise_estimator(    coords,
+                        nrandom=50,
+                        imagenames=[],
+                        stampsize=32,
+                        method='mean',
+                        weighting='sigma2',
+                        maskradius=None,
+                        psfmode='point',
+                        fEm=0,
+                        chanwidth=100):
+    import LineStacker
+    import numpy as np
+    from taskinit import ia, qa
+
+    print 'estimating noise'
+    raise Exception('il faut une condition si Fem==no')
+    ia.open(imagenames[0])
+    cs=ia.coordsys()
+    center=[cs.referencevalue()['numeric'][0], cs.referencevalue()['numeric'][1]]
+    Number_Of_Channels=ia.boundingbox()['trc'][3]+1
+
+    #beam = qa.convert(ia.restoringbeam()['major'], 'rad')['value']
+    #NB: since there are multiple channels, the value of the
+    #restoringbeam is picked from the central frequency
+    beam=qa.convert(ia.restoringbeam(int(Number_Of_Channels/2))['major'], 'rad')['value']
+    print beam
+    mapSizePixels=ia.boundingbox()['trc'][0]-ia.boundingbox()['blc'][0]
+    randomPosRangePix=mapSizePixels/2-stampsize/2
+    autorizedSize=randomPosRangePix*abs(cs.increment()['numeric'][0])
+    randomPosRangeRad=[ [ center[0]-autorizedSize,
+                        center[0]+autorizedSize],
+                        [ center[1]-autorizedSize,
+                        center[1]+autorizedSize]]
+
+    ia.done()
+
+    _allocate_buffers(  imagenames,
+                        stampsize,
+                        len(coords)*len(imagenames),
+                        chanwidth)
+    print 'buffer allocated'
+    dist=([0 for i in range(nrandom)])
+    for i in range(nrandom):
+        '''
+        /!\ z is not random, which means the
+        random coordinate will have the same z as the not random one
+        (CF: stacker.randomizeCoords)
+        '''
+        #random_coords = randomizeCoords(coords, beam=beam)
+        '''/!\ 2 =^ should be :
+        random_coords = stacker.randomizeCoords(coords, beam=beam)
+        mais problem a check sur les bornes du random de dr
+        '''
+        random_coords = LineStacker.randomizeCoords(    coords,
+                                                    beam=beam,
+                                                    posRangeRad=randomPosRangeRad)
+        random_coords = LineStacker.getPixelCoords(random_coords, imagenames)
+        _load_stack(random_coords, psfmode, fEm)
+
+        if method == 'mean' and weighting == 'sigma2':
+            pass
+            '''
+            /!\ a faire ! =v
+            PUIS MODIF _stack_stack PCQ G REMOVE LE TRUC DES WEIGTHS BB
+            '''
+            #random_coords = _calculate_sigma2_weights(random_coords, maskradius)
+        elif method == 'mean' and weighting == 'sigma':
+            pass
+            '''
+            /!\ a faire ! =v
+            '''
+            #random_coords = _calculate_sigma_weights(random_coords, maskradius)
+
+        stacked_im  = _stack_stack(method, random_coords)
+        dist[i]=(stacked_im[int(stampsize/2+0.5), int(stampsize/2+0.5),0,:])
+
+    return [np.std(dist), np.mean(dist), dist]
+
+def randomizeCoords(coords, beam):
+    import random
+    import math
+
+    randomcoords = LineStacker.CoordList(coords.imagenames, coords.coord_type,
+                             unit=coords.unit)
+
+    for coord in coords:
+        dr = random.uniform(5*beam, 10*beam)
+        dphi = random.uniform(0, 2*math.pi)
+        x = coord.x + dr*math.cos(dphi)
+        y = coord.y + dr*math.sin(dphi)
+        '''/1? !!!!!
+        en dessous: .append coord.z, il faut randomize le z aussi ?
+        peut etre peut etre pas ?
+        en tout cas j ai mis ca random
+        '''
+        randomcoords.append(stacker.Coord(x, y, coord.z, coord.weight, coord.image))
+
+    return randomcoords

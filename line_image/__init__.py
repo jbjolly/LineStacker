@@ -42,7 +42,8 @@ def stack(  coords,
             primarybeam = None,
             fEm = 0,
             chanwidth=30,
-            plotIt=False):
+            plotIt=False,
+            **kwargs):
     """
         Performs line stacking in the image domain.
         returns: Estimate of stacked flux assuming point source.
@@ -103,15 +104,14 @@ def stack(  coords,
     #fills skymap and loads data as zeros
     _allocate_buffers(coords.imagenames, stampsize, len(coords), chanwidth)
 
-    if method=='mean' and coords[0].weight==1 and weighting=='sigma2':
-        _calculate_sigma2_weights(coords, maskradius=maskradius)
-    if method=='mean' and coords[0].weight==1 and weighting=='sigma2F':
-        _calculate_sigma2_weights_spectral(coords, maskradius=maskradius)
-    if method=='mean' and coords[0].weight==1 and weighting=='1/A':
-        _calculate_amp_weights(coords)
-
     #fills data with skymap accordingly
     _load_stack(coords, psfmode, fEm=fEm, spectralMethod=spectralMethod)
+    if method=='mean' and weighting=='sigma2':
+        _calculate_sigma2_weights(coords, maskradius=maskradius)
+    if method=='mean' and weighting=='sigma2F':
+        _calculate_sigma2_weights_spectral(coords, maskradius=maskradius)
+    if method=='mean' and weighting=='1/A':
+        _calculate_amp_weights(coords, **kwargs)
 
     #actual stack
     stacked_im  = _stack_stack(method, coords)
@@ -243,7 +243,6 @@ def _allocate_buffers(  imagenames,
     # During stacking this is where the full stack will actually be saved.
     if data == []:
         data = np.zeros((nstackpos, new_stampsize, new_stampsize, outnstokes, new_chanwidth))
-        print data.shape
     else:
         data = 0.*data
 
@@ -269,12 +268,11 @@ def _calculate_sigma2_weights(coords, maskradius=0.):
             pass
         sigma = np.std(tmpdata[np.nonzero(tmpdata)])
         if sigma == 0:
-            coord.weight = 0.
+            coord.weight = coord.weight*0.
         else:
-            coord.weight = 1./sigma**2
+            coord.weight = coord.weight*1./sigma**2
 
 def _calculate_sigma2_weights_spectral(coords, maskradius=0.):
-
     if maskradius>=stampsize:
         raise Exception('the mask radius is bigger than the stamp size')
     if stampsize<=4:
@@ -283,37 +281,44 @@ def _calculate_sigma2_weights_spectral(coords, maskradius=0.):
         X = np.arange(0, stampsize)-int(stampsize/2)
         Y = np.arange(0, stampsize)-int(stampsize/2)
         X,Y = np.meshgrid(X,Y)
-
     for i,coord in enumerate(coords):
         tmpdata = np.copy(data[i,:,:,:,:])
         sigmaF=np.zeros(tmpdata.shape[3])
-
         if maskradius!=0:
             for k in range(tmpdata.shape[3]):
                 for j in range(tmpdata.shape[2]):
                     tmpdata[:,:,j,k]  = (tmpdata[:,:,j,k]*np.double( X**2+Y**2>maskradius**2))
-                sigmaF[k]=np.std(tmpdata[:,:,:,k][np.nonzero(tmpdata[:,:,:,k])])
-
-        for k in range(tmpdata.shape[3]):
-            tmpdata[:,:,:,k]  = (tmpdata[:,:,:,k]*np.double( X**2+Y**2>maskradius**2))
-            sigmaF[k]=np.std(tmpdata[np.nonzero(tmpdata)])
-        sigma = np.std(tmpdata[np.nonzero(tmpdata)])
-        if sigma == 0:
-            coord.weight = 0.
+                sigmaF[k]=np.std(tmpdata[:,:,0,k])#[np.nonzero(tmpdata[:,:,0,k])])
         else:
-            coord.weight = 1./sigma**2
+            for k in range(tmpdata.shape[3]):
+                sigmaF[k]=np.std(tmpdata[:,:,0,k])
+        try:
+            for k in range(len(coord.weight)):
+                if coord.weight[k]==0:
+                    pass
+                else:
+                    coord.weight[k]=1./(sigmaF[k]*sigmaF[k])
 
-def _calculate_amp_weights(coords):
-    for i,coord in enumerate(coords):
-        amp=data[i,coord.x, coord.y, 0, coord.obsSpecArg]
-        coord.weight=1./amp
+        except TypeError:
+            coord.weight=1./(sigmaF*sigmaF)
+
+def _calculate_amp_weights(coords, fit=False):
+    if not fit:
+        for i,coord in enumerate(coords):
+            amp=data[i,int(data.shape[1]/2.), int(data.shape[2]/2.), 0, int(data.shape[4]/2.)]
+            coord.weight=coord.weight*1./amp
+    else:
+        import LineStacker.tools.fit as fitTool
+        for i,coord in enumerate(coords):
+            fitos=fitTool.GaussFit(fctToFit=data[i,int(data.shape[1]/2.), int(data.shape[2]/2.), 0, :], returnInfos=True)
+            amp=fitos[1][0]
+            coord.weight=coord.weight*1./amp
 
 def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False):
     from ..interval import interval
 
     global data
     global unusedFrequencies
-
     listWeights=False
     unusedFrequencies=np.zeros(chanwidth)
     if len(coords) > data.shape[0]:
@@ -321,15 +326,14 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
     #the number of cubes not used at the given spectral bin
     for (i,coord) in enumerate(coords):
         if spectralMethod=='z':
-            obsFreq=fEm/(1+coord.z)
+            obsFreq=fEm/(1.+coord.z)
             obsFreqArg=int(round((obsFreq-imagesInfo['freq0'][coord.image])/imagesInfo['freqBin'][coord.image]))
+
         elif spectralMethod=='centralFreq':
             obsFreq=coord.z
             obsFreqArg=int(round((obsFreq-imagesInfo['freq0'][coord.image])/imagesInfo['freqBin'][coord.image]))
         elif spectralMethod=='channel':
             obsFreqArg=coord.z
-
-
         #coord.obsSpecArg=obsFreqArg
         if coord.obsSpecArg!=0:
             obsFreqArg=coord.obsSpecArg
@@ -346,15 +350,19 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
         if blcf<0:
             listWeights=True
             numberOfZeroLeftF=blcf
-            coords[i].setZeroWeightLeft(numberOfZeroLeftF,chanwidth)
-            #print 'io'
+            coords[i].setZeroWeightLeft(numberOfZeroLeftF,imagesInfo['freqlen'][coord.image])
+            if len(coord.weight)>chanwidth:
+                coord.weight=coord.weight[:chanwidth]
             blcf=0
 
         if trcf>imagesInfo['freqlen'][coord.image]-1:
             listWeights=True
-            numberOfZeroRightF=trcf-imagesInfo['freqlen'][coord.image]+1
-            coords[i].setZeroWeightRight(numberOfZeroRightF, chanwidth)
-            trcf=imagesInfo['freqlen'][coord.image]-1
+            numberOfZeroRightF=trcf-imagesInfo['freqlen'][coord.image]
+            coords[i].setZeroWeightRight(numberOfZeroRightF, imagesInfo['freqlen'][coord.image])
+            trcf=imagesInfo['freqlen'][coord.image]
+            if len(coord.weight)>chanwidth:
+                coord.weight=coord.weight[len(coord.weight)-chanwidth:]
+
 
 # Currently including positions on the edge of the skymap (in space) will raise an error.
 # This could certainly be improved upon.
@@ -373,7 +381,6 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
                 unusedFrequencies[0:-numberOfZeroLeftF]+=1
 
         else:
-            print blcx, trcx, blcy, trcy, imagesInfo['imagesizes'][coord.image][0]-1
             raise Exception('the source located at '+str(coord.x)+' '+str(coord.y)+' on image '+str(coord.image)+' is too close to the edge, trying to stack out of boundaries, try stacking with smaller stampsize')
 
             data[i,:,:,0,:] = 0
@@ -385,16 +392,10 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
             try:
                 len(coord.weight)
             except TypeError:
-                coord.weight=([coord.weight for i in range(chanwidth)])
+                coord.weight=np.array([coord.weight for i in range(chanwidth)])
 
     if Return:
         return data
-    #print ([coord.weight for coord in coords])
-
-    #if numberOfZeros is not np.zeros((len(coords), 2)):
-    #    for i in range(numberOfZeros.shape[0]):
-    #        coords[i].setZeroWeightLeft(numberOfZeros[i][0],chanwidth)
-    #        coords[i].setZeroWeightRight(numberOfZeros[i][1],chanwidth)
 
 def _write_stacked_image(imagename, pixels, template_image, stampsize, chanwidth, fEm):
     import os
@@ -462,7 +463,14 @@ def _stack_stack(method, coords):
         All data should be loaded in to stack before calling this function.
     """
     #pixles array will be filled with the stack values
+    import matplotlib.pyplot as plt
     pixels = np.zeros(data.shape[1:])
+    fig=plt.figure()
+    for i in range(len(coords)):
+        ax=fig.add_subplot(6,5,i+1)
+        ax.plot(data[i,int(data.shape[1]/2),int(data.shape[2]/2),0,:])
+        ax.axvline(int(data.shape[-1]/2.), color='red')
+    fig.show()
 
     if method == 'median':
         pixels = np.median(data[0:len(coords),:,:,:,:], 0)
@@ -470,14 +478,9 @@ def _stack_stack(method, coords):
     elif method == 'mean':
         try:
             len(coords[0].weight)
-            print 'so many weights'
             pixels=myVeryOwnWeightedAverage(data,coords)
         except TypeError:
-            #print data
-            #print data.shape
-            #np.save('coug', np.array( ([coord.weight for coord in coords]) ))
             pixels = np.average(data[0:len(coords),:,:,:,:], axis=0, weights=([coord.weight for coord in coords]))
-            #pixels = np.average(data[0:len(coords),:,:,:,:], axis=0)
 
     return pixels
 
@@ -530,7 +533,6 @@ def noise_estimator(    coords,
     #NB: since there are multiple channels, the value of the
     #restoringbeam is picked from the central frequency
     beam=qa.convert(ia.restoringbeam(int(Number_Of_Channels/2))['major'], 'rad')['value']
-    print beam
     mapSizePixels=ia.boundingbox()['trc'][0]-ia.boundingbox()['blc'][0]
     randomPosRangePix=mapSizePixels/2-stampsize/2
     autorizedSize=randomPosRangePix*abs(cs.increment()['numeric'][0])
@@ -545,8 +547,6 @@ def noise_estimator(    coords,
                         stampsize,
                         len(coords)*len(imagenames),
                         chanwidth)
-    #print 'jambon'
-    #print randomPosRangePix, randomPosRangeRad
     print 'buffer allocated'
     dist=([0 for i in range(nrandom)])
     for i in range(nrandom):
