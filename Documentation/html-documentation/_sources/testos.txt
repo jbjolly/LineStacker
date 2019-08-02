@@ -37,14 +37,5 @@ tools
 .. automodule:: LineStacker.tools
     :members:
 
-Example
-=============================
 
-One dimensional example use of Line-Stacker
-
-.. image:: _static/basic-example-1D.png
-
-With a resulting plot looking like this:
-
-.. image:: _static/1Dstack.png
 

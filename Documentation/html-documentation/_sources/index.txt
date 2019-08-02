@@ -13,11 +13,9 @@ Some example, showing how to use of Line-Stacker, can be found in the example se
 
 .. toctree::
    :maxdepth: 2
-
+	
    testos.rst
-
-
-
+   example.rst
 
 
 Indices and tables

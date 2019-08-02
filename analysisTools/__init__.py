@@ -573,7 +573,7 @@ def stack_estimator(    coords,
 						lowerLimit='default',
 						upperLimit='default',
 						**kwargs):
-    """
+	"""
         Performs stacks at random positions a set number of times.
 		Allows to probe the relevance of stack through stacking random positions
 		as a Monte Carlo process
@@ -602,40 +602,36 @@ def stack_estimator(    coords,
 			Upper spatial limit (distance from stacking position) to random new random position.\n
 			Default is 10 beams
 	"""
-    import LineStacker
-    import numpy as np
-    from taskinit import ia, qa
-
-    print 'estimating stack relevance'
-
-    ia.open(imagenames[0])
-    cs=ia.coordsys()
-    center=[cs.referencevalue()['numeric'][0], cs.referencevalue()['numeric'][1]]
-    Number_Of_Channels=ia.boundingbox()['trc'][3]+1
-
-    #NB: since there are multiple channels, the value of the
-    #restoringbeam is picked from the central frequency
-    beam=qa.convert(ia.restoringbeam(int(Number_Of_Channels/2))['major'], 'rad')['value']
-    ia.done()
-
-    _allocate_buffers(  imagenames,
-                        stampsize,
-                        len(coords),
-                        chanwidth)
-
-    dist=([0 for i in range(nRandom)])
-    for i in range(nRandom):
-        '''
-        /!\\ z is not random, which means the
-        random coordinate will have the same z as the not random one
-        (CF: randomizeCoords)
-        '''
+	
+	import LineStacker
+	import numpy as np
+	from taskinit import ia, qa
+	print 'estimating stack relevance'
+	ia.open(imagenames[0])
+	cs=ia.coordsys()
+	center=[cs.referencevalue()['numeric'][0], cs.referencevalue()['numeric'][1]]
+	Number_Of_Channels=ia.boundingbox()['trc'][3]+1
+	#NB: since there are multiple channels, the value of the
+	#restoringbeam is picked from the central frequency
+	beam=qa.convert(ia.restoringbeam(int(Number_Of_Channels/2))['major'], 'rad')['value']
+	ia.done()
+	_allocate_buffers(	imagenames,
+						stampsize,
+						len(coords),
+						chanwidth)
+	dist=([0 for i in range(nRandom)])
+	'''
+	/!\\ z is not random, which means the
+	random coordinate will have the same z as the not random one
+	(CF: randomizeCoords)
+	'''
+	for i in range(nRandom):
 		random_coords = randomizeCoords(	coords,
 											beam=beam,
 											lowerLimit=lowerLimit,
 											upperLimit=upperLimit)
 
-        random_coords = LineStacker.getPixelCoords(random_coords, imagenames)
+		random_coords = LineStacker.getPixelCoords(random_coords, imagenames)
         _load_stack(	random_coords,
 						psfmode,
 						fEm=fEm,
@@ -645,14 +641,13 @@ def stack_estimator(    coords,
 		#from the stack of random positions only the
 		#spectrum of the central pixel is kept
         dist[i]=(stacked_im[int(stampsize/2+0.5), int(stampsize/2+0.5),0,:])
-
-    return [np.std(dist), np.mean(dist), dist]
+	return [np.std(dist), np.mean(dist), dist]
 
 def randomizeCoords(	coords,
-						beam=beam,
+						beam=0,
 						lowerLimit='default',
 						upperLimit='default'):
-    """
+	"""
         Function to randomize stacking coordinates, new ramdom position uniformally randomized, centered on the original stacking coordinate
 
         Parameters
@@ -668,20 +663,21 @@ def randomizeCoords(	coords,
 			Upper spatial limit (distance from stacking position) to random new random position.\n
 			Default is 10 beams
 	"""
-    import numpy as np
-    import math
+
+	import numpy as np
+	import math
 	if lowerLimit=='default':
 		lowerLimit=beam*5.
 	if upperLimit=='default':
 		upperLimit=beam*10.
-    randomcoords = LineStacker.CoordList(coords.imagenames, coords.coord_type,
-                             unit=coords.unit)
+	randomcoords = LineStacker.CoordList(	coords.imagenames,
+											coords.coord_type,
+                             				unit=coords.unit)
 
-    for coord in coords:
-        dr = np.random.uniform(lowerLimit, upperLimit)
+	for coord in coords:
+		dr = np.random.uniform(lowerLimit, upperLimit)
         dphi = np.random.uniform(0, 2*math.pi)
         x = coord.x + dr*math.cos(dphi)
         y = coord.y + dr*math.sin(dphi)
         randomcoords.append(stacker.Coord(x, y, coord.z, coord.weight, coord.image))
-
-    return randomcoords
+	return randomcoords
