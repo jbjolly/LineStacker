@@ -1,18 +1,15 @@
 import LineStacker
 import LineStacker.line_image
 
+#coordinates files are selected using the GUI
 coordNames=LineStacker.readCoordsNamesGUI()
 coords=LineStacker.readCoords(coordNames)
+
+#image names are identical to coordinates files, with '.image' replacing '_coords.txt'
 imagenames=([coord.strip('_coords.txt')+'.image' for coord in coordNames])
 
+#because redshift is used to identify the line center, the emission frequency is also provided
 stacked=LineStacker.line_image.stack(   coords,
                                         imagenames=imagenames,
-                                        fEm=1900.548e9,
+                                        fEm=1897420620253.1646,
                                         stampsize=16)
-
-import matplotlib.pyplot as plt
-
-fig=plt.figure()
-ax=fig.add_subplot(111)
-ax.plot(stacked[0])
-fig.show()

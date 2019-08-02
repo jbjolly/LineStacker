@@ -4,12 +4,6 @@ import numpy as np
 	Library including statistical tools for stacking
 """
 
-#if 'numpy' not in sys.modules:
-#	import numpy as np
-#	print 'sdadasd'
-#else:
-#	print 'axczxczcxz
-
 def bootstraping_OneD(	Images,
 						nRandom=1000,
 						chansStack='full',
@@ -570,101 +564,124 @@ def subsample_OneD(	images,
 			imagesGrades[str(image.name)]+=testResult
 	return imagesGrades
 
-def noise_estimator(    coords,
-                        nrandom=50,
+def stack_estimator(    coords,
+                        nRandom=100,
                         imagenames=[],
-                        stampsize=32,
+                        stampsize=1,
                         method='mean',
-                        weighting='sigma2',
-                        maskradius=None,
-                        psfmode='point',
-                        fEm=0,
-                        chanwidth=100):
+                        chanwidth=30,
+						lowerLimit='default',
+						upperLimit='default',
+						**kwargs):
+    """
+        Performs stacks at random positions a set number of times.
+		Allows to probe the relevance of stack through stacking random positions
+		as a Monte Carlo process
+
+
+        returns: Estimate of stacked flux assuming point source.
+
+        Parameters
+        ---------
+        coords
+            A coordList object of all target coordinates.
+	    nRandom
+			Number of itterations
+        imagenames
+            Name of imagenames to stack
+        stampsize
+			Size of the stamp to stack (because only the central pixel is extracted anyway, this should be kept to default to enhance efficiency)
+    	method
+			Method for stacking, see LineStacker.line_image.stack
+        chanwidth
+			Number of channels in the stack
+		lowerLimit
+			Lower spatial limit (distance from stacking position) to random new random position.\n
+			Default is 5 beams
+		upperLimit
+			Upper spatial limit (distance from stacking position) to random new random position.\n
+			Default is 10 beams
+	"""
     import LineStacker
     import numpy as np
     from taskinit import ia, qa
 
-    print 'estimating noise'
-    raise Exception('il faut une condition si Fem==no')
+    print 'estimating stack relevance'
+
     ia.open(imagenames[0])
     cs=ia.coordsys()
     center=[cs.referencevalue()['numeric'][0], cs.referencevalue()['numeric'][1]]
     Number_Of_Channels=ia.boundingbox()['trc'][3]+1
 
-    #beam = qa.convert(ia.restoringbeam()['major'], 'rad')['value']
     #NB: since there are multiple channels, the value of the
     #restoringbeam is picked from the central frequency
     beam=qa.convert(ia.restoringbeam(int(Number_Of_Channels/2))['major'], 'rad')['value']
-    print beam
-    mapSizePixels=ia.boundingbox()['trc'][0]-ia.boundingbox()['blc'][0]
-    randomPosRangePix=mapSizePixels/2-stampsize/2
-    autorizedSize=randomPosRangePix*abs(cs.increment()['numeric'][0])
-    randomPosRangeRad=[ [ center[0]-autorizedSize,
-                        center[0]+autorizedSize],
-                        [ center[1]-autorizedSize,
-                        center[1]+autorizedSize]]
-
     ia.done()
 
     _allocate_buffers(  imagenames,
                         stampsize,
-                        len(coords)*len(imagenames),
+                        len(coords),
                         chanwidth)
-    print 'buffer allocated'
-    dist=([0 for i in range(nrandom)])
-    for i in range(nrandom):
-        '''
-        /!\ z is not random, which means the
-        random coordinate will have the same z as the not random one
-        (CF: stacker.randomizeCoords)
-        '''
-        #random_coords = randomizeCoords(coords, beam=beam)
-        '''/!\ 2 =^ should be :
-        random_coords = stacker.randomizeCoords(coords, beam=beam)
-        mais problem a check sur les bornes du random de dr
-        '''
-        random_coords = LineStacker.randomizeCoords(    coords,
-                                                    beam=beam,
-                                                    posRangeRad=randomPosRangeRad)
-        random_coords = LineStacker.getPixelCoords(random_coords, imagenames)
-        _load_stack(random_coords, psfmode, fEm)
 
-        if method == 'mean' and weighting == 'sigma2':
-            pass
-            '''
-            /!\ a faire ! =v
-            PUIS MODIF _stack_stack PCQ G REMOVE LE TRUC DES WEIGTHS BB
-            '''
-            #random_coords = _calculate_sigma2_weights(random_coords, maskradius)
-        elif method == 'mean' and weighting == 'sigma':
-            pass
-            '''
-            /!\ a faire ! =v
-            '''
-            #random_coords = _calculate_sigma_weights(random_coords, maskradius)
+    dist=([0 for i in range(nRandom)])
+    for i in range(nRandom):
+        '''
+        /!\\ z is not random, which means the
+        random coordinate will have the same z as the not random one
+        (CF: randomizeCoords)
+        '''
+		random_coords = randomizeCoords(	coords,
+											beam=beam,
+											lowerLimit=lowerLimit,
+											upperLimit=upperLimit)
+
+        random_coords = LineStacker.getPixelCoords(random_coords, imagenames)
+        _load_stack(	random_coords,
+						psfmode,
+						fEm=fEm,
+						spectralMethod=spectralMethod)
 
         stacked_im  = _stack_stack(method, random_coords)
+		#from the stack of random positions only the
+		#spectrum of the central pixel is kept
         dist[i]=(stacked_im[int(stampsize/2+0.5), int(stampsize/2+0.5),0,:])
 
     return [np.std(dist), np.mean(dist), dist]
 
-def randomizeCoords(coords, beam):
-    import random
-    import math
+def randomizeCoords(	coords,
+						beam=beam,
+						lowerLimit='default',
+						upperLimit='default'):
+    """
+        Function to randomize stacking coordinates, new ramdom position uniformally randomized, centered on the original stacking coordinate
 
+        Parameters
+        ---------
+        coords
+            A coordList object of all target coordinates.
+	    beam
+			beam size, used for default values of random range
+		lowerLimit
+			Lower spatial limit (distance from stacking position) to random new random position.\n
+			Default is 5 beams
+		upperLimit
+			Upper spatial limit (distance from stacking position) to random new random position.\n
+			Default is 10 beams
+	"""
+    import numpy as np
+    import math
+	if lowerLimit=='default':
+		lowerLimit=beam*5.
+	if upperLimit=='default':
+		upperLimit=beam*10.
     randomcoords = LineStacker.CoordList(coords.imagenames, coords.coord_type,
                              unit=coords.unit)
 
     for coord in coords:
-        dr = random.uniform(5*beam, 10*beam)
-        dphi = random.uniform(0, 2*math.pi)
+        dr = np.random.uniform(lowerLimit, upperLimit)
+        dphi = np.random.uniform(0, 2*math.pi)
         x = coord.x + dr*math.cos(dphi)
         y = coord.y + dr*math.sin(dphi)
-        '''/1? !!!!!
-        en dessous: .append coord.z, il faut randomize le z aussi ?
-        peut etre peut etre pas ?
-        en tout cas j ai mis ca random
-        '''
         randomcoords.append(stacker.Coord(x, y, coord.z, coord.weight, coord.image))
 
     return randomcoords

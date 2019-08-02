@@ -81,7 +81,7 @@ def stack(  coords,
         chanwidth
             number of channels of the resulting stack,
         plotIt
-            direct plot option):
+            direct plot option
     """
 
     from ..interval import interval
@@ -436,8 +436,6 @@ def  Weights_freq_image(imagename):
         thisImWeights[freqbin]=1./(sigma*sigma)
     return thisImWeights
 
-
-
 def myVeryOwnWeightedAverage(data,coords):
 
     #if weights for each frequencies and not just for each image
@@ -465,12 +463,6 @@ def _stack_stack(method, coords):
     #pixles array will be filled with the stack values
     import matplotlib.pyplot as plt
     pixels = np.zeros(data.shape[1:])
-    fig=plt.figure()
-    for i in range(len(coords)):
-        ax=fig.add_subplot(6,5,i+1)
-        ax.plot(data[i,int(data.shape[1]/2),int(data.shape[2]/2),0,:])
-        ax.axvline(int(data.shape[-1]/2.), color='red')
-    fig.show()
 
     if method == 'median':
         pixels = np.median(data[0:len(coords),:,:,:,:], 0)
@@ -483,104 +475,3 @@ def _stack_stack(method, coords):
             pixels = np.average(data[0:len(coords),:,:,:,:], axis=0, weights=([coord.weight for coord in coords]))
 
     return pixels
-
-
-def randomizeCoords(coords, beam):
-    import random
-    import math
-
-    randomcoords = LineStacker.CoordList(coords.imagenames, coords.coord_type,
-                             unit=coords.unit)
-
-    for coord in coords:
-        dr = random.uniform(5*beam, 10*beam)
-        dphi = random.uniform(0, 2*math.pi)
-        x = coord.x + dr*math.cos(dphi)
-        y = coord.y + dr*math.sin(dphi)
-        '''/1? !!!!!
-        en dessous: .append coord.z, il faut randomize le z aussi ?
-        peut etre peut etre pas ?
-        en tout cas j ai mis ca random
-        '''
-        randomcoords.append(stacker.Coord(x, y, coord.z, coord.weight, coord.image))
-
-    return randomcoords
-
-
-
-def noise_estimator(    coords,
-                        nrandom=50,
-                        imagenames=[],
-                        stampsize=32,
-                        method='mean',
-                        weighting='sigma2',
-                        maskradius=None,
-                        psfmode='point',
-                        fEm=0,
-                        chanwidth=100):
-    import LineStacker
-    import numpy as np
-    from taskinit import ia, qa
-
-    print 'estimating noise'
-    raise Exception('il faut une condition si Fem==no')
-    ia.open(imagenames[0])
-    cs=ia.coordsys()
-    center=[cs.referencevalue()['numeric'][0], cs.referencevalue()['numeric'][1]]
-    Number_Of_Channels=ia.boundingbox()['trc'][3]+1
-
-    #beam = qa.convert(ia.restoringbeam()['major'], 'rad')['value']
-    #NB: since there are multiple channels, the value of the
-    #restoringbeam is picked from the central frequency
-    beam=qa.convert(ia.restoringbeam(int(Number_Of_Channels/2))['major'], 'rad')['value']
-    mapSizePixels=ia.boundingbox()['trc'][0]-ia.boundingbox()['blc'][0]
-    randomPosRangePix=mapSizePixels/2-stampsize/2
-    autorizedSize=randomPosRangePix*abs(cs.increment()['numeric'][0])
-    randomPosRangeRad=[ [ center[0]-autorizedSize,
-                        center[0]+autorizedSize],
-                        [ center[1]-autorizedSize,
-                        center[1]+autorizedSize]]
-
-    ia.done()
-
-    _allocate_buffers(  imagenames,
-                        stampsize,
-                        len(coords)*len(imagenames),
-                        chanwidth)
-    print 'buffer allocated'
-    dist=([0 for i in range(nrandom)])
-    for i in range(nrandom):
-        '''
-        /!\ z is not random, which means the
-        random coordinate will have the same z as the not random one
-        (CF: stacker.randomizeCoords)
-        '''
-        #random_coords = randomizeCoords(coords, beam=beam)
-        '''/!\ 2 =^ should be :
-        random_coords = stacker.randomizeCoords(coords, beam=beam)
-        mais problem a check sur les bornes du random de dr
-        '''
-        random_coords = LineStacker.randomizeCoords(    coords,
-                                                    beam=beam,
-                                                    posRangeRad=randomPosRangeRad)
-        random_coords = LineStacker.getPixelCoords(random_coords, imagenames)
-        _load_stack(random_coords, psfmode, fEm)
-
-        if method == 'mean' and weighting == 'sigma2':
-            pass
-            '''
-            /!\ a faire ! =v
-            PUIS MODIF _stack_stack PCQ G REMOVE LE TRUC DES WEIGTHS BB
-            '''
-            #random_coords = _calculate_sigma2_weights(random_coords, maskradius)
-        elif method == 'mean' and weighting == 'sigma':
-            pass
-            '''
-            /!\ a faire ! =v
-            '''
-            #random_coords = _calculate_sigma_weights(random_coords, maskradius)
-
-        stacked_im  = _stack_stack(method, random_coords)
-        dist[i]=(stacked_im[int(stampsize/2+0.5), int(stampsize/2+0.5),0,:])
-
-    return [np.std(dist), np.mean(dist), dist]
