@@ -1,52 +1,47 @@
+'''
+**LineStacker.analysisTools Module:**\n
+Module containing statistical/analysis tools for stacking.
+'''
+
 import sys
 import numpy as np
-"""
-	Library including statistical tools for stacking
-"""
 
 def bootstraping_OneD(	Images,
 						nRandom=1000,
 						chansStack='full',
 						method='mean',
-						center='z',
+						center='lineCenterIndex',
 						velOrFreq='vel',
 						save='all'):
 
 	"""
-        Performs bootstrapping stack of spectra,
-		see stacker.OneD_Stacker.stack for further information on stack parametres
+        Performs bootstrapping stack of spectra. See stacker.OneD_Stacker.stack for further information on stack parametres.
+
         Parameters
         ---------
+
 		Images
 			a list of stacker.OneD_Stacker.Images
 		nRandom
-			number of boostrap itterations\n
-			default is 1000
+			number of boostrap itterations
 		chansStack
-			number of channels to stack, either a fixed number or 'full' for entire spectra\n
-			default is 'full'
+			number of channels to stack, either a fixed number or 'full' for entire spectra
 		method
-			stacking method, 'mean' or 'median'\n
-			default is 'mean'
+			stacking method, 'mean' or 'median'
 		center
-			method to center spectra\n
-			possible values are 'z', 'fit', 'zero_vel', 'center' or user input (must be int)\n
-			see stacker.OneD_Stacker.stack for further information on centering methods
-			default is 'z'
+			Method to center spectra.
+			See stacker.OneD_Stacker.stack for further information on centering methods.
 		velOrFreq
 			velocity or frequency mode (chose according to your spectral axis type)\n
-			possible values are 'vel' or 'freq'\n
-			default is 'vel'
+			possible values are 'vel' or 'freq'
 		save
 			data to save at each bootstrap itterations\n
-			possible values are 'all', 'amp' and 'ampAndWidth'\n
-			'all' saves the full stack at each bootstrap itteration /!\\ caution, can be memory expensive\n
-			'amp' saves the amplitude of the line (maximum value of the stack) at each bootstrap itteration, fastest\n
-			'ampAndWidth' fits the line with a gaussian and saves the corresponding amplitude and width at each bootstrap itteration, can be cpu exppensive\n
-			default is 'all'
+			possible values are **'all'**, **'amp'** and **'ampAndWidth'**\n
+			**'all'** saves the full stack at each bootstrap itteration /!\\ caution, can be memory expensive\n
+			**'amp'** saves the amplitude of the line (maximum value of the stack) at each bootstrap itteration, fastest\n
+			**'ampAndWidth'** fits the line with a gaussian and saves the corresponding amplitude and width at each bootstrap itteration, can be cpu exppensive.
     """
-	if 'stacker.OneD_Stacker' not in sys.modules:
-		import LineStacker.OneD_Stacker
+	import LineStacker.OneD_Stacker
 
 	if not isinstance(Images[0], LineStacker.OneD_Stacker.Image):
 		raise Exception('images must belong to the Image class of stacker.OneD_Stacker please initialize your images accordingly')
@@ -109,8 +104,8 @@ def bootStraping_Cube(	coords,
 						save='amp'):#'all', 'amp', 'ampAndWidth'
 
 	"""
-        Performs bootstrapping stack of cubes,
-		see stacker.line_image.stack for further information on stack parametres
+        Performs bootstrapping stack of cubes. See stacker.line_image.stack for further information on stack parametres
+
         Parameters
         ---------
 		coords
@@ -118,37 +113,31 @@ def bootStraping_Cube(	coords,
 		outfile
 			Target name for stacked image
 		stampsize
-			size of target image in pixels\n
-			default is 32
+			size of target image in pixels
 		imagenames
 			Name of images to extract cubes from
 		method
-			stacking method, 'mean' or 'median'\n
-			default is 'mean'
+			stacking method, 'mean' or 'median'
 		weighting
 			weighting method to use if stacking method is mean\n
 			possible values are 'sigma2', 'sigma2F', '1/A', 'None', 1 or user input (float)\n
 			see stacker.line-image for a complete description of weighting methods\n
-			default is None
 		maskradius
-			radius of the mask used to blank the centre pixels in weight calculation\n
-			default is 0
+			radius of the mask used to blank the centre pixels in weight calculation
 		fEm
 			rest emission frequency of the line
 		chanwidth
 			number of channels of the resulting stack
 		nRandom
-			number of boostrap itterations\n
-			default is 1000
+			number of boostrap itterations
 		save
 			data to save at each bootstrap itterations\n
-			possible values are 'all', 'amp' and 'ampAndWidth'\n
-			'all' saves the full stack at each bootstrap itteration /!\\ caution, can be memory expensive\n
-			'amp' saves the amplitude (maximum value of the stack) of the line, at each bootstrap itteration, fastest\n
-			'ampAndWidth' fits the line with a gaussian and saves the corresponding amplitude and width at each bootstrap itteration, can be cpu exppensive\n
-			'ouflow' fits the line with two gaussian components and saves the stack parameters at each bootstrap itteration, can be cpu exppensive\n
-			for 'amp', 'ampAndWidth' and 'ouflow' the line is obtained by summing all pixels inside the stack stamp\n
-			default is 'all'
+			possible values are **'all'**, **'amp'**, **'ampAndWidth'** and **'outflow'**\n
+			**'all'** saves the full stack at each bootstrap itteration /!\\ caution, can be memory expensive\n
+			**'amp'** saves the amplitude (maximum value of the stack) of the line, at each bootstrap itteration, fastest\n
+			**'ampAndWidth'** fits the line with a gaussian and saves the corresponding amplitude and width at each bootstrap itteration, can be cpu exppensive\n
+			**'ouflow'** fits the line with two gaussian components and saves the stack parameters at each bootstrap itteration, can be cpu exppensive\n
+			for 'amp', 'ampAndWidth' and 'ouflow' the line is obtained by summing all pixels inside the stack stamp.
 
     """
 
@@ -217,6 +206,41 @@ def bootStraping_Cube(	coords,
 def congrid(a, newdims, method='linear', centre=False, minusone=False):
 	import scipy.interpolate
 	import scipy.ndimage
+	'''
+	function extracted from:
+	https://scipy-cookbook.readthedocs.io/items/Rebinning.html
+
+	Copyright (c) 2001, 2002 Enthought, Inc.
+	All rights reserved.
+	Copyright (c) 2003-2017 SciPy Developers.
+	All rights reserved.
+	'''
+
+	'''Arbitrary resampling of source array to new dimension sizes.
+    Currently only supports maintaining the same number of dimensions.
+    To use 1-D arrays, first promote them to shape (x,1).
+
+    Uses the same parameters and creates the same co-ordinate lookup points
+    as IDL''s congrid routine, which apparently originally came from a VAX/VMS
+    routine of the same name.
+
+    method:
+    neighbour - closest value from original data
+    nearest and linear - uses n x 1-D interpolations using
+                         scipy.interpolate.interp1d
+    (see Numerical Recipes for validity of use of n 1-D interpolations)
+    spline - uses ndimage.map_coordinates
+
+    centre:
+    True - interpolation points are at the centres of the bins
+    False - points are at the front edge of the bin
+
+    minusone:
+    For example- inarray.shape = (i,j) & new dimensions = (x,y)
+    False - inarray is resampled by factors of (i/x) * (j/y)
+    True - inarray is resampled by(i-1)/(x-1) * (j-1)/(y-1)
+    This prevents extrapolation one element beyond bounds of input array.
+    '''
 
 	if not a.dtype in [np.float64, np.float32]:
 	    a = np.cast[float](a)
@@ -296,13 +320,15 @@ def congrid(a, newdims, method='linear', centre=False, minusone=False):
 
 def rebin_OneD(images):
 	"""
-        Rebin a list of images so that all width have the same width as the smallest width\r
-		/!\\ Lines must be visible before stacking to operate rebinning
+        Rebin a list of images so that all width have the same width as the smallest width\n
+	**/!\\\\ Lines must be visible before stacking to operate rebinning**
+
         Parameters
         ---------
-		images
-			A list of stacker.OneD_Stacker.images
-	"""
+        images
+            A list of stacker.OneD_Stacker.images
+    """
+
 	import scipy.interpolate
 	import scipy.ndimage
 	minWidth=1e9
@@ -317,19 +343,13 @@ def rebin_OneD(images):
 			allWidth[i]=tempWidth
 	else:
 		import LineStacker.tools.fit
-		import matplotlib.pyplot as plt
-		fig=plt.figure()
 		for (i, image) in enumerate(images):
 			tempWidth=LineStacker.tools.fit.GaussFit(fctToFit=image.amp, returnInfos=True)[1][2]
 			fitos=LineStacker.tools.fit.GaussFit(fctToFit=image.amp)
-			ax=fig.add_subplot(6,5,i+1)
-			ax.plot(image.amp)
-			ax.plot(fitos,'r')
 			if tempWidth<minWidth:
 				minWidth=tempWidth
 				minWidthIndex=i
 			allWidth[i]=tempWidth
-		fig.show()
 	import copy
 	allNewImages=[]
 
@@ -367,12 +387,13 @@ def rebin_OneD(images):
 def rebin_CubesSpectra(	coords,
 						imagenames,
 						regionSize=False,
-						widths=False):
+						widths=False,
+						outputName='_SpectralRebinned'):
 
 	"""
-        Rebin a list of image-cubes so that all width have the same width as the smallest width\r
-		/!\\ Lines must be visible before stacking to operate rebinning\r
-		/!\\ Only one coord per image is necessary for rebinning
+        Rebin a list of image-cubes so that all width have the same width as the smallest width\n
+	**/!\\\\ Lines must be visible before stacking to operate rebinning**\n
+	/!\\\\ Only one coord per image is necessary for rebinning
 
         Parameters
         ---------
@@ -381,17 +402,20 @@ def rebin_CubesSpectra(	coords,
 		imagenames
 			Name of images to rebin
 		regionSize
-			size (in pixels) to extract the spectra from\r
-			if set to False, spectra will be extracted solely from the coord pixel
+			size (in pixels) to extract the spectra from\n
+			If set to False spectra will be extracted solely from the coord pixel
 		widths
-			widths of the lines\r
-			if set to 'False' the spectra will be fitted with a gaussian to extract the width
+			widths of the lines\n
+			If set to 'False' the spectra will be fitted with a gaussian to extract the width
+		outputName
+			Suffix of the rebinned cube, to add to the original cube name.
 	"""
 
 	print 'rebinning...\r'
 	from taskinit import ia
 	#NB:ONE LINE PER CUBE, duh
 	import LineStacker.tools
+	rebinnedImageNames=([0 for i in imagenames])
 	imageAsArray=([0 for i in coords])
 	allCoordsSys=([0 for i in coords])
 	if not widths:
@@ -400,24 +424,18 @@ def rebin_CubesSpectra(	coords,
 			coords = LineStacker.getPixelCoords(coords, imagenames)
 		allWidths=[]
 		minWidth=1e30
-		import matplotlib.pyplot as plt
-		fig=plt.figure()
 		for (i,image) in enumerate(coords.imagenames):
 			coord=coords[i]
 			ia.open(image)
 			imageAsArray[i]=ia.getregion()
 			allCoordsSys[i]=ia.coordsys()
 			ia.done()
-			ax=fig.add_subplot(6,5,i+1)
 			if regionSize:
 				pixels=imageAsArray[i][coord.x-int(regionSize/2):coord.x+int(regionSize/2):, coord.y-int(regionSize/2):coord.y+int(regionSize/2),0,:]
 				spectra=np.sum(pixels, axis=(0,1))
 			else:
 				spectra=imageAsArray[i][coord.x, coord.y,0,:]
 			fitted=fitTools.GaussFit(fctToFit=spectra, returnInfos=True)
-			ax.plot(spectra)
-			ax.plot(fitted[0], 'r')
-			ax.text(0.2, 0.8, str(fitted[1][2])[:6], horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
 			allWidths.append(fitted[1][2])
 			if allWidths[i]<minWidth:
 				minWidth=allWidths[i]
@@ -445,16 +463,15 @@ def rebin_CubesSpectra(	coords,
 			allCoordsSys[i].setincrement(oldInc*imageAsArray[i].shape[3]/newShape[2],type='spectral')
 			tempOutname=image.split('.')
 			if len(tempOutname)==2:
-				outname=tempOutname[0]+'__ULTIMATE_SpectralRebinned.image'
+				outname=tempOutname[0]+outputName+'.image'
 			elif tempOutname>2:
 				outname=''
 				for nameSplit in tempOutname[:-2]:
 					outname+=nameSplit+'.'
 				outname+=tempOutname[-2]
-				outname+='__ULTIMATE_SpectralRebinned.image'
+				outname+=outputName+'.image'
 			else:
-				outname=tempOutname+'__ULTIMATE_SpectralRebinned.image'
-			print outname
+				outname=tempOutname+outputName+'.image'
 			ia.fromarray(	outname,
 							pixels=newArray,
 							csys=allCoordsSys[i].torecord(),
@@ -464,18 +481,21 @@ def rebin_CubesSpectra(	coords,
 			ia.open(image)
 			tempOutname=image.split('.')
 			if len(tempOutname)==2:
-				outname=tempOutname[0]+'__ULTIMATE_SpectralRebinned.image'
+				outname=tempOutname[0]+outputName+'.image'
 			elif tempOutname>2:
 				outname=''
 				for nameSplit in tempOutname[:-2]:
 					outname+=nameSplit+'.'
 				outname+=tempOutname[-2]
-				outname+='__ULTIMATE_SpectralRebinned.image'
+				outname+=outputName+'.image'
 			else:
-				outname=tempOutname+'__ULTIMATE_SpectralRebinned.image'
-			print outname
+				outname=tempOutname+outputName+'.image'
 			ia.subimage(outfile=outname, overwrite=True)
 			ia.done()
+		rebinnedImageNames[i]=outname
+
+	return rebinnedImageNames
+
 def randomizeSample(	sample,
 						minSize=3,
 						maxSize=None):
@@ -534,7 +554,7 @@ def subsample_OneD(	images,
 					**kwargs):
 	'''
 		Randomly ressamples spectra and grades them accordingly
-		to a given grade function
+		to a given grade function. Returns the grade of each spectra as a dictionnary.
 
 		Parameters
 		---------
@@ -544,12 +564,13 @@ def subsample_OneD(	images,
 		nRandom
 			Number of itterations of the Monte-Carlo process
 		maxTest
-			function test to grade the sources\r
-			build your own, or use existing: maximizeAmp, maximizeSNR, maximizeOutflow
+			function test to grade the sources\n
+			build your own, or use existing: **maximizeAmp**, **maximizeSNR**, **maximizeOutflow**. \n Default is to maximize amplitude (amplitude being simply maximum value of spectra).
 		Any other argument for LineStacker.OneD_Stacker.Stack
 	'''
 	import LineStacker.tools
 	import LineStacker.OneD_Stacker
+	print '\nSubsampling...\n'
 	imagesGrades={}
 	for (i,image) in enumerate(images):
 		if image.name=='':
@@ -575,9 +596,7 @@ def stack_estimator(    coords,
 						**kwargs):
 	"""
         Performs stacks at random positions a set number of times.
-		Allows to probe the relevance of stack through stacking random positions
-		as a Monte Carlo process
-
+	Allows to probe the relevance of stack through stacking random positions as a Monte Carlo process.
 
         returns: Estimate of stacked flux assuming point source.
 
@@ -585,7 +604,7 @@ def stack_estimator(    coords,
         ---------
         coords
             A coordList object of all target coordinates.
-	    nRandom
+        nRandom
 			Number of itterations
         imagenames
             Name of imagenames to stack
@@ -595,14 +614,14 @@ def stack_estimator(    coords,
 			Method for stacking, see LineStacker.line_image.stack
         chanwidth
 			Number of channels in the stack
-		lowerLimit
-			Lower spatial limit (distance from stacking position) to random new random position.\n
+        lowerLimit
+			Lower spatial limit (distance from stacking position) to randomize new stacking position.\n
 			Default is 5 beams
-		upperLimit
-			Upper spatial limit (distance from stacking position) to random new random position.\n
+        upperLimit
+			Upper spatial limit (distance from stacking position) to randomize new stacking position.\n
 			Default is 10 beams
 	"""
-	
+
 	import LineStacker
 	import numpy as np
 	from taskinit import ia, qa
@@ -653,15 +672,15 @@ def randomizeCoords(	coords,
         Parameters
         ---------
         coords
-            A coordList object of all target coordinates.
-	    beam
-			beam size, used for default values of random range
-		lowerLimit
+            A list of stacker.Coord coordinates
+        lowerLimit
 			Lower spatial limit (distance from stacking position) to random new random position.\n
 			Default is 5 beams
-		upperLimit
+        upperLimit
 			Upper spatial limit (distance from stacking position) to random new random position.\n
 			Default is 10 beams
+        beam
+			beam size, needed if lowerLimit or upperLimit are set to 'default'
 	"""
 
 	import numpy as np

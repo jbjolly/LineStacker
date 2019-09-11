@@ -47,75 +47,113 @@
 <span id="testos"></span><h1>LineStacker<a class="headerlink" href="#linestacker" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-LineStacker">
 <span id="main"></span><h2>main<a class="headerlink" href="#module-LineStacker" title="Permalink to this headline">¶</a></h2>
-<p>Library to stack interferometric images.</p>
+<p><strong>LineStacker Module:</strong></p>
+<p>Main Stacker module. Contains all basic functions.</p>
 <dl class="class">
 <dt id="LineStacker.Coord">
 <em class="property">class </em><code class="descclassname">LineStacker.</code><code class="descname">Coord</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z=0</em>, <em>obsSpecArg=0</em>, <em>weight=1</em>, <em>image=0</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.Coord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Describes a stacking position on an image.</p>
 <p>Class used internally to represent coordinates. May describe a
 physical coordinate or a pixel coordinate.</p>
-<dl class="method">
-<dt id="LineStacker.Coord.setWeightToX">
-<code class="descname">setWeightToX</code><span class="sig-paren">(</span><em>X</em>, <em>chanWidth=0</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.Coord.setWeightToX" title="Permalink to this definition">¶</a></dt>
-<dd><p>sets the weight of the image to X,</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="LineStacker.Coord.setZeroWeightLeft">
-<code class="descname">setZeroWeightLeft</code><span class="sig-paren">(</span><em>numberOfZeroLeftF</em>, <em>freqlen</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.Coord.setZeroWeightLeft" title="Permalink to this definition">¶</a></dt>
-<dd><p>function used to ignore spectral bins outside of the stacking spectral window</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="LineStacker.Coord.setZeroWeightRight">
-<code class="descname">setZeroWeightRight</code><span class="sig-paren">(</span><em>numberOfZeroRightF</em>, <em>freqlen</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.Coord.setZeroWeightRight" title="Permalink to this definition">¶</a></dt>
-<dd><p>function used to ignore spectral bins outside of the stacking spectral window</p>
-</dd></dl>
-
+<p>Init: Creates a coordinate. A pixel coordinate should always specify
+to which image it belongs. Physical coordinates should be in
+J2000 radians.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>x</strong> &#8211; x coordinate of stacking target</li>
+<li><strong>y</strong> &#8211; y coordinate of stacking target</li>
+<li><strong>z</strong> &#8211; redshift of stacking target</li>
+<li><strong>obsSpecArg</strong> &#8211; argument of spectral bin on which to center the stack, will be computed from <strong>z</strong> and <strong>fEm</strong> if not specified</li>
+<li><strong>weight</strong> &#8211; Weight of the. source in case of mean stacking.
+Default is 1.</li>
+<li><strong>image</strong> &#8211; Index of the image associated to the source.
+Automatically set with <strong>LineStacker.readCoords</strong>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="class">
 <dt id="LineStacker.CoordList">
 <em class="property">class </em><code class="descclassname">LineStacker.</code><code class="descname">CoordList</code><span class="sig-paren">(</span><em>imagenames=[]</em>, <em>coord_type='physical'</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.CoordList" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extended list to contain list of coordinates.</p>
+<p>Requires an image list in case of pixel coordinates to work properly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>imagenames</strong> &#8211; A list of image names, requiered for pixle coordinates to work properly.</li>
+<li><strong>coord_type</strong> &#8211; <strong>&#8216;physical&#8217;</strong> or <strong>&#8216;pixel&#8217;</strong>. <strong>&#8216;physical&#8217;</strong> coordinates should be converted to pixels using <strong>LineStacker.getPixelCoords</strong> before stacking.</li>
+<li><strong>unit</strong> &#8211; can be <strong>&#8216;rad&#8217;</strong>, <strong>&#8216;deg&#8217;</strong> or <strong>&#8216;pix&#8217;</strong>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="LineStacker.getPixelCoords">
 <code class="descclassname">LineStacker.</code><code class="descname">getPixelCoords</code><span class="sig-paren">(</span><em>coords</em>, <em>imagenames</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.getPixelCoords" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates pixel coordinate list from a physical coordinate
-list and a list of images.
-:param coords: a list of stacker.Coord coordinates
-:param imagenames: a list of images&#8217; paths</p>
+list and a list of images.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coords</strong> &#8211; A list of stacker.Coord coordinates.</li>
+<li><strong>imagenames</strong> &#8211; A list of images&#8217; paths.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="LineStacker.randomCoords">
 <code class="descclassname">LineStacker.</code><code class="descname">randomCoords</code><span class="sig-paren">(</span><em>imagenames</em>, <em>ncoords=10</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.randomCoords" title="Permalink to this definition">¶</a></dt>
-<dd><p>Randomize a set of coordinates anywhere on any images
-:param imagenames: a list of images paths
-:param ncoords: number of random coordinates</p>
-<blockquote>
-<div>default is 10</div></blockquote>
+<dd><p>Randomize a set of coordinates anywhere on any images.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>imagenames</strong> &#8211; A list of images paths.</li>
+<li><strong>ncoords</strong> &#8211; Number of random coordinates. Default is 10.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="LineStacker.randomizeCoords">
 <code class="descclassname">LineStacker.</code><code class="descname">randomizeCoords</code><span class="sig-paren">(</span><em>coords</em>, <em>beam</em>, <em>maxBeamRange=5</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.randomizeCoords" title="Permalink to this definition">¶</a></dt>
 <dd><p>Randomize a new set of coordinates at a distance
-[beam, maxBeamRange*beam] of the original coordinates
-:param coords: list of original coordinates (stacker.Coord instances)
-:param beam: beam size is radians,</p>
-<blockquote>
-<div>new random coordinates will be at a minimum distance beam
-from the original coordinates</div></blockquote>
+[beam, maxBeamRange*beam] of the original coordinates</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>maxBeamRange</strong> &#8211; maximum distance from original coordinates
-at which new coordinates can be located, in units of beams
-default is 5</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coords</strong> &#8211; list of original coordinates (stacker.Coord instances)</li>
+<li><strong>beam</strong> &#8211; beam size is radians,
+new random coordinates will be at a minimum distance beam
+from the original coordinates.</li>
+<li><strong>maxBeamRange</strong> &#8211; maximum distance from original coordinates
+at which new coordinates can be located, in units of beams.
+Default is 5.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -124,26 +162,27 @@ default is 5</td>
 <dl class="function">
 <dt id="LineStacker.readCoords">
 <code class="descclassname">LineStacker.</code><code class="descname">readCoords</code><span class="sig-paren">(</span><em>coordfiles</em>, <em>unit='deg'</em>, <em>lineON=True</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.readCoords" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads coordinate files from disk and produces a list.
-/!To each image should be associated one single coord file.
-:param coordfiles: List of path to coordinate files. Files in csv format. x and y should</p>
-<blockquote>
-<div>be in J2000. If using to stack line, redshift should be in the third column.
-A weight may be added in the last column to weight positions for mean stacking.
-If set to None stacking position is defined as the center of each cube</div></blockquote>
+<dd><p>Reads coordinate files from disk and produces a list./!\ To each image should be associated one single coord file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>unit</strong> &#8211; Unit of input coordinates. Allows two values, &#8216;deg&#8217; and &#8216;rad&#8217;.</li>
-<li><strong>lineON</strong> &#8211; either True or False, should be set to True if doing line stacking
-default 0</li>
+<li><strong>coordfiles</strong> &#8211; List of path to coordinate files. Files in csv format. x and y should be in J2000. If using to stack line, redshift should be in the third column. A weight may be added in the last column to weight positions for mean stacking. If set to <strong>None</strong> stacking position is defined as the center of each cube.</li>
+<li><strong>unit</strong> &#8211; Unit of input coordinates. Allows two values, <strong>&#8216;deg&#8217;</strong> and <strong>&#8216;rad&#8217;</strong>.</li>
+<li><strong>lineON</strong> &#8211; Either <strong>True</strong> or <strong>False</strong>, should be set to <strong>True</strong> if doing line stacking. Default is <strong>True</strong>.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="LineStacker.readCoordsNamesGUI">
+<code class="descclassname">LineStacker.</code><code class="descname">readCoordsNamesGUI</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.readCoordsNamesGUI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open GUI to select coordinates files.</p>
+<p>Returns path of selected files.</p>
 </dd></dl>
 
 <dl class="function">
@@ -167,9 +206,68 @@ default 0</li>
 </div>
 <div class="section" id="module-LineStacker.line_image">
 <span id="line-image"></span><h2>line_image<a class="headerlink" href="#module-LineStacker.line_image" title="Permalink to this headline">¶</a></h2>
+<p><strong>LineStacker.line_image Module:</strong></p>
+<p>Module for cube line stacking.</p>
+<dl class="function">
+<dt id="LineStacker.line_image.calculate_amp_weights">
+<code class="descclassname">LineStacker.line_image.</code><code class="descname">calculate_amp_weights</code><span class="sig-paren">(</span><em>coords</em>, <em>fit=False</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.calculate_amp_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets weights of each coord to one over the line amplitude.</p>
+<p><strong>/!\ only use if lines are visible pre-stacking</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coords</strong> &#8211; A coordList object of all target coordinates.</li>
+<li><strong>fit</strong> &#8211; <p>If set to <strong>True</strong>, spectra will be extracted from each coordinate pixel and fited with a gaussian. The gaussian&#8217;s extracted amplitude will be used as the line&#8217;s amplitude.</p>
+<p>If set to <strong>False</strong>, the line&#8217;s amplitude is set to the value of the brightest spectral bin of each coordinate pixel.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="LineStacker.line_image.calculate_sigma2_weights">
+<code class="descclassname">LineStacker.line_image.</code><code class="descname">calculate_sigma2_weights</code><span class="sig-paren">(</span><em>coords</em>, <em>maskradius=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.calculate_sigma2_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes standard deviation of data cubes and sets weights to one over sigma**2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coords</strong> &#8211; A coordList object of all target coordinates.</li>
+<li><strong>maskradius</strong> &#8211; Radius (in pixel) of the mask, centered on coordinate center, to avoid including pixels close to source in noise computation.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="LineStacker.line_image.calculate_sigma2_weights_spectral">
+<code class="descclassname">LineStacker.line_image.</code><code class="descname">calculate_sigma2_weights_spectral</code><span class="sig-paren">(</span><em>coords</em>, <em>maskradius=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.calculate_sigma2_weights_spectral" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes standard deviation of data cubes in every spectral channel and sets weights to one over sigma**2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coords</strong> &#8211; A coordList object of all target coordinates.</li>
+<li><strong>maskradius</strong> &#8211; Radius (in pixel) of the mask, centered on coordinate center, to avoid including pixels close to source in noise computation.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="function">
 <dt id="LineStacker.line_image.stack">
-<code class="descclassname">LineStacker.line_image.</code><code class="descname">stack</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile='stackResult'</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>spectralMethod='z'</em>, <em>weighting=None</em>, <em>maskradius=0</em>, <em>psfmode='point'</em>, <em>primarybeam=None</em>, <em>fEm=0</em>, <em>chanwidth=30</em>, <em>plotIt=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.stack" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">LineStacker.line_image.</code><code class="descname">stack</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile='stackResult.image'</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>spectralMethod='z'</em>, <em>weighting=None</em>, <em>maskradius=0</em>, <em>psfmode='point'</em>, <em>primarybeam=None</em>, <em>fEm=0</em>, <em>chanwidth='default'</em>, <em>plotIt=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.stack" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs line stacking in the image domain.
 returns: Estimate of stacked flux assuming point source.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -183,20 +281,23 @@ Target name for stacked image.</li>
 <li><strong>stampsize</strong> &#8211; size of target image in pixels</li>
 <li><strong>imagenames</strong> &#8211; Name of images to extract flux from.</li>
 <li><strong>method</strong> &#8211; &#8216;mean&#8217; or &#8216;median&#8217;, will determined how pixels are calculated</li>
-<li><strong>spectralMethod</strong> &#8211; <p>How to select the central frequency of the stack</p>
-<p>The corresponding value should be found in the 3rd column of the coord file</p>
-<p>possible methods are:</p>
-<p>&#8216;z&#8217;: the redshift of the observed line,
-additionaly fEm (emission frequency) must be informed (as an argument of this Stack function)
-&#8216;centralFreq&#8217;: the (observed) central frequency, or velocity</p>
-<p>&#8216;channel&#8217;: to dirrectly input the channel number of the center of the stack</p>
+<li><strong>spectralMethod</strong> &#8211; <p>Method to select the central frequency of the stack. The corresponding value should be found in the 3rd column of the coord file. Possible methods are:</p>
+<p><strong>&#8216;z&#8217;</strong>: the redshift of the observed line, if used
+<strong>fEm</strong> (emission frequency) must be informed as an argument of this Stack function.</p>
+<p><strong>&#8216;centralFreq&#8217;</strong>: the (observed) central frequency, or velocity.</p>
+<p><strong>&#8216;channel&#8217;</strong>: to dirrectly input the channel number of the center of the stack.</p>
 </li>
-<li><strong>weighting</strong> &#8211; only for method &#8216;mean&#8217;, if set to None will use weights in coords.</li>
+<li><strong>weighting</strong> &#8211; <p>used if method set to <strong>&#8216;mean&#8217;</strong>, possible values are:</p>
+<p><strong>&#8216;sigma2&#8217;</strong>, weights are set to 1/sigma**2 where sigma is the standard deviation of the corresponding data cube (excluding masked region). See <strong>calculate_sigma2_weights</strong></p>
+<p><strong>&#8216;sigma2F&#8217;</strong>, similar to <strong>sigma2</strong> except weights are individually computed for each spectral bin. See <strong>calculate_sigma2_weights_spectral</strong></p>
+<p><strong>&#8216;1/A&#8217;</strong>, <strong>/!\ only use if lines are visible pre-stacking</strong>, weights are set to one over the line amplitude. See <strong>calculate_amp_weights</strong></p>
+<p><strong>None</strong>, using weights in coords (set to 1 by default).</p>
+</li>
 <li><strong>maskradius</strong> &#8211; allows blanking of centre pixels in weight calculation</li>
 <li><strong>psfmode</strong> &#8211; Allows application of filters to stacking, currently not supported.</li>
 <li><strong>primarybeam</strong> &#8211; only applies if weighting=&#8217;pb&#8217;</li>
 <li><strong>fEm</strong> &#8211; rest emission frequency of the line,</li>
-<li><strong>chanwidth</strong> &#8211; number of channels of the resulting stack,</li>
+<li><strong>chanwidth</strong> &#8211; number of channels of the resulting stack, default is number of channels in the first image.</li>
 <li><strong>plotIt</strong> &#8211; direct plot option</li>
 </ul>
 </td>
@@ -208,29 +309,86 @@ additionaly fEm (emission frequency) must be informed (as an argument of this St
 </div>
 <div class="section" id="module-LineStacker.OneD_Stacker">
 <span id="oned-stacker"></span><h2>OneD_Stacker<a class="headerlink" href="#module-LineStacker.OneD_Stacker" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="LineStacker.OneD_Stacker.Stack">
-<code class="descclassname">LineStacker.OneD_Stacker.</code><code class="descname">Stack</code><span class="sig-paren">(</span><em>Images</em>, <em>chansStack='full'</em>, <em>method='mean'</em>, <em>center='lineCenterIndex'</em>, <em>velOrFreq='vel'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.OneD_Stacker.Stack" title="Permalink to this definition">¶</a></dt>
-<dd><p>Main (one dimmensional) stacking function
-requieres list of Image objects
-:param Images: list of images, images have to objects of the Image class (LineStacker.OneD_Stacker.Image)
-:param chansStack: number of channels to stack</p>
-<blockquote>
-<div>set to &#8216;full&#8217; to stack all channels from all images
-user input (int) otherwise</div></blockquote>
+<p><strong>LineStacker.OneD_Stacker Module:</strong></p>
+<p>Module for one dimensional line stacking.</p>
+<dl class="class">
+<dt id="LineStacker.OneD_Stacker.Image">
+<em class="property">class </em><code class="descclassname">LineStacker.OneD_Stacker.</code><code class="descname">Image</code><span class="sig-paren">(</span><em>spectrum=[]</em>, <em>amp=[]</em>, <em>velocities=[]</em>, <em>frequencies=[]</em>, <em>z=None</em>, <em>fEmLine=False</em>, <em>centerIndex=None</em>, <em>centralVelocity=None</em>, <em>centralFrequency=None</em>, <em>weights=1</em>, <em>name=''</em>, <em>fit=False</em>, <em>velOrFreq='vel'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.OneD_Stacker.Image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Image class, each object is a spectrum to stack,
+containing all necessary information to be stacked
+they can consist simply of a the flux array,
+or flux and corresponding spectral values</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>method</strong> &#8211; stacking method, &#8216;mean&#8217; and &#8216;median&#8217; supported</li>
-<li><strong>center</strong> &#8211; method to find central frequency of the stack, possible values are
-&#8220;center&#8221;, to stack all spectra center to center,
-&#8216;fit&#8217; to use gaussian fitting on the spectrum to determine line center
-&#8216;zero_vel&#8217; to stack on velocity=0 bin
-&#8216;lineCenterIndex&#8217; use the line center initiated with the image
-dirrectly defined by the user (int)</li>
-<li><strong>velOrFreq</strong> &#8211; &#8216;vel&#8217; or &#8216;freq&#8217;, frequency or velocity mode</li>
+<li><strong>coords</strong> &#8211; A coordList object of all target coordinates.</li>
+<li><strong>spectrum</strong> &#8211; Spectrum should be of the shape [N,2] or [2,N],
+where N is the number of spectral bins.
+The second dimension being the flux
+and the first the spectral values.</li>
+<li><strong>amp</strong> &#8211; Instead of defining spectrum one can define only the amplitude (flux).</li>
+<li><strong>velocities=[]</strong> &#8211; In the case where amp is defined
+it is still possible to define the velocites</li>
+<li><strong>frequencies=[]</strong> &#8211; In the case where amp is defined
+it is still possible to define the frequencies</li>
+<li><strong>z</strong> &#8211; Redshift, one of the possible way to define central frequency.
+If using redshift <strong>fEmLine</strong> (emission frequency of the line) should also be defined.</li>
+<li><strong>fEmLine</strong> &#8211; Emission frequency of the line, needed if redshift argument is used.</li>
+<li><strong>centerIndex</strong> &#8211; channel index of the line center, an other possible way to define line center.</li>
+<li><strong>centralFrequency</strong> &#8211; (observed) Frequency of the line center, an other possible way to define line center.</li>
+<li><strong>centralVelocity</strong> &#8211; Observed velocity of the line center, an other possible way to define line center.</li>
+<li><strong>weights</strong> &#8211; <p>The weighting scheme to use.</p>
+<p>Can be set to <strong>&#8216;1/A&#8217;</strong> or <strong>&#8216;sigma2&#8217;</strong>.
+If <strong>sigma2</strong> is used std of the entire spectra is used UNLESS, <strong>fit</strong> is set to <strong>True</strong>, in which case the central part around the line is excluded from std calculation (central here means one FWHM on each side of the center of the line).</p>
+<p>Alternativelly user input can be used, float or list (or array)</p>
+</li>
+<li><strong>name</strong> &#8211; name of the image, can allow easier identification</li>
+<li><strong>fit</strong> &#8211; If fit is set to <strong>True</strong>, the spectrum will be fitted with a gaussian to try and identify the line center (as well as amplitude if weight is set to 1/A)</li>
+<li><strong>velOrFreq</strong> &#8211; Defining if spectral dimension is velocity or frequency.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="LineStacker.OneD_Stacker.Image.freqToVel">
+<code class="descname">freqToVel</code><span class="sig-paren">(</span><em>freq</em>, <em>z</em>, <em>fEmLine</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.OneD_Stacker.Image.freqToVel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to go from frequencies to velocites.
+Requieres rest emission frequency and redshift.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="LineStacker.OneD_Stacker.Image.velToFreq">
+<code class="descname">velToFreq</code><span class="sig-paren">(</span><em>vel</em>, <em>z</em>, <em>fEmLine</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.OneD_Stacker.Image.velToFreq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to go from velocites to frequencies.
+Requieres rest emission frequency and redshift.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="LineStacker.OneD_Stacker.Stack">
+<code class="descclassname">LineStacker.OneD_Stacker.</code><code class="descname">Stack</code><span class="sig-paren">(</span><em>Images</em>, <em>chansStack='full'</em>, <em>method='mean'</em>, <em>center='lineCenterIndex'</em>, <em>velOrFreq='vel'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.OneD_Stacker.Stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main (one dimmensional) stacking function.</p>
+<p>Requieres list of Image objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Images</strong> &#8211; List of images, images have to objects of the Image class (LineStacker.OneD_Stacker.Image).</li>
+<li><strong>chansStack</strong> &#8211; Number of channels to stack. Set to &#8216;full&#8217; to stack all channels from all images. User input (int) otherwise</li>
+<li><strong>method</strong> &#8211; stacking method, <strong>&#8216;mean&#8217;</strong> and <strong>&#8216;median&#8217;</strong> supported</li>
+<li><strong>center</strong> &#8211; <p>Method to find central frequency of the stack, possible values are:</p>
+<p><strong>&#8220;center&#8221;</strong>, to stack all spectra center to center,</p>
+<p><strong>&#8216;fit&#8217;</strong> to use gaussian fitting on the spectrum to determine line center,</p>
+<p><strong>&#8216;zero_vel&#8217;</strong> to stack on velocity=0 bin,</p>
+<p><strong>&#8216;lineCenterIndex&#8217;</strong> use the line center initiated with the image,</p>
+<p>Or dirrectly defined by the user (int)</p>
+</li>
+<li><strong>velOrFreq</strong> &#8211; <strong>&#8216;vel&#8217;</strong> or <strong>&#8216;freq&#8217;</strong>, frequency or velocity mode.</li>
 </ul>
 </td>
 </tr>
@@ -241,13 +399,12 @@ dirrectly defined by the user (int)</li>
 </div>
 <div class="section" id="module-LineStacker.analysisTools">
 <span id="analysistools"></span><h2>analysisTools<a class="headerlink" href="#module-LineStacker.analysisTools" title="Permalink to this headline">¶</a></h2>
+<p><strong>LineStacker.analysisTools Module:</strong></p>
+<p>Module containing statistical/analysis tools for stacking.</p>
 <dl class="function">
 <dt id="LineStacker.analysisTools.bootStraping_Cube">
 <code class="descclassname">LineStacker.analysisTools.</code><code class="descname">bootStraping_Cube</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>weighting=None</em>, <em>maxmaskradius=0</em>, <em>fEm=0</em>, <em>chanwidth=30</em>, <em>nRandom=1000</em>, <em>save='amp'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.bootStraping_Cube" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Performs bootstrapping stack of cubes,</dt>
-<dd>see stacker.line_image.stack for further information on stack parametres</dd>
-</dl>
+<dd><p>Performs bootstrapping stack of cubes. See stacker.line_image.stack for further information on stack parametres</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -255,34 +412,24 @@ dirrectly defined by the user (int)</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>coords</strong> &#8211; A stacker.coordList object of all target coordinates</li>
 <li><strong>outfile</strong> &#8211; Target name for stacked image</li>
-<li><strong>stampsize</strong> &#8211; <p>size of target image in pixels</p>
-<p>default is 32</p>
-</li>
+<li><strong>stampsize</strong> &#8211; size of target image in pixels</li>
 <li><strong>imagenames</strong> &#8211; Name of images to extract cubes from</li>
-<li><strong>method</strong> &#8211; <p>stacking method, &#8216;mean&#8217; or &#8216;median&#8217;</p>
-<p>default is &#8216;mean&#8217;</p>
-</li>
+<li><strong>method</strong> &#8211; stacking method, &#8216;mean&#8217; or &#8216;median&#8217;</li>
 <li><strong>weighting</strong> &#8211; <p>weighting method to use if stacking method is mean</p>
 <p>possible values are &#8216;sigma2&#8217;, &#8216;sigma2F&#8217;, &#8216;1/A&#8217;, &#8216;None&#8217;, 1 or user input (float)</p>
 <p>see stacker.line-image for a complete description of weighting methods</p>
-<p>default is None</p>
 </li>
-<li><strong>maskradius</strong> &#8211; <p>radius of the mask used to blank the centre pixels in weight calculation</p>
-<p>default is 0</p>
-</li>
+<li><strong>maskradius</strong> &#8211; radius of the mask used to blank the centre pixels in weight calculation</li>
 <li><strong>fEm</strong> &#8211; rest emission frequency of the line</li>
 <li><strong>chanwidth</strong> &#8211; number of channels of the resulting stack</li>
-<li><strong>nRandom</strong> &#8211; <p>number of boostrap itterations</p>
-<p>default is 1000</p>
-</li>
+<li><strong>nRandom</strong> &#8211; number of boostrap itterations</li>
 <li><strong>save</strong> &#8211; <p>data to save at each bootstrap itterations</p>
-<p>possible values are &#8216;all&#8217;, &#8216;amp&#8217; and &#8216;ampAndWidth&#8217;</p>
-<p>&#8216;all&#8217; saves the full stack at each bootstrap itteration /!caution, can be memory expensive</p>
-<p>&#8216;amp&#8217; saves the amplitude (maximum value of the stack) of the line, at each bootstrap itteration, fastest</p>
-<p>&#8216;ampAndWidth&#8217; fits the line with a gaussian and saves the corresponding amplitude and width at each bootstrap itteration, can be cpu exppensive</p>
-<p>&#8216;ouflow&#8217; fits the line with two gaussian components and saves the stack parameters at each bootstrap itteration, can be cpu exppensive</p>
-<p>for &#8216;amp&#8217;, &#8216;ampAndWidth&#8217; and &#8216;ouflow&#8217; the line is obtained by summing all pixels inside the stack stamp</p>
-<p>default is &#8216;all&#8217;</p>
+<p>possible values are <strong>&#8216;all&#8217;</strong>, <strong>&#8216;amp&#8217;</strong>, <strong>&#8216;ampAndWidth&#8217;</strong> and <strong>&#8216;outflow&#8217;</strong></p>
+<p><strong>&#8216;all&#8217;</strong> saves the full stack at each bootstrap itteration /!caution, can be memory expensive</p>
+<p><strong>&#8216;amp&#8217;</strong> saves the amplitude (maximum value of the stack) of the line, at each bootstrap itteration, fastest</p>
+<p><strong>&#8216;ampAndWidth&#8217;</strong> fits the line with a gaussian and saves the corresponding amplitude and width at each bootstrap itteration, can be cpu exppensive</p>
+<p><strong>&#8216;ouflow&#8217;</strong> fits the line with two gaussian components and saves the stack parameters at each bootstrap itteration, can be cpu exppensive</p>
+<p>for &#8216;amp&#8217;, &#8216;ampAndWidth&#8217; and &#8216;ouflow&#8217; the line is obtained by summing all pixels inside the stack stamp.</p>
 </li>
 </ul>
 </td>
@@ -293,41 +440,27 @@ dirrectly defined by the user (int)</li>
 
 <dl class="function">
 <dt id="LineStacker.analysisTools.bootstraping_OneD">
-<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">bootstraping_OneD</code><span class="sig-paren">(</span><em>Images</em>, <em>nRandom=1000</em>, <em>chansStack='full'</em>, <em>method='mean'</em>, <em>center='z'</em>, <em>velOrFreq='vel'</em>, <em>save='all'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.bootstraping_OneD" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Performs bootstrapping stack of spectra,</dt>
-<dd>see stacker.OneD_Stacker.stack for further information on stack parametres</dd>
-</dl>
+<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">bootstraping_OneD</code><span class="sig-paren">(</span><em>Images</em>, <em>nRandom=1000</em>, <em>chansStack='full'</em>, <em>method='mean'</em>, <em>center='lineCenterIndex'</em>, <em>velOrFreq='vel'</em>, <em>save='all'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.bootstraping_OneD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs bootstrapping stack of spectra. See stacker.OneD_Stacker.stack for further information on stack parametres.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>Images</strong> &#8211; a list of stacker.OneD_Stacker.Images</li>
-<li><strong>nRandom</strong> &#8211; <p>number of boostrap itterations</p>
-<p>default is 1000</p>
-</li>
-<li><strong>chansStack</strong> &#8211; <p>number of channels to stack, either a fixed number or &#8216;full&#8217; for entire spectra</p>
-<p>default is &#8216;full&#8217;</p>
-</li>
-<li><strong>method</strong> &#8211; <p>stacking method, &#8216;mean&#8217; or &#8216;median&#8217;</p>
-<p>default is &#8216;mean&#8217;</p>
-</li>
-<li><strong>center</strong> &#8211; <p>method to center spectra</p>
-<p>possible values are &#8216;z&#8217;, &#8216;fit&#8217;, &#8216;zero_vel&#8217;, &#8216;center&#8217; or user input (must be int)</p>
-<p>see stacker.OneD_Stacker.stack for further information on centering methods
-default is &#8216;z&#8217;</p>
-</li>
+<li><strong>nRandom</strong> &#8211; number of boostrap itterations</li>
+<li><strong>chansStack</strong> &#8211; number of channels to stack, either a fixed number or &#8216;full&#8217; for entire spectra</li>
+<li><strong>method</strong> &#8211; stacking method, &#8216;mean&#8217; or &#8216;median&#8217;</li>
+<li><strong>center</strong> &#8211; Method to center spectra.
+See stacker.OneD_Stacker.stack for further information on centering methods.</li>
 <li><strong>velOrFreq</strong> &#8211; <p>velocity or frequency mode (chose according to your spectral axis type)</p>
 <p>possible values are &#8216;vel&#8217; or &#8216;freq&#8217;</p>
-<p>default is &#8216;vel&#8217;</p>
 </li>
 <li><strong>save</strong> &#8211; <p>data to save at each bootstrap itterations</p>
-<p>possible values are &#8216;all&#8217;, &#8216;amp&#8217; and &#8216;ampAndWidth&#8217;</p>
-<p>&#8216;all&#8217; saves the full stack at each bootstrap itteration /!caution, can be memory expensive</p>
-<p>&#8216;amp&#8217; saves the amplitude of the line (maximum value of the stack) at each bootstrap itteration, fastest</p>
-<p>&#8216;ampAndWidth&#8217; fits the line with a gaussian and saves the corresponding amplitude and width at each bootstrap itteration, can be cpu exppensive</p>
-<p>default is &#8216;all&#8217;</p>
+<p>possible values are <strong>&#8216;all&#8217;</strong>, <strong>&#8216;amp&#8217;</strong> and <strong>&#8216;ampAndWidth&#8217;</strong></p>
+<p><strong>&#8216;all&#8217;</strong> saves the full stack at each bootstrap itteration /!caution, can be memory expensive</p>
+<p><strong>&#8216;amp&#8217;</strong> saves the amplitude of the line (maximum value of the stack) at each bootstrap itteration, fastest</p>
+<p><strong>&#8216;ampAndWidth&#8217;</strong> fits the line with a gaussian and saves the corresponding amplitude and width at each bootstrap itteration, can be cpu exppensive.</p>
 </li>
 </ul>
 </td>
@@ -344,20 +477,16 @@ default is &#8216;z&#8217;</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> &#8211; <p>A coordList object of all target coordinates.
-beam</p>
-<blockquote>
-<div><blockquote>
-<div>beam size, used for default values of random range</div></blockquote>
-<dl class="docutils">
-<dt>lowerLimit</dt>
-<dd>Lower spatial limit (distance from stacking position) to random new random position.<p class="last">Default is 5 beams</p>
-</dd>
-<dt>upperLimit</dt>
-<dd>Upper spatial limit (distance from stacking position) to random new random position.<p class="last">Default is 10 beams</p>
-</dd>
-</dl>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coords</strong> &#8211; A list of stacker.Coord coordinates</li>
+<li><strong>lowerLimit</strong> &#8211; <p>Lower spatial limit (distance from stacking position) to random new random position.</p>
+<p>Default is 5 beams</p>
+</li>
+<li><strong>upperLimit</strong> &#8211; <p>Upper spatial limit (distance from stacking position) to random new random position.</p>
+<p>Default is 10 beams</p>
+</li>
+<li><strong>beam</strong> &#8211; beam size, needed if lowerLimit or upperLimit are set to &#8216;default&#8217;</li>
+</ul>
 </td>
 </tr>
 </tbody>
@@ -366,12 +495,10 @@ beam</p>
 
 <dl class="function">
 <dt id="LineStacker.analysisTools.rebin_CubesSpectra">
-<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">rebin_CubesSpectra</code><span class="sig-paren">(</span><em>coords</em>, <em>imagenames</em>, <em>regionSize=False</em>, <em>widths=False</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.rebin_CubesSpectra" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Rebin a list of image-cubes so that all width have the same width as the smallest width</dt>
-<dd>/!Lines must be visible before stacking to operate rebinning
-/!Only one coord per image is necessary for rebinning</dd>
-</dl>
+<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">rebin_CubesSpectra</code><span class="sig-paren">(</span><em>coords</em>, <em>imagenames</em>, <em>regionSize=False</em>, <em>widths=False</em>, <em>outputName='_SpectralRebinned'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.rebin_CubesSpectra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rebin a list of image-cubes so that all width have the same width as the smallest width</p>
+<p><strong>/!\ Lines must be visible before stacking to operate rebinning</strong></p>
+<p>/!\ Only one coord per image is necessary for rebinning</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -379,10 +506,13 @@ beam</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>coords</strong> &#8211; A coordList object of all target coordinates.</li>
 <li><strong>imagenames</strong> &#8211; Name of images to rebin</li>
-<li><strong>regionSize</strong> &#8211; size (in pixels) to extract the spectra from
-if set to False, spectra will be extracted solely from the coord pixel</li>
-<li><strong>widths</strong> &#8211; widths of the lines
-if set to &#8216;False&#8217; the spectra will be fitted with a gaussian to extract the width</li>
+<li><strong>regionSize</strong> &#8211; <p>size (in pixels) to extract the spectra from</p>
+<p>If set to False spectra will be extracted solely from the coord pixel</p>
+</li>
+<li><strong>widths</strong> &#8211; <p>widths of the lines</p>
+<p>If set to &#8216;False&#8217; the spectra will be fitted with a gaussian to extract the width</p>
+</li>
+<li><strong>outputName</strong> &#8211; Suffix of the rebinned cube, to add to the original cube name.</li>
 </ul>
 </td>
 </tr>
@@ -393,10 +523,8 @@ if set to &#8216;False&#8217; the spectra will be fitted with a gaussian to extr
 <dl class="function">
 <dt id="LineStacker.analysisTools.rebin_OneD">
 <code class="descclassname">LineStacker.analysisTools.</code><code class="descname">rebin_OneD</code><span class="sig-paren">(</span><em>images</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.rebin_OneD" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Rebin a list of images so that all width have the same width as the smallest width</dt>
-<dd>/!Lines must be visible before stacking to operate rebinning</dd>
-</dl>
+<dd><p>Rebin a list of images so that all width have the same width as the smallest width</p>
+<p><strong>/!\ Lines must be visible before stacking to operate rebinning</strong></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -410,35 +538,25 @@ if set to &#8216;False&#8217; the spectra will be fitted with a gaussian to extr
 <dl class="function">
 <dt id="LineStacker.analysisTools.stack_estimator">
 <code class="descclassname">LineStacker.analysisTools.</code><code class="descname">stack_estimator</code><span class="sig-paren">(</span><em>coords</em>, <em>nRandom=100</em>, <em>imagenames=[]</em>, <em>stampsize=1</em>, <em>method='mean'</em>, <em>chanwidth=30</em>, <em>lowerLimit='default'</em>, <em>upperLimit='default'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.stack_estimator" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Performs stacks at random positions a set number of times.</dt>
-<dd>Allows to probe the relevance of stack through stacking random positions
-as a Monte Carlo process</dd>
-</dl>
+<dd><p>Performs stacks at random positions a set number of times.
+Allows to probe the relevance of stack through stacking random positions as a Monte Carlo process.</p>
 <p>returns: Estimate of stacked flux assuming point source.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>coords</strong> &#8211; <p>A coordList object of all target coordinates.
-nRandom</p>
-<blockquote>
-<div>Number of itterations</div></blockquote>
-</li>
+<li><strong>coords</strong> &#8211; A coordList object of all target coordinates.</li>
+<li><strong>nRandom</strong> &#8211; Number of itterations</li>
 <li><strong>imagenames</strong> &#8211; Name of imagenames to stack</li>
 <li><strong>stampsize</strong> &#8211; Size of the stamp to stack (because only the central pixel is extracted anyway, this should be kept to default to enhance efficiency)</li>
 <li><strong>method</strong> &#8211; Method for stacking, see LineStacker.line_image.stack</li>
-<li><strong>chanwidth</strong> &#8211; <p>Number of channels in the stack
-lowerLimit</p>
-<blockquote>
-<div>Lower spatial limit (distance from stacking position) to random new random position.<p>Default is 5 beams</p>
-</div></blockquote>
-<dl class="docutils">
-<dt>upperLimit</dt>
-<dd>Upper spatial limit (distance from stacking position) to random new random position.<p class="last">Default is 10 beams</p>
-</dd>
-</dl>
+<li><strong>chanwidth</strong> &#8211; Number of channels in the stack</li>
+<li><strong>lowerLimit</strong> &#8211; <p>Lower spatial limit (distance from stacking position) to randomize new stacking position.</p>
+<p>Default is 5 beams</p>
+</li>
+<li><strong>upperLimit</strong> &#8211; <p>Upper spatial limit (distance from stacking position) to randomize new stacking position.</p>
+<p>Default is 10 beams</p>
 </li>
 </ul>
 </td>
@@ -450,23 +568,24 @@ lowerLimit</p>
 <dl class="function">
 <dt id="LineStacker.analysisTools.subsample_OneD">
 <code class="descclassname">LineStacker.analysisTools.</code><code class="descname">subsample_OneD</code><span class="sig-paren">(</span><em>images</em>, <em>nRandom=10000</em>, <em>maxTest=&lt;function maximizeSNR&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.subsample_OneD" title="Permalink to this definition">¶</a></dt>
-<dd><p>Randomly ressamples spectra and grades them accordingly
-to a given grade function</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>images</strong> &#8211; A list of stacker.OneD_Stacker.images</li>
-<li><strong>nRandom</strong> &#8211; Number of itterations of the Monte-Carlo process</li>
-<li><strong>maxTest</strong> &#8211; function test to grade the sources
-build your own, or use existing: maximizeAmp, maximizeSNR, maximizeOutflow</li>
-<li><strong>other argument for LineStacker.OneD_Stacker.Stack</strong> (<em>Any</em>) &#8211; </li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<dd><blockquote>
+<div><p>Randomly ressamples spectra and grades them accordingly
+to a given grade function. Returns the grade of each spectra as a dictionnary.</p>
+<dl class="docutils">
+<dt>images</dt>
+<dd>A list of stacker.OneD_Stacker.images</dd>
+<dt>nRandom</dt>
+<dd>Number of itterations of the Monte-Carlo process</dd>
+<dt>maxTest</dt>
+<dd><p class="first">function test to grade the sources</p>
+<p class="last">build your own, or use existing: <strong>maximizeAmp</strong>, <strong>maximizeSNR</strong>, <strong>maximizeOutflow</strong>.</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>Default is to maximize amplitude (amplitude being simply maximum value of spectra).</dt>
+<dd>Any other argument for LineStacker.OneD_Stacker.Stack</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -480,6 +599,65 @@ build your own, or use existing: maximizeAmp, maximizeSNR, maximizeOutflow</li>
 :param total: total number of steps</p>
 </dd></dl>
 
+<span class="target" id="module-LineStacker.tools.fit"></span><p><strong>LineStacker.tools.fit Module:</strong></p>
+<p>Basic custom fit module for LineStacker.</p>
+<dl class="function">
+<dt id="LineStacker.tools.fit.DoubleGauss">
+<code class="descclassname">LineStacker.tools.fit.</code><code class="descname">DoubleGauss</code><span class="sig-paren">(</span><em>f=[]</em>, <em>amp1=0</em>, <em>amp2=0</em>, <em>f01=0</em>, <em>f02=0</em>, <em>sigma1=0</em>, <em>sigma2=0</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.tools.fit.DoubleGauss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sum of two Gaussian function</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="LineStacker.tools.fit.DoubleGaussFit">
+<code class="descclassname">LineStacker.tools.fit.</code><code class="descname">DoubleGaussFit</code><span class="sig-paren">(</span><em>fctToFit=[]</em>, <em>fullFreq=[]</em>, <em>sigma1='default'</em>, <em>sigma2='default'</em>, <em>ampScale=0.1</em>, <em>returnAllComp=False</em>, <em>returnInfos=False</em>, <em>returnError=False</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.tools.fit.DoubleGaussFit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Double Gaussian (sum of two Gaussians) fitting function. Return order: fitting function, (first Gaussian, second Gaussian), (fitting parameters), (error on fitting parameters)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fctToFit</strong> &#8211; One dimensionnal array to be fitted.</li>
+<li><strong>fullFreq</strong> &#8211; Spectral dimension array. <strong>Not requiered</strong></li>
+<li><strong>sigma1</strong> &#8211; Initial width of the first Gaussian component for fitting, <strong>&#8216;default&#8217;</strong> is 3 bins.</li>
+<li><strong>sigma2</strong> &#8211; Initial width of the second Gaussian component for fitting, <strong>&#8216;default&#8217;</strong> is 6 bins.</li>
+<li><strong>ampScale</strong> &#8211; Initial amp ratio (between the two Gaussian components) for fitting, <strong>default</strong> is 0.1.</li>
+<li><strong>returnAllComp</strong> &#8211; If set to <strong>True</strong> function returns both individual components.</li>
+<li><strong>returnInfos</strong> &#8211; If set to <strong>True</strong> function returns fitted parameters.</li>
+<li><strong>returnError</strong> &#8211; If set to <strong>True</strong> function returns error on fitted parameters.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="LineStacker.tools.fit.GaussFit">
+<code class="descclassname">LineStacker.tools.fit.</code><code class="descname">GaussFit</code><span class="sig-paren">(</span><em>fctToFit=[]</em>, <em>fullFreq=[]</em>, <em>sigma='default'</em>, <em>returnInfos=False</em>, <em>returnError=False</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.tools.fit.GaussFit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple Gaussian fitting function. Return order: fitting function, (fitting parameters), (error on fitting parameters)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fctToFit</strong> &#8211; One dimensionnal array to be fitted</li>
+<li><strong>fullFreq</strong> &#8211; Spectral dimension array. <strong>Not requiered</strong></li>
+<li><strong>sigma</strong> &#8211; initial width for fitting, <strong>&#8216;default&#8217;</strong> is 3 bins</li>
+<li><strong>returnInfos</strong> &#8211; If set to <strong>True</strong> function returns fitted parameters</li>
+<li><strong>returnError</strong> &#8211; If set to <strong>True</strong> function returns error on fitted parameters</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="LineStacker.tools.fit.gaussFct">
+<code class="descclassname">LineStacker.tools.fit.</code><code class="descname">gaussFct</code><span class="sig-paren">(</span><em>x</em>, <em>a</em>, <em>x0</em>, <em>sigma</em>, <em>constant=0</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.tools.fit.gaussFct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic Gaussian function</p>
+</dd></dl>
+
 </div>
 </div>
 
@@ -490,6 +668,9 @@ build your own, or use existing: maximizeAmp, maximizeSNR, maximizeOutflow</li>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/Line-Stacker.jpg" alt="Logo"/>
+            </a></p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">LineStacker</a><ul>

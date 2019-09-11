@@ -1,3 +1,7 @@
+"""
+**LineStacker.tools.fit Module:**\n
+Basic custom fit module for LineStacker.
+"""
 from scipy.optimize import curve_fit
 import numpy as np
 
@@ -20,22 +24,16 @@ def Gauss(  f=[], #this should be a numpy array
     else:
         return sPeak*np.exp(-((f-f0)*(f-f0))/(2*sigma*sigma))
 
-def gaussFct(x,a,x0,sigma):
+def gaussFct(x,a,x0,sigma, constant=0):
+    """
+        Basic Gaussian function
+    """
     #+ offset
     if type(x)!=np.ndarray:
         x=np.array(x)
 
-    return a*np.exp(-(x-x0)**2/(2.*sigma**2))
+    return constant+a*np.exp(-(x-x0)**2/(2.*sigma**2))
 #return float(a)*np.exp(-((x-float(x0))*(x-float(x0)))/(2.*float(sigma)*float(sigma)))
-
-def gaussFct2(x,a,x0,sigma,q):
-    #+ offset
-    if type(x)!=np.ndarray:
-        x=np.array(x)
-
-    return q+a*np.exp(-(x-x0)**2/(2.*sigma**2))
-#return float(a)*np.exp(-((x-float(x0))*(x-float(x0)))/(2.*float(sigma)*float(sigma)))
-
 
 def DoubleGauss(    f=[],
                     amp1=0,
@@ -44,7 +42,9 @@ def DoubleGauss(    f=[],
                     f02=0,
                     sigma1=0,
                     sigma2=0):
-
+    """
+        Sum of two Gaussian function
+    """
     return gaussFct(f,amp1,f01,sigma1)+gaussFct(f,amp2,f02,sigma2)
 
 #same amp, same width, centered...
@@ -60,13 +60,28 @@ def GaussFit(	fctToFit=[],
 		sigma='default',
 		returnInfos=False,
         returnError=False):
+    """
+        Simple Gaussian fitting function. Return order: fitting function, (fitting parameters), (error on fitting parameters)
 
+        Parameters
+        ----------
+        fctToFit
+            One dimensionnal array to be fitted
+        fullFreq
+            Spectral dimension array. **Not requiered**
+        sigma
+            initial width for fitting, **'default'** is 3 bins
+        returnInfos
+            If set to **True** function returns fitted parameters
+        returnError
+            If set to **True** function returns error on fitted parameters
+    """
     if fullFreq==[]:
         fullFreq=range(len(fctToFit))
         if sigma=='default':
             sigma=3
-    if sigma=='default':
-        sigma=50
+    elif sigma=='default':
+        sigma=abs(fullFreq[0]-fullFreq[1])*3
     maxAmp=np.max(fctToFit)
     if type(fctToFit)==np.ndarray:
         maxAmpIndex=fctToFit.tolist().index(maxAmp)
@@ -90,40 +105,6 @@ def GaussFit(	fctToFit=[],
             return gaussFct(   fullFreq, popt[0], popt[1], popt[2])
 
 
-def GaussFit2(	fctToFit=[],
-		fullFreq=[],
-		sigma='default',
-		returnInfos=False, returnError=False):
-
-    if fullFreq==[]:
-        fullFreq=range(len(fctToFit))
-        if sigma=='default':
-            sigma=3
-    if sigma=='default':
-        sigma=50
-    maxAmp=np.max(fctToFit)
-    if type(fctToFit)==np.ndarray:
-        maxAmpIndex=fctToFit.tolist().index(maxAmp)
-    else:
-        maxAmpIndex=fctToFit.index(maxAmp)
-    popt, pcov=curve_fit(gaussFct2, fullFreq, fctToFit, p0=(maxAmp, fullFreq[maxAmpIndex],sigma,0))
-
-
-    if returnInfos:
-        if returnError:
-            return gaussFct2(   fullFreq, popt[0], popt[1], popt[2], popt[3]), popt, pcov
-        else:
-            return gaussFct2(   fullFreq, popt[0], popt[1], popt[2], popt[3]), popt
-        '''return Gauss(   f=fullFreq,
-                    		f0=popt[1],
-                    		sPeak=popt[0],dF=popt[2]*2.3548), popt'''
-    else:
-        if returnError:
-            return gaussFct2(   fullFreq, popt[0], popt[1], popt[2], popt[3]), pcov
-        else:
-            return gaussFct2(   fullFreq, popt[0], popt[1], popt[2], popt[3])
-
-
 def DoubleGaussFit(         fctToFit=[],
                             fullFreq=[],
                             sigma1='default',
@@ -132,7 +113,28 @@ def DoubleGaussFit(         fctToFit=[],
                             returnAllComp=False,
                             returnInfos=False,
                             returnError=False):
+    """
+        Double Gaussian (sum of two Gaussians) fitting function. Return order: fitting function, (first Gaussian, second Gaussian), (fitting parameters), (error on fitting parameters)
 
+        Parameters
+        ----------
+        fctToFit
+            One dimensionnal array to be fitted.
+        fullFreq
+            Spectral dimension array. **Not requiered**
+        sigma1
+            Initial width of the first Gaussian component for fitting, **'default'** is 3 bins.
+        sigma2
+            Initial width of the second Gaussian component for fitting, **'default'** is 6 bins.
+        ampScale
+            Initial amp ratio (between the two Gaussian components) for fitting, **default** is 0.1.
+        returnAllComp
+            If set to **True** function returns both individual components.
+        returnInfos
+            If set to **True** function returns fitted parameters.
+        returnError
+            If set to **True** function returns error on fitted parameters.
+    """
     if fullFreq==[]:
         fullFreq=range(len(fctToFit))
         if sigma1=='default':
@@ -140,10 +142,11 @@ def DoubleGaussFit(         fctToFit=[],
         if sigma2=='default':
             sigma2=6
 
-    if sigma1=='default':
-        sigma1=50
-    if sigma2=='default':
-        sigma2=100
+    else:
+        if sigma1=='default':
+            sigma1=abs(fullFreq[0]-fullFreq[1])*3
+        if sigma2=='default':
+            sigma2=abs(fullFreq[0]-fullFreq[1])*6
 
     maxAmp=np.max(fctToFit)
     if type(fctToFit)==np.ndarray:

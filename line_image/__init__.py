@@ -1,3 +1,7 @@
+"""
+**LineStacker.line_image Module:**\n
+Module for cube line stacking.
+"""
 # LineStacker, Python module for stacking of interferometric data.
 # Copyright (C) 2014  Lukas Lindroos
 #
@@ -31,7 +35,7 @@ imagesizes = []
 
 
 def stack(  coords,
-            outfile='stackResult',
+            outfile='stackResult.image',
             stampsize = 32,
             imagenames= [],
             method = 'mean',
@@ -41,7 +45,7 @@ def stack(  coords,
             psfmode = 'point',
             primarybeam = None,
             fEm = 0,
-            chanwidth=30,
+            chanwidth='default',
             plotIt=False,
             **kwargs):
     """
@@ -61,15 +65,17 @@ def stack(  coords,
         method
             'mean' or 'median', will determined how pixels are calculated
         spectralMethod
-            How to select the central frequency of the stack\n
-            The corresponding value should be found in the 3rd column of the coord file\n
-            possible methods are:\n
-            'z': the redshift of the observed line,
-            additionaly fEm (emission frequency) must be informed (as an argument of this Stack function)
-            'centralFreq': the (observed) central frequency, or velocity\n
-            'channel': to dirrectly input the channel number of the center of the stack
+            Method to select the central frequency of the stack. The corresponding value should be found in the 3rd column of the coord file. Possible methods are:\n
+            **'z'**: the redshift of the observed line, if used
+            **fEm** (emission frequency) must be informed as an argument of this Stack function.\n
+            **'centralFreq'**: the (observed) central frequency, or velocity.\n
+            **'channel'**: to dirrectly input the channel number of the center of the stack.
         weighting
-            only for method 'mean', if set to None will use weights in coords.
+            used if method set to **'mean'**, possible values are:\n
+            **'sigma2'**, weights are set to 1/sigma**2 where sigma is the standard deviation of the corresponding data cube (excluding masked region). See **calculate_sigma2_weights**\n
+            **'sigma2F'**, similar to **sigma2** except weights are individually computed for each spectral bin. See **calculate_sigma2_weights_spectral**\n
+            **'1/A'**, **/!\\\\ only use if lines are visible pre-stacking**, weights are set to one over the line amplitude. See **calculate_amp_weights**\n
+            **None**, using weights in coords (set to 1 by default).
         maskradius
             allows blanking of centre pixels in weight calculation
         psfmode
@@ -79,7 +85,7 @@ def stack(  coords,
         fEm
             rest emission frequency of the line,
         chanwidth
-            number of channels of the resulting stack,
+            number of channels of the resulting stack, default is number of channels in the first image.
         plotIt
             direct plot option
     """
@@ -97,6 +103,11 @@ def stack(  coords,
     global skymap
     global data
     global oldimagenames
+    
+    if chanwidth=='default':
+        ia.open(imagenames[0])
+        chanwidth=ia.summary()['shape'][-1]
+        ia.done()
 
     if coords.coord_type == 'physical':
         coords = LineStacker.getPixelCoords(coords, imagenames)
@@ -107,11 +118,11 @@ def stack(  coords,
     #fills data with skymap accordingly
     _load_stack(coords, psfmode, fEm=fEm, spectralMethod=spectralMethod)
     if method=='mean' and weighting=='sigma2':
-        _calculate_sigma2_weights(coords, maskradius=maskradius)
+        calculate_sigma2_weights(coords, maskradius=maskradius)
     if method=='mean' and weighting=='sigma2F':
-        _calculate_sigma2_weights_spectral(coords, maskradius=maskradius)
+        calculate_sigma2_weights_spectral(coords, maskradius=maskradius)
     if method=='mean' and weighting=='1/A':
-        _calculate_amp_weights(coords, **kwargs)
+        calculate_amp_weights(coords, **kwargs)
 
     #actual stack
     stacked_im  = _stack_stack(method, coords)
@@ -123,14 +134,10 @@ def stack(  coords,
     #plt.figure()
     if plotIt:
         import matplotlib.pyplot as plt
-        #NB: si unusedFrequencies = len(coords) on a une division par zero !!!
-        #MAIS : ca voudrait aussi dire que pour aucune des iamges on avait de la data dans ce freq
         try:
             stackedImIncludingBorderEffects=stacked_im[int(stampsize/2), int(stampsize/2),0,:]*(len(coords)/(len(coords)-unusedFrequencies))
         except ZeroDivisionError:
             print 'ERORR : your chanwidth is too large and no frequencies were found for ANY of your images in one or more bins'
-
-
 
         plt.plot(stacked_im[int(stampsize/2), int(stampsize/2),0,:], 'r', linewidth=5)
         plt.plot(unusedFrequencies*max(stacked_im[int(stampsize/2), int(stampsize/2),0,:])/len(coords), 'b', linewidth=2.5, label='percentage of the sources not used')
@@ -142,22 +149,14 @@ def stack(  coords,
         plt.ticklabel_format(style='plain')
         plt.title('Stacked line', size=40)
         plt.yticks(np.arange(-0.0001, 0.0006, 0.0002))
-
         plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
-
-
         plt.legend()
-
         plt.show()
-
     #
-
-
     casalog.post('#'*5 +  ' {0: <31}'.format("End Task: stacker")+'#'*5)
     casalog.post('#'*42)
 
     return [stacked_im[int(stampsize/2), int(stampsize/2),0,int(chanwidth/2)], stacked_im[int(stampsize/2), int(stampsize/2),0,:], stacked_im, unusedFrequencies]
-
 
 
 def _allocate_buffers(  imagenames,
@@ -246,8 +245,17 @@ def _allocate_buffers(  imagenames,
     else:
         data = 0.*data
 
-def _calculate_sigma2_weights(coords, maskradius=0.):
+def calculate_sigma2_weights(coords, maskradius=0.):
+    """
+        Computes standard deviation of data cubes and sets weights to one over sigma**2.
 
+        Parameters
+        ---------
+        coords
+            A coordList object of all target coordinates.
+        maskradius
+            Radius (in pixel) of the mask, centered on coordinate center, to avoid including pixels close to source in noise computation.
+    """
     if maskradius>=stampsize:
         raise Exception('the mask radius is bigger than the stamp size')
     if stampsize<=4:
@@ -272,7 +280,18 @@ def _calculate_sigma2_weights(coords, maskradius=0.):
         else:
             coord.weight = coord.weight*1./sigma**2
 
-def _calculate_sigma2_weights_spectral(coords, maskradius=0.):
+def calculate_sigma2_weights_spectral(coords, maskradius=0.):
+    """
+        Computes standard deviation of data cubes in every spectral channel and sets weights to one over sigma**2.
+
+        Parameters
+        ---------
+        coords
+            A coordList object of all target coordinates.
+        maskradius
+            Radius (in pixel) of the mask, centered on coordinate center, to avoid including pixels close to source in noise computation.
+    """
+
     if maskradius>=stampsize:
         raise Exception('the mask radius is bigger than the stamp size')
     if stampsize<=4:
@@ -302,10 +321,24 @@ def _calculate_sigma2_weights_spectral(coords, maskradius=0.):
         except TypeError:
             coord.weight=1./(sigmaF*sigmaF)
 
-def _calculate_amp_weights(coords, fit=False):
+def calculate_amp_weights(coords, fit=False):
+    """
+        Sets weights of each coord to one over the line amplitude.\n
+        **/!\\\\ only use if lines are visible pre-stacking**
+
+        Parameters
+        ---------
+        coords
+            A coordList object of all target coordinates.
+        fit
+            If set to **True**, spectra will be extracted from each coordinate pixel and fited with a gaussian. The gaussian's extracted amplitude will be used as the line's amplitude.\n
+            If set to **False**, the line's amplitude is set to the value of the brightest spectral bin of each coordinate pixel.
+    """
+
     if not fit:
+        import numpy as np
         for i,coord in enumerate(coords):
-            amp=data[i,int(data.shape[1]/2.), int(data.shape[2]/2.), 0, int(data.shape[4]/2.)]
+            amp=np.max(data[i,int(data.shape[1]/2.), int(data.shape[2]/2.), 0, :])
             coord.weight=coord.weight*1./amp
     else:
         import LineStacker.tools.fit as fitTool
@@ -333,7 +366,7 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
             obsFreq=coord.z
             obsFreqArg=int(round((obsFreq-imagesInfo['freq0'][coord.image])/imagesInfo['freqBin'][coord.image]))
         elif spectralMethod=='channel':
-            obsFreqArg=coord.z
+            obsFreqArg=int(round(coord.z))
         #coord.obsSpecArg=obsFreqArg
         if coord.obsSpecArg!=0:
             obsFreqArg=coord.obsSpecArg

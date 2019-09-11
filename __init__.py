@@ -1,3 +1,8 @@
+"""
+**LineStacker Module:**\n
+Main Stacker module. Contains all basic functions.
+
+"""
 # -*- coding: utf-8; -*-
 # stacker, Python module for stacking of interferometric data.
 # Copyright (C) 2014  Lukas Lindroos
@@ -141,23 +146,23 @@ def _load_stacker_lib():
 class CoordList(list):
     """
         Extended list to contain list of coordinates.
+
+        Requires an image list in case of pixel coordinates to work properly.
+
+        Parameters
+        ---------
+        imagenames
+            A list of image names, requiered for pixle coordinates to work properly.
+        coord_type
+            **'physical'** or **'pixel'**. **'physical'** coordinates should be converted to pixels using **LineStacker.getPixelCoords** before stacking.
+        unit
+            can be **'rad'**, **'deg'** or **'pix'**.
+
     """
     def __init__(   self,
                     imagenames=[],
                     coord_type='physical',
                     unit='rad'):
-        """
-            Requires an image list in case of pixel coordinates to work properly.
-            Parameters
-            ---------
-            imagenames
-                a list of image names, requiered for pixle coordinates to work properly
-            coord_type
-                'physical' or 'pixel'. 'physical' coordinates should be
-                converted to pixels using stacker.getPixelCoords before stacking
-            unit
-                can be 'rad', 'deg' or 'pix'
-        """
 
         super(CoordList, self).__init__()
 
@@ -210,31 +215,31 @@ class Coord:
 
         Class used internally to represent coordinates. May describe a
         physical coordinate or a pixel coordinate.
+
+        Init: Creates a coordinate. A pixel coordinate should always specify
+        to which image it belongs. Physical coordinates should be in
+        J2000 radians.
+
+        Parameters
+        ---------
+        x
+            x coordinate of stacking target
+        y
+            y coordinate of stacking target
+        z
+            redshift of stacking target
+        obsSpecArg
+            argument of spectral bin on which to center the stack, will be computed from **z** and **fEm** if not specified
+        weight
+            Weight of the. source in case of mean stacking.
+            Default is 1.
+        image
+            Index of the image associated to the source.
+            Automatically set with **LineStacker.readCoords**.
+
     """
 
     def __init__(self, x, y, z=0, obsSpecArg=0, weight=1, image=0):
-        """
-            Create a coordinate. A pixel coordinate should always specify
-            to which image it belongs. Physical coordinates should be in
-            J2000 radians.
-            Parameters
-            ---------
-            x
-                x coordinate of stacking target
-            y
-                y coordinate of stacking target
-            z
-                redshift of stacking target
-            obsSpecArg
-                argument of spectral bin on which to center the stack,
-                will be computed from z and fEm if not specified
-            weight
-                weight of the source in case of mean stacking
-                default is 1
-            image
-                index of the image associated to the source
-                automatically set with stacker.readCoords
-        """
         self.x = x
         self.y = y
         self.z = z
@@ -246,18 +251,12 @@ class Coord:
         return '{0}, {1}'.format(self.x, self.y)
 
     def setWeightToX(self, X, chanWidth=0):
-        """
-            sets the weight of the image to X,
-        """
         if chanWidth==0:
             self.weight=X
         else:
             self.weight=np.array([X for i in range(chanWidth)])
 
     def setZeroWeightLeft(self,numberOfZeroLeftF, freqlen):
-        """
-            function used to ignore spectral bins outside of the stacking spectral window
-        """
         try:
             len(self.weight)
             if numberOfZeroLeftF!=0:
@@ -269,9 +268,6 @@ class Coord:
                 self.weight=np.concatenate((np.zeros(abs(numberOfZeroLeftF)), self.weight ))
 
     def setZeroWeightRight(self,numberOfZeroRightF, freqlen):
-        """
-            function used to ignore spectral bins outside of the stacking spectral window
-        """
         try:
             len(self.weight)
             if numberOfZeroRightF!=0:
@@ -291,6 +287,11 @@ def readCoordsGUI(unit='deg', lineON=True):
     return coords
 
 def readCoordsNamesGUI():
+    """
+        Open GUI to select coordinates files.
+
+        Returns path of selected files.
+    """
     import Tkinter, Tkconstants, tkFileDialog
     filez=  tkFileDialog.askopenfilenames(initialdir = ".",title = "Select coord files",filetypes = (("txt files","*.txt"),("all files","*.*")))
     filez=list(filez)
@@ -305,20 +306,16 @@ def readCoordsNamesGUI():
 
 def readCoords(coordfiles, unit='deg', lineON=True):
     """
-        Reads coordinate files from disk and produces a list.
-        /!\\ To each image should be associated one single coord file.
+        Reads coordinate files from disk and produces a list./!\\\\ To each image should be associated one single coord file.
+
         Parameters
         ---------
         coordfiles:
-            List of path to coordinate files. Files in csv format. x and y should
-            be in J2000. If using to stack line, redshift should be in the third column.
-            A weight may be added in the last column to weight positions for mean stacking.
-            If set to None stacking position is defined as the center of each cube
+            List of path to coordinate files. Files in csv format. x and y should be in J2000. If using to stack line, redshift should be in the third column. A weight may be added in the last column to weight positions for mean stacking. If set to **None** stacking position is defined as the center of each cube.
         unit:
-            Unit of input coordinates. Allows two values, 'deg' and 'rad'.
+            Unit of input coordinates. Allows two values, **'deg'** and **'rad'**.
         lineON
-            either True or False, should be set to True if doing line stacking
-            default 0
+            Either **True** or **False**, should be set to **True** if doing line stacking. Default is **True**.
     """
     import csv
     #delimiter='\t'
@@ -449,14 +446,14 @@ def coordsTocl(name, flux, coords):
 
 def randomCoords(imagenames, ncoords=10):
     """
-        Randomize a set of coordinates anywhere on any images
+        Randomize a set of coordinates anywhere on any images.
+
         Parameters
         ---------
         imagenames
-            a list of images paths
+            A list of images paths.
         ncoords
-            number of random coordinates
-            default is 10
+            Number of random coordinates. Default is 10.
     """
     import random
     from taskinit import ia, qa
@@ -492,6 +489,7 @@ def randomizeCoords(coords, beam,maxBeamRange=5):
     """
         Randomize a new set of coordinates at a distance
         [beam, maxBeamRange*beam] of the original coordinates
+
         Parameters
         ---------
         coords
@@ -499,11 +497,11 @@ def randomizeCoords(coords, beam,maxBeamRange=5):
         beam
             beam size is radians,
             new random coordinates will be at a minimum distance beam
-            from the original coordinates
+            from the original coordinates.
         maxBeamRange
             maximum distance from original coordinates
-            at which new coordinates can be located, in units of beams
-            default is 5
+            at which new coordinates can be located, in units of beams.
+            Default is 5.
     """
 
     import random
@@ -607,12 +605,13 @@ def getPixelCoords(coords, imagenames):
     """
         Creates pixel coordinate list from a physical coordinate
         list and a list of images.
+
         Parameters
         ---------
         coords
-            a list of stacker.Coord coordinates
+            A list of stacker.Coord coordinates.
         imagenames
-            a list of images' paths
+            A list of images' paths.
     """
 
     pixcoords = CoordList(imagenames, 'pixel', unit='pix')

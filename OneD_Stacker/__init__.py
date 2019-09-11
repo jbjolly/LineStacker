@@ -1,3 +1,7 @@
+"""
+**LineStacker.OneD_Stacker Module:**\n
+Module for one dimensional line stacking.
+"""
 from __future__ import division
 import numpy as np
 import sys
@@ -8,6 +12,54 @@ c=299792458
 
 
 class Image():
+    """
+
+        Image class, each object is a spectrum to stack,
+        containing all necessary information to be stacked
+        they can consist simply of a the flux array,
+        or flux and corresponding spectral values
+
+        Parameters
+        ---------
+        coords
+            A coordList object of all target coordinates.
+        spectrum
+            Spectrum should be of the shape [N,2] or [2,N],
+            where N is the number of spectral bins.
+            The second dimension being the flux
+            and the first the spectral values.
+        amp
+            Instead of defining spectrum one can define only the amplitude (flux).
+        velocities=[]
+            In the case where amp is defined
+            it is still possible to define the velocites
+        frequencies=[]
+            In the case where amp is defined
+            it is still possible to define the frequencies
+        z
+            Redshift, one of the possible way to define central frequency.
+            If using redshift **fEmLine** (emission frequency of the line) should also be defined.
+        fEmLine
+            Emission frequency of the line, needed if redshift argument is used.
+        centerIndex
+            channel index of the line center, an other possible way to define line center.
+        centralFrequency
+            (observed) Frequency of the line center, an other possible way to define line center.
+        centralVelocity
+            Observed velocity of the line center, an other possible way to define line center.
+        weights
+            The weighting scheme to use.\n
+            Can be set to **'1/A'** or **'sigma2'**.
+            If **sigma2** is used std of the entire spectra is used UNLESS, **fit** is set to **True**, in which case the central part around the line is excluded from std calculation (central here means one FWHM on each side of the center of the line).\n
+            Alternativelly user input can be used, float or list (or array)
+        name
+            name of the image, can allow easier identification
+        fit
+            If fit is set to **True**, the spectrum will be fitted with a gaussian to try and identify the line center (as well as amplitude if weight is set to 1/A)
+        velOrFreq
+            Defining if spectral dimension is velocity or frequency.
+    """
+
     def __init__(   self,
                     spectrum=[],
                     amp=[],
@@ -23,52 +75,6 @@ class Image():
                     fit=False,
                     velOrFreq='vel'):
 
-        """
-            Image class, each object is a spectrum to stack,
-            containing all necessary information to be stacked
-            they can consist simply of a the flux array,
-            or flux and corresponding spectral values
-            Parameters
-            ---------
-            coords
-                A coordList object of all target coordinates.
-            spectrum
-                spectrum should be of the shape [N,2] or [2,N]\r
-                where N is the number of spectral bins\r
-                The second dimension being the flux\r
-                and the first the spectral values
-            amp
-                instead of defining spectrum one can define only the amplitude (flux)
-            velocities=[]
-                in the case where amp is defined\r
-                it is still possible to define the velocites
-            frequencies=[]
-                in the case where amp is defined\r
-                it is still possible to define the frequencies
-            z
-                redshift, one of the possible way to define central frequency\r
-                if using redshift fEmLine (emission frequency of the line) should also be input
-            fEmLine
-                emission frequency of the line, needed if redshift argument is used
-            centerIndex
-                channel index of the line center, an other possible way to define line center
-            centralFrequency
-                (observed) frequency of the line center, an other possible way to define line center
-            centralVelocity
-                observed velocity of the line center, an other possible way to define line center
-            weights
-                the weighting scheme to use\r
-                can be set to '1/A' or 'sigma2'\r
-                if sigma2 is used std of the entire spectra used UNLESS, fit is set to True, in which case the part around the line is excluded from stf calculation (central here means one FWHM on each side of the center of the line)\r
-                user input can be used, float or list (or array)
-            name
-                name of the image, can allow easier identification
-            fit
-                if fit is set to true, the spectrum will be fitted with a gaussian\r
-                to try and identify the line center (as well as amplitude if weight is set to 1/A)
-            velOrFreq
-                defining if spectral dimension is velocity or frequency
-        """
 
         self.velOrFreq=velOrFreq
         self.name=name
@@ -181,11 +187,21 @@ class Image():
         else:
             self.weights=weights
 
-    #functions to go from velocites to frequencies and vice versa, requieres rest emission frequency
+    #
     def velToFreq(vel,z, fEmLine):
+        """
+            Function to go from velocites to frequencies.
+            Requieres rest emission frequency and redshift.
+        """
+
         fObsLine=fEmLine/(1+z)
         return fObsLine*(vel/(vel+c))
     def freqToVel(freq,z, fEmLine):
+        """
+            Function to go from frequencies to velocites.
+            Requieres rest emission frequency and redshift.
+        """
+
         fObsLine=fEmLine/(1+z)
         deltaF=freq-fObsLine
         return c*((fObsLine/(fObsLine-deltaF))-1)
@@ -212,27 +228,27 @@ def Stack(  Images,
             velOrFreq='vel'):
 
     """
-        Main (one dimmensional) stacking function
-        requieres list of Image objects
+        Main (one dimmensional) stacking function.
+
+        Requieres list of Image objects.
+
         Parameters
         ---------
         Images
-            list of images, images have to objects of the Image class (LineStacker.OneD_Stacker.Image)
+            List of images, images have to objects of the Image class (LineStacker.OneD_Stacker.Image).
         chansStack
-            number of channels to stack
-            set to 'full' to stack all channels from all images
-            user input (int) otherwise
+            Number of channels to stack. Set to 'full' to stack all channels from all images. User input (int) otherwise
         method
-            stacking method, 'mean' and 'median' supported
+            stacking method, **'mean'** and **'median'** supported
         center
-            method to find central frequency of the stack, possible values are
-            "center", to stack all spectra center to center,
-            'fit' to use gaussian fitting on the spectrum to determine line center
-            'zero_vel' to stack on velocity=0 bin
-            'lineCenterIndex' use the line center initiated with the image
-            dirrectly defined by the user (int)
+            Method to find central frequency of the stack, possible values are:\n
+            **"center"**, to stack all spectra center to center,\n
+            **'fit'** to use gaussian fitting on the spectrum to determine line center,\n
+            **'zero_vel'** to stack on velocity=0 bin,\n
+            **'lineCenterIndex'** use the line center initiated with the image,\n
+            Or dirrectly defined by the user (int)
         velOrFreq
-            'vel' or 'freq', frequency or velocity mode
+            **'vel'** or **'freq'**, frequency or velocity mode.
 
     """
     for (i,image) in enumerate(Images):

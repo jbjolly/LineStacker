@@ -36,6 +36,7 @@ tools
 
 .. automodule:: LineStacker.tools
     :members:
-
+.. automodule:: LineStacker.tools.fit
+	:members:
 
 
