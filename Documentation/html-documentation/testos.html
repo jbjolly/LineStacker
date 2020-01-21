@@ -160,25 +160,6 @@ Default is 5.</li>
 </dd></dl>
 
 <dl class="function">
-<dt id="LineStacker.readCoords">
-<code class="descclassname">LineStacker.</code><code class="descname">readCoords</code><span class="sig-paren">(</span><em>coordfiles</em>, <em>unit='deg'</em>, <em>lineON=True</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.readCoords" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads coordinate files from disk and produces a list./!\ To each image should be associated one single coord file.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>coordfiles</strong> &#8211; List of path to coordinate files. Files in csv format. x and y should be in J2000. If using to stack line, redshift should be in the third column. A weight may be added in the last column to weight positions for mean stacking. If set to <strong>None</strong> stacking position is defined as the center of each cube.</li>
-<li><strong>unit</strong> &#8211; Unit of input coordinates. Allows two values, <strong>&#8216;deg&#8217;</strong> and <strong>&#8216;rad&#8217;</strong>.</li>
-<li><strong>lineON</strong> &#8211; Either <strong>True</strong> or <strong>False</strong>, should be set to <strong>True</strong> if doing line stacking. Default is <strong>True</strong>.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="LineStacker.readCoordsNamesGUI">
 <code class="descclassname">LineStacker.</code><code class="descname">readCoordsNamesGUI</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.readCoordsNamesGUI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Open GUI to select coordinates files.</p>
@@ -267,7 +248,7 @@ Default is 5.</li>
 
 <dl class="function">
 <dt id="LineStacker.line_image.stack">
-<code class="descclassname">LineStacker.line_image.</code><code class="descname">stack</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile='stackResult.image'</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>spectralMethod='z'</em>, <em>weighting=None</em>, <em>maskradius=0</em>, <em>psfmode='point'</em>, <em>primarybeam=None</em>, <em>fEm=0</em>, <em>chanwidth='default'</em>, <em>plotIt=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.stack" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">LineStacker.line_image.</code><code class="descname">stack</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile='stackResult.image'</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>spectralMethod='z'</em>, <em>weighting=None</em>, <em>maskradius=0</em>, <em>psfmode='point'</em>, <em>primarybeam=None</em>, <em>fEm=0</em>, <em>chanwidth='default'</em>, <em>plotIt=False</em>, <em>regridFromZ=False</em>, <em>regridMethod='scaleToMin'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.stack" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs line stacking in the image domain.
 returns: Estimate of stacked flux assuming point source.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -299,6 +280,10 @@ Target name for stacked image.</li>
 <li><strong>fEm</strong> &#8211; rest emission frequency of the line,</li>
 <li><strong>chanwidth</strong> &#8211; number of channels of the resulting stack, default is number of channels in the first image.</li>
 <li><strong>plotIt</strong> &#8211; direct plot option</li>
+<li><strong>regridFromZ</strong> &#8211; if set to True new images will be created, regridded to take into account the redshift difference of the different sources. See LineStacker.analysisTools.regridFromZ for a more complete description.
+NB: ALL IMAGES SHOULD HAVE SAME FREQUENCY BIN originally.</li>
+<li><strong>regridMethod</strong> &#8211; Used if regridFromZ is True. Can be set either to &#8216;scaleToMin&#8217; or &#8216;scaleToMax&#8217;.
+In the first case all images are regrided to match the smallest redshift (over-gridding), all images are regridded to match the highest redshift in the other case (under-gridding)</li>
 </ul>
 </td>
 </tr>
@@ -334,7 +319,8 @@ it is still possible to define the velocites</li>
 <li><strong>frequencies=[]</strong> &#8211; In the case where amp is defined
 it is still possible to define the frequencies</li>
 <li><strong>z</strong> &#8211; Redshift, one of the possible way to define central frequency.
-If using redshift <strong>fEmLine</strong> (emission frequency of the line) should also be defined.</li>
+If using redshift <strong>fEmLine</strong> (emission frequency of the line) should be defined.
+In addition the Image spectra should consist of BOTH amplitudes and spectral information (frequencies or velocites), and not amplitude alone.</li>
 <li><strong>fEmLine</strong> &#8211; Emission frequency of the line, needed if redshift argument is used.</li>
 <li><strong>centerIndex</strong> &#8211; channel index of the line center, an other possible way to define line center.</li>
 <li><strong>centralFrequency</strong> &#8211; (observed) Frequency of the line center, an other possible way to define line center.</li>
@@ -370,7 +356,7 @@ Requieres rest emission frequency and redshift.</p>
 
 <dl class="function">
 <dt id="LineStacker.OneD_Stacker.Stack">
-<code class="descclassname">LineStacker.OneD_Stacker.</code><code class="descname">Stack</code><span class="sig-paren">(</span><em>Images</em>, <em>chansStack='full'</em>, <em>method='mean'</em>, <em>center='lineCenterIndex'</em>, <em>velOrFreq='vel'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.OneD_Stacker.Stack" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">LineStacker.OneD_Stacker.</code><code class="descname">Stack</code><span class="sig-paren">(</span><em>Images</em>, <em>chansStack='full'</em>, <em>method='mean'</em>, <em>center='lineCenterIndex'</em>, <em>regridFromZ=False</em>, <em>regridMethod='scaleToMin'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.OneD_Stacker.Stack" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main (one dimmensional) stacking function.</p>
 <p>Requieres list of Image objects.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -388,7 +374,9 @@ Requieres rest emission frequency and redshift.</p>
 <p><strong>&#8216;lineCenterIndex&#8217;</strong> use the line center initiated with the image,</p>
 <p>Or dirrectly defined by the user (int)</p>
 </li>
-<li><strong>velOrFreq</strong> &#8211; <strong>&#8216;vel&#8217;</strong> or <strong>&#8216;freq&#8217;</strong>, frequency or velocity mode.</li>
+<li><strong>regridFromZ</strong> &#8211; if set to True spectra will be regridded to take into account the redshift difference of the different sources. See LineStacker.analysisTools.regridFromZ1D for a more complete description.</li>
+<li><strong>regridMethod</strong> &#8211; Used if regridFromZ is True. Can be set either to <strong>&#8216;scaleToMin&#8217;</strong> or <strong>&#8216;scaleToMax&#8217;</strong>.
+In the first case all spetcra are regrided to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).</li>
 </ul>
 </td>
 </tr>
@@ -440,7 +428,7 @@ Requieres rest emission frequency and redshift.</p>
 
 <dl class="function">
 <dt id="LineStacker.analysisTools.bootstraping_OneD">
-<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">bootstraping_OneD</code><span class="sig-paren">(</span><em>Images</em>, <em>nRandom=1000</em>, <em>chansStack='full'</em>, <em>method='mean'</em>, <em>center='lineCenterIndex'</em>, <em>velOrFreq='vel'</em>, <em>save='all'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.bootstraping_OneD" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">bootstraping_OneD</code><span class="sig-paren">(</span><em>Images</em>, <em>nRandom=1000</em>, <em>chansStack='full'</em>, <em>method='mean'</em>, <em>center='lineCenterIndex'</em>, <em>save='all'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.bootstraping_OneD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs bootstrapping stack of spectra. See stacker.OneD_Stacker.stack for further information on stack parametres.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -453,9 +441,6 @@ Requieres rest emission frequency and redshift.</p>
 <li><strong>method</strong> &#8211; stacking method, &#8216;mean&#8217; or &#8216;median&#8217;</li>
 <li><strong>center</strong> &#8211; Method to center spectra.
 See stacker.OneD_Stacker.stack for further information on centering methods.</li>
-<li><strong>velOrFreq</strong> &#8211; <p>velocity or frequency mode (chose according to your spectral axis type)</p>
-<p>possible values are &#8216;vel&#8217; or &#8216;freq&#8217;</p>
-</li>
 <li><strong>save</strong> &#8211; <p>data to save at each bootstrap itterations</p>
 <p>possible values are <strong>&#8216;all&#8217;</strong>, <strong>&#8216;amp&#8217;</strong> and <strong>&#8216;ampAndWidth&#8217;</strong></p>
 <p><strong>&#8216;all&#8217;</strong> saves the full stack at each bootstrap itteration /!caution, can be memory expensive</p>
@@ -536,11 +521,52 @@ See stacker.OneD_Stacker.stack for further information on centering methods.</li
 </dd></dl>
 
 <dl class="function">
+<dt id="LineStacker.analysisTools.regridFromZ">
+<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">regridFromZ</code><span class="sig-paren">(</span><em>coords</em>, <em>imagenames</em>, <em>stampsize=32</em>, <em>chanwidth=0</em>, <em>fEm=0</em>, <em>writeImage=True</em>, <em>regridMethod='scaleToMin'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.regridFromZ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cube regridding function coorecting the observed linewidth change due to redshift.              Spectral dimensions are rebinned to a new_size=old_size*zRatio where zRatio=(1+z)/(1+zRef)              where z is the observed line redshift and zRef is either the smaller (<strong>scaleToMin</strong>) or bigger (<strong>scaleToMax</strong>) redshift among the studied lines.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coords</strong> &#8211; A coordList object of all target coordinates.</li>
+<li><strong>imagenames</strong> &#8211; Name of images to extract flux from.</li>
+<li><strong>stampsize</strong> &#8211; size of target image in pixels</li>
+<li><strong>chanwidth</strong> &#8211; number of channels of the resulting stack, default is number of channels in the first image.</li>
+<li><strong>fEm</strong> &#8211; rest emission frequency of the line</li>
+<li><strong>writeImage</strong> &#8211; boolean, if set to <strong>True</strong> regridded images will be written to disk (in ./regridedImages)</li>
+<li><strong>regridMethod</strong> &#8211; Method of regridding, can be set either to <strong>&#8216;scaleToMin&#8217;</strong> or <strong>&#8216;scaleToMax&#8217;</strong>.                    In the first case all spetcra are regrided to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).                  <strong>NB</strong>: Using <strong>&#8216;scaleToMin&#8217;</strong> while having sources at z=0 will lead to errors when writting stacked image to disk.</li>
+<li><strong>Returns</strong> &#8211; List of new regridded image cubes and associated coordinates if writeImage is <strong>True</strong> or list of regridded stamps otherwise.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="LineStacker.analysisTools.regridFromZ1D">
+<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">regridFromZ1D</code><span class="sig-paren">(</span><em>images</em>, <em>regridMethod='scaleToMin'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.regridFromZ1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>1D regridding function correcting the observed linewidth change due to redshift.                Spectra are rebinned to a new_size=old_size*zRatio where zRatio=(1+z)/(1+zRef)          where z is the observed line redshit and zRef is either the smaller (<strong>scaleToMin</strong>) or bigger (<strong>scaleToMax</strong>) redshift among the studied lines.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Images</strong> &#8211; List of images, images have to objects of the Image class (LineStacker.OneD_Stacker.Image).</li>
+<li><strong>regridMethod</strong> &#8211; Method of regridding, can be set either to <strong>&#8216;scaleToMin&#8217;</strong> or <strong>&#8216;scaleToMax&#8217;</strong>.                    In the first case all spetcra are regrided to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).</li>
+<li><strong>Returns</strong> &#8211; List of new regridded images.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="LineStacker.analysisTools.stack_estimator">
 <code class="descclassname">LineStacker.analysisTools.</code><code class="descname">stack_estimator</code><span class="sig-paren">(</span><em>coords</em>, <em>nRandom=100</em>, <em>imagenames=[]</em>, <em>stampsize=1</em>, <em>method='mean'</em>, <em>chanwidth=30</em>, <em>lowerLimit='default'</em>, <em>upperLimit='default'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.stack_estimator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Performs stacks at random positions a set number of times.
-Allows to probe the relevance of stack through stacking random positions as a Monte Carlo process.</p>
-<p>returns: Estimate of stacked flux assuming point source.</p>
+<dd><p>Performs stacks at random positions a set number of times.Allows to probe the relevance of stack through stacking random positions as a Monte Carlo process.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -552,12 +578,9 @@ Allows to probe the relevance of stack through stacking random positions as a Mo
 <li><strong>stampsize</strong> &#8211; Size of the stamp to stack (because only the central pixel is extracted anyway, this should be kept to default to enhance efficiency)</li>
 <li><strong>method</strong> &#8211; Method for stacking, see LineStacker.line_image.stack</li>
 <li><strong>chanwidth</strong> &#8211; Number of channels in the stack</li>
-<li><strong>lowerLimit</strong> &#8211; <p>Lower spatial limit (distance from stacking position) to randomize new stacking position.</p>
-<p>Default is 5 beams</p>
-</li>
-<li><strong>upperLimit</strong> &#8211; <p>Upper spatial limit (distance from stacking position) to randomize new stacking position.</p>
-<p>Default is 10 beams</p>
-</li>
+<li><strong>lowerLimit</strong> &#8211; Lower spatial limit (distance from stacking position) to randomize new stacking position.                       Default is 5 beams</li>
+<li><strong>upperLimit</strong> &#8211; Upper spatial limit (distance from stacking position) to randomize new stacking position.                       Default is 10 beams</li>
+<li><strong>returns</strong> &#8211; Estimate of stacked flux assuming point source.</li>
 </ul>
 </td>
 </tr>
@@ -569,23 +592,20 @@ Allows to probe the relevance of stack through stacking random positions as a Mo
 <dt id="LineStacker.analysisTools.subsample_OneD">
 <code class="descclassname">LineStacker.analysisTools.</code><code class="descname">subsample_OneD</code><span class="sig-paren">(</span><em>images</em>, <em>nRandom=10000</em>, <em>maxTest=&lt;function maximizeSNR&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.subsample_OneD" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
-<div><p>Randomly ressamples spectra and grades them accordingly
-to a given grade function. Returns the grade of each spectra as a dictionnary.</p>
-<dl class="docutils">
-<dt>images</dt>
-<dd>A list of stacker.OneD_Stacker.images</dd>
-<dt>nRandom</dt>
-<dd>Number of itterations of the Monte-Carlo process</dd>
-<dt>maxTest</dt>
-<dd><p class="first">function test to grade the sources</p>
-<p class="last">build your own, or use existing: <strong>maximizeAmp</strong>, <strong>maximizeSNR</strong>, <strong>maximizeOutflow</strong>.</p>
-</dd>
-</dl>
-</div></blockquote>
-<dl class="docutils">
-<dt>Default is to maximize amplitude (amplitude being simply maximum value of spectra).</dt>
-<dd>Any other argument for LineStacker.OneD_Stacker.Stack</dd>
-</dl>
+<div>Randomly ressamples spectra and grades them accordingly to a given grade function. Returns the grade of each spectra as a dictionnary.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>images</strong> &#8211; A list of stacker.OneD_Stacker.images</li>
+<li><strong>nRandom</strong> &#8211; Number of itterations of the Monte-Carlo process</li>
+<li><strong>maxTest</strong> &#8211; function test to grade the sources build your own, or use existing: <strong>maximizeAmp</strong>, <strong>maximizeSNR</strong>, <strong>maximizeOutflow</strong>.                  Default is to maximize amplitude (amplitude being simply maximum value of spectra)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>

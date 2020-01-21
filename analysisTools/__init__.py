@@ -11,7 +11,6 @@ def bootstraping_OneD(	Images,
 						chansStack='full',
 						method='mean',
 						center='lineCenterIndex',
-						velOrFreq='vel',
 						save='all'):
 
 	"""
@@ -31,9 +30,6 @@ def bootstraping_OneD(	Images,
 		center
 			Method to center spectra.
 			See stacker.OneD_Stacker.stack for further information on centering methods.
-		velOrFreq
-			velocity or frequency mode (chose according to your spectral axis type)\n
-			possible values are 'vel' or 'freq'
 		save
 			data to save at each bootstrap itterations\n
 			possible values are **'all'**, **'amp'** and **'ampAndWidth'**\n
@@ -49,8 +45,7 @@ def bootstraping_OneD(	Images,
 	baseStack=LineStacker.OneD_Stacker.Stack(	Images,
 											chansStack=chansStack,
 											method=method,
-											center=center,
-											velOrFreq=velOrFreq)
+											center=center)
 	saved=([0 for i in range(nRandom+1)])
 	'''/!\
 	'''
@@ -79,8 +74,7 @@ def bootstraping_OneD(	Images,
 		tempStack=LineStacker.OneD_Stacker.Stack(	newImages,
 												chansStack=chansStack,
 												method=method,
-												center=center,
-												velOrFreq=velOrFreq)
+												center=center)
 		if save=='all':
 			saved[n+1]=tempStack[0]
 		elif save=='amp':
@@ -552,22 +546,22 @@ def subsample_OneD(	images,
 					nRandom=10000,
 					maxTest=maximizeSNR,
 					**kwargs):
-	'''
-		Randomly ressamples spectra and grades them accordingly
-		to a given grade function. Returns the grade of each spectra as a dictionnary.
+	"""
+		Randomly ressamples spectra and grades them accordingly to a given grade function. Returns the grade of each spectra as a dictionnary.
 
-		Parameters
-		---------
+        Parameters
+        ----------
 
-		images
-			A list of stacker.OneD_Stacker.images
-		nRandom
+        images
+            A list of stacker.OneD_Stacker.images
+        nRandom
 			Number of itterations of the Monte-Carlo process
-		maxTest
-			function test to grade the sources\n
-			build your own, or use existing: **maximizeAmp**, **maximizeSNR**, **maximizeOutflow**. \n Default is to maximize amplitude (amplitude being simply maximum value of spectra).
-		Any other argument for LineStacker.OneD_Stacker.Stack
-	'''
+        maxTest
+            function test to grade the sources build your own, or use existing: **maximizeAmp**, **maximizeSNR**, **maximizeOutflow**. \
+			Default is to maximize amplitude (amplitude being simply maximum value of spectra)
+
+	"""
+
 	import LineStacker.tools
 	import LineStacker.OneD_Stacker
 	print '\nSubsampling...\n'
@@ -595,13 +589,10 @@ def stack_estimator(    coords,
 						upperLimit='default',
 						**kwargs):
 	"""
-        Performs stacks at random positions a set number of times.
-	Allows to probe the relevance of stack through stacking random positions as a Monte Carlo process.
-
-        returns: Estimate of stacked flux assuming point source.
+        Performs stacks at random positions a set number of times.\ Allows to probe the relevance of stack through stacking random positions as a Monte Carlo process.
 
         Parameters
-        ---------
+        ----------
         coords
             A coordList object of all target coordinates.
         nRandom
@@ -615,11 +606,13 @@ def stack_estimator(    coords,
         chanwidth
 			Number of channels in the stack
         lowerLimit
-			Lower spatial limit (distance from stacking position) to randomize new stacking position.\n
+			Lower spatial limit (distance from stacking position) to randomize new stacking position.\
 			Default is 5 beams
         upperLimit
-			Upper spatial limit (distance from stacking position) to randomize new stacking position.\n
+			Upper spatial limit (distance from stacking position) to randomize new stacking position. \
 			Default is 10 beams
+        returns
+			Estimate of stacked flux assuming point source.
 	"""
 
 	import LineStacker
@@ -700,3 +693,223 @@ def randomizeCoords(	coords,
         y = coord.y + dr*math.sin(dphi)
         randomcoords.append(stacker.Coord(x, y, coord.z, coord.weight, coord.image))
 	return randomcoords
+
+def RebinToRest(	coord,
+					stamp,
+					z,
+					zToScale=0):
+
+	zRatio=(1.+coord.z)/(1.+zToScale)
+
+	oldShape=stamp.shape
+	#=v should it be round?
+	newFreqShape=int(round(oldShape[-1]*zRatio))
+	newShape=list(oldShape)
+	newShape[-1]=newFreqShape
+	if list(newShape)!=list(oldShape):
+		newShape=[newShape[0], newShape[1], newShape[3]]
+		newStamp=congrid(stamp[:,:,0,:], newShape,method='spline')#method='linear')
+		newStamp=newStamp.reshape(newShape[0], newShape[1],1, newShape[2])
+		return newStamp, True
+	else:
+		return stamp, False
+
+def regridFromZ(		coords,
+						imagenames,
+						stampsize=32,
+						chanwidth=0,
+						fEm=0,
+						writeImage=True,
+						regridMethod='scaleToMin'):
+
+	"""
+    	Cube regridding function coorecting the observed linewidth change due to redshift. \
+		Spectral dimensions are rebinned to a new_size=old_size*zRatio where zRatio=(1+z)/(1+zRef) \
+		where z is the observed line redshift and zRef is either the smaller (**scaleToMin**) or bigger (**scaleToMax**) redshift among the studied lines.
+
+        Parameters
+        ----------
+        coords
+            A coordList object of all target coordinates.
+        imagenames
+            Name of images to extract flux from.
+        stampsize
+            size of target image in pixels
+        chanwidth
+            number of channels of the resulting stack, default is number of channels in the first image.
+        fEm
+            rest emission frequency of the line
+        writeImage
+            boolean, if set to **True** regridded images will be written to disk (in ./regridedImages)
+        regridMethod
+            Method of regridding, can be set either to **'scaleToMin'** or **'scaleToMax'**.\
+			In the first case all spetcra are regrided to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).\
+			**NB**: Using **'scaleToMin'** while having sources at z=0 will lead to errors when writting stacked image to disk.
+        Returns
+            List of new regridded image cubes and associated coordinates if writeImage is **True** or list of regridded stamps otherwise.
+	"""
+	from taskinit import ia
+	import LineStacker
+	import os
+	import shutil
+
+	print('\nRegridding images using redshifts...\n')
+
+
+	if os.path.exists('./regridedImages') and os.path.isdir('./regridedImages'):
+		shutil.rmtree('./regridedImages')
+	os.mkdir('./regridedImages')
+
+	if writeImage:
+		regridedImagenames=[]
+		regridedCoords=LineStacker.CoordList()
+	else:
+		returnStamp=([0 for i in range(len(coords))])
+
+	if regridMethod=='scaleToMin':
+		zToScale=min([cc.z for cc in coords])
+	elif regridMethod=='scaleToMax':
+		zToScale=max([cc.z for cc in coords])
+
+	for (coordNumber, coord) in enumerate(coords):
+
+		LineStacker.tools.ProgressBar(coordNumber, len(coords))
+		imagename=imagenames[coord.image]
+
+		ia.open(imagename)
+
+		blc=[int(coord.x-int(stampsize/2.)+0.5), int(coord.y-int(stampsize/2.)+0.5)]
+		trc=[blc[0]+stampsize, blc[1]+stampsize]
+
+		tempStamp=ia.getchunk([blc[0],blc[1],0,0],[trc[0],trc[1],-1,-1])
+
+		imInfo=ia.summary()
+		oldFreqBin=imInfo['incr'][-1]
+		if chanwidth=='default':
+			chanwidth=tempStamp.shape[-1]
+
+		if writeImage:
+			if coord.z!=zToScale:
+				tempStamp, newStampFlag=RebinToRest(coord, tempStamp, coord.z, zToScale=zToScale)
+
+				if newStampFlag:
+					velIncr=(1.+zToScale)/(1.+coord.z)*oldFreqBin
+
+					cs = ia.coordsys()
+					ia.done()
+					csnew = cs.copy()
+					csnew.setreferencevalue([0.]*2, 'dir')
+					#csnew.setreferencepixel([int(stampsize/2)]*2, 'dir')
+					csnew.setreferencepixel(int(chanwidth/2+0.5), type='spectral')
+					obsFreq=fEm/(1.+coord.z)
+					freq0=imInfo['refval'][3]-imInfo['refpix'][3]*oldFreqBin
+					tempObsSpecArg=int(round((obsFreq-freq0)/velIncr))
+
+					csnew.setreferencepixel(tempObsSpecArg, type='spectral')
+					csnew.setreferencevalue(fEm, type='spectral')
+					csnew.setincrement(value=velIncr, type='spectral')
+					tempImName=imagename.split('.')
+					imType=tempImName[-1]
+					tempImName=imagename.strip('.'+imType)
+					outImName=tempImName+'_source-'+str(coordNumber)+'_ZRegrid.'+imType
+					if outImName.rindex('/')!=-1:
+						lastDirIndex=outImName.rindex('/')
+						#outImName=outImName[:lastDirIndex]+'/regridedImages'+outImName[lastDirIndex:]
+						outImName='./regridedImages'+outImName[lastDirIndex:]
+					else:
+						outImName='./regridedImages/'+outImName
+					if os.path.exists(outImName):
+						import shutil
+						shutil.rmtree(outImName)
+					ia.fromarray(outImName, pixels=tempStamp, csys = csnew.torecord())
+					ia.done()
+					newCoord=LineStacker.Coord(	x=int(stampsize/2+0.5),
+												y=int(stampsize/2+0.5),
+												z=0,
+												image=coordNumber,
+												weight=coord.weight,
+												)
+					regridedImagenames.append(outImName)
+					regridedCoords.append(newCoord)
+				elif not newStampFlag:
+					regridedImagenames.append(imagename)
+					import copy
+					tempCoord=copy.deepcopy(coord)
+					tempCoord.image=coordNumber
+					regridedCoords.append(tempCoord)
+			elif coord.z==zToScale:
+				regridedImagenames.append(imagename)
+				import copy
+				tempCoord=copy.deepcopy(coord)
+				tempCoord.image=coordNumber
+				regridedCoords.append(tempCoord)
+		elif not writeImage:
+			tempStamp=RebinToRest(coord, tempStamp, coord.z, zToScale=zToScales)[0]
+			returnStamp[coordNumber]=tempStamp
+	if writeImage:
+		regridedCoords.imagenames=regridedImagenames
+		return regridedImagenames, regridedCoords
+	elif not writeImage:
+		return returnStamp
+
+def regridFromZ1D(images, regridMethod='scaleToMin'):
+
+	"""
+        1D regridding function correcting the observed linewidth change due to redshift. \
+		Spectra are rebinned to a new_size=old_size*zRatio where zRatio=(1+z)/(1+zRef)\
+		where z is the observed line redshit and zRef is either the smaller (**scaleToMin**) or bigger (**scaleToMax**) redshift among the studied lines.
+
+        Parameters
+        ----------
+        Images
+            List of images, images have to objects of the Image class (LineStacker.OneD_Stacker.Image).
+        regridMethod
+            Method of regridding, can be set either to **'scaleToMin'** or **'scaleToMax'**.\
+			In the first case all spetcra are regrided to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).
+        Returns
+            List of new regridded images.
+	"""
+
+	if regridMethod=='scaleToMin':
+		zToScale=min([im.z for im in images])
+	elif regridMethod=='scaleToMax':
+		zToScale=max([im.z for im in images])
+
+	import copy
+	import LineStacker.tools
+
+	allNewImages=[]
+
+	print "\033[1;33m"+"\nRegridding from Z"+"\x1b[0m"+'\n'
+	for (i, image) in enumerate(images):
+		LineStacker.tools.ProgressBar(i, len(images))
+		newImage=copy.deepcopy(image)
+		if newImage.z!=zToScale:
+			zRatio=(1.+newImage.z)/(1.+zToScale)
+			for attr in vars(newImage):
+				try:
+					newLen=int(len(vars(newImage)[attr])*zRatio)
+					if type(vars(newImage)[attr])!=str:
+						if attr=='spectrum':
+							if vars(newImage)[attr].shape[1]==2:
+								vars(newImage)[attr]=congrid(np.array(vars(newImage)[attr]), [newLen, 2], method='spline')
+							elif vars(newImage)[attr].shape[0]==2:
+								vars(newImage)[attr]=congrid(np.array(vars(newImage)[attr]), [2, newLen], method='spline')
+						elif attr=='gaussfit':
+							pass
+						else:
+							vars(newImage)[attr]=congrid(np.array(vars(newImage)[attr]), [newLen], method='spline')
+				except TypeError:
+					pass
+				if attr=='velBin':
+					vars(newImage)[attr]=vars(newImage)[attr]/zRatio
+				if attr=='freqbin':
+					vars(newImage)[attr]=vars(newImage)[attr]/zRatio
+			if newImage.centerIndex!=None:
+				newImage.centerIndex=int(image.centerIndex*zRatio)
+			if newImage.fit:
+				newImage.fitAgain()
+
+		allNewImages.append(newImage)
+
+	return allNewImages

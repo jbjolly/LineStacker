@@ -1,7 +1,6 @@
 """
 **LineStacker Module:**\n
 Main Stacker module. Contains all basic functions.
-
 """
 # -*- coding: utf-8; -*-
 # stacker, Python module for stacking of interferometric data.
@@ -279,11 +278,12 @@ class Coord:
             #self.weight[-numberOfZeroRightF:]=0
                 self.weight=np.concatenate((self.weight, np.zeros(numberOfZeroRightF)  ))
 
-def readCoordsGUI(unit='deg', lineON=True):
+def readCoordsGUI(unit='deg', lineON=True, **kwargs):
     import Tkinter, Tkconstants, tkFileDialog
     filez=  tkFileDialog.askopenfilenames(initialdir = ".",title = "Select coord files",filetypes = (("txt files","*.txt"),("all files","*.*")))
     filez=list(filez)
-    coords=readCoords(filez, unit=unit, lineON=lineON)
+
+    coords=readCoords(filez, unit=unit, lineON=lineON, **kwargs)
     return coords
 
 def readCoordsNamesGUI():
@@ -303,8 +303,23 @@ def readCoordsNamesGUI():
 #    filez=  tkFileDialog.askopenfilenames(initialdir = ".",title = "Select image files",filetypes = (("casa im cubes","*.im"),("casa image cubes","*.image"),("all files","*.*")))
 #    return list(filez)
 
+def readCoords(coordfiles, unit='deg', lineON=True, delimiter='default'):
+    if delimiter=='default':
+        delimiter=[',',' ','\t']
+        delimiterNames=['coma', 'space', 'tab']
+    else:
+        delimiter=[delimiter]
+    for (j,delimiter) in enumerate(delimiter):
 
-def readCoords(coordfiles, unit='deg', lineON=True):
+        try:
+            coords=_readCoords(coordfiles, unit='deg', lineON=True, delimiter=delimiter)
+            return coords
+        except RuntimeError:
+            print "\033[1;33m"+"\nUsing delimiter '"+str(delimiterNames[j])+"' lead to an error, trying other delimiter (if any)"+"\x1b[0m"+'\n'
+            pass
+    raise Exception("RuntimeError, check data format. If set to default delimiters can be comma, space, and tab. Otherwise feed own delimiter to this function.")
+
+def _readCoords(coordfiles, unit='deg', lineON=True, delimiter=','):
     """
         Reads coordinate files from disk and produces a list./!\\\\ To each image should be associated one single coord file.
 
@@ -318,13 +333,11 @@ def readCoords(coordfiles, unit='deg', lineON=True):
             Either **True** or **False**, should be set to **True** if doing line stacking. Default is **True**.
     """
     import csv
-    #delimiter='\t'
-    delimiter=','
+
     coords = CoordList()
     if coordfiles==None:
         print 'coordfile is None, stacking on the center'
         return None
-
     for (i, coordi) in enumerate(coordfiles):
         coordreader = csv.reader(open(coordi, 'rb'), delimiter=delimiter)
         for row in coordreader:
@@ -348,10 +361,10 @@ def readCoords(coordfiles, unit='deg', lineON=True):
             if not lineON:
                 if len(row)==3:
                     weight = float(row[2])
-                    coords.append(Coord(x, y, weigth=weight, image=i))
+                    coords.append(Coord(x, y, weight=weight, image=i))
                 elif len(row)==2:
                     weight = 1.
-                    coords.append(Coord(x, y, weigth=weight, image=i))
+                    coords.append(Coord(x, y, weight=weight, image=i))
                 elif len(row)==4:
                     lineON=True
                     print '/!\\ care : Line mode is set to False but 4 coordinate rows are found, line mode is now set to True'

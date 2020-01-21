@@ -7,13 +7,14 @@
 Welcome to Line-Stacker's documentation!
 ===================================
 
-Line-Stacker is a new open access tool for stacking of spectral lines. Line-Stackeris an ensemble of both CASA tasks and native python tasks, and can stack both 3Dcubes or already extracted spectra. Additionaly a set of tools are included to help further analyse stacked spectra and stacked sample.
+Line-Stacker is a new open access tool for stacking of spectral lines. Line-Stacker is an ensemble of both CASA tasks and native python tasks, and can stack both 3Dcubes or already extracted spectra. Additionaly a set of tools are included to help further analyse stacked spectra and stacked sample.
 
 Some example, showing how to use of Line-Stacker, can be found in the example section. 
 
 .. toctree::
    :maxdepth: 2
-	
+
+   flowCharts.rst	
    testos.rst
    example.rst
 

@@ -1,0 +1,17 @@
+.. _testos:
+
+
+************************************
+LineStacker functionning principle
+************************************
+
+Basic
+=====
+
+.. image:: _static/LineStacker-Base.jpg
+
+Extended
+========
+
+.. image:: _static/LineStacker_extended.jpg
+

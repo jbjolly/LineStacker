@@ -35,7 +35,7 @@ for (i,image) in enumerate(imagenames):
                         :,
                         :], axis=(0,1,2))
     ax=fig.add_subplot(10,5,i+1)
-    ax.plot(spectrum)
+    ax.step(range(len(spectrum)), spectrum, where='mid')
 fig.show()
 
 #the stack results are stored in the cube stackResult.image by default
@@ -52,7 +52,7 @@ doubleFited=fitTools.DoubleGaussFit(fctToFit=integratedImage, returnAllComp=True
 
 fig=plt.figure()
 ax=fig.add_subplot(111)
-ax.plot(integratedImage,'k', label='stack')
+ax.step(range(len(integratedImage)), integratedImage,  'k', label='stack', where='mid')
 ax.plot(fited, 'g', label='Single Gaussian fit')
 ax.plot(doubleFited[0],'r--', label='Double Gaussian Fit, all')
 ax.plot(doubleFited[1],'m', label='Double Gaussian Fit, 1st component')
@@ -82,7 +82,7 @@ doubleFited=fitTools.DoubleGaussFit(fctToFit=integratedImage, returnAllComp=True
 
 fig=plt.figure()
 ax=fig.add_subplot(111)
-ax.plot(integratedImage,'k', label='stack')
+ax.step(range(len(integratedImage)), integratedImage, 'k', label='stack', where='mid')
 ax.plot(fited, 'g', label='Single Gaussian fit')
 ax.plot(doubleFited[0],'r--', label='Double Gaussian Fit, all')
 ax.plot(doubleFited[1],'m', label='Double Gaussian Fit, 1st component')

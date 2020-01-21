@@ -38,7 +38,8 @@ class Image():
             it is still possible to define the frequencies
         z
             Redshift, one of the possible way to define central frequency.
-            If using redshift **fEmLine** (emission frequency of the line) should also be defined.
+            If using redshift **fEmLine** (emission frequency of the line) should be defined.
+            In addition the Image spectra should consist of BOTH amplitudes and spectral information (frequencies or velocites), and not amplitude alone.
         fEmLine
             Emission frequency of the line, needed if redshift argument is used.
         centerIndex
@@ -86,7 +87,8 @@ class Image():
         self.centralFrequency=centralFrequency
         self.spectrum=spectrum
         self.fEmLine=fEmLine
-
+        self.velocities=velocities
+        self.frequencies=frequencies
 
         if amp==[]: #if amplitude is not defined its extracted from the spectrum
             if self.spectrum.shape[1]==2:
@@ -129,7 +131,7 @@ class Image():
                    self.frequencies=np.arange(0,len(self.amp))
             else:
                 self.frequencies=frequencies
-                self.freqBin=self.frequencies[1]-self.frequencies[0] #frequency bin size
+            self.freqBin=self.frequencies[1]-self.frequencies[0] #frequency bin size
 
         if self.z!=None: #use z and rest emission frequency to find stack center
             if self.fEmLine==False:
@@ -225,7 +227,8 @@ def Stack(  Images,
             chansStack='full',
             method='mean',
             center='lineCenterIndex',
-            velOrFreq='vel'):
+            regridFromZ=False,
+            regridMethod='scaleToMin'):
 
     """
         Main (one dimmensional) stacking function.
@@ -247,10 +250,18 @@ def Stack(  Images,
             **'zero_vel'** to stack on velocity=0 bin,\n
             **'lineCenterIndex'** use the line center initiated with the image,\n
             Or dirrectly defined by the user (int)
-        velOrFreq
-            **'vel'** or **'freq'**, frequency or velocity mode.
+        regridFromZ
+            if set to True spectra will be regridded to take into account the redshift difference of the different sources. See LineStacker.analysisTools.regridFromZ1D for a more complete description.
+        regridMethod
+            Used if regridFromZ is True. Can be set either to **'scaleToMin'** or **'scaleToMax'**.
+            In the first case all spetcra are regrided to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).
 
     """
+
+    if regridFromZ:
+        import LineStacker.analysisTools
+        Images=LineStacker.analysisTools.regridFromZ1D(Images, regridMethod=regridMethod)
+
     for (i,image) in enumerate(Images):
         #if image.centerIndex==None:
         if center=='fit':
@@ -293,6 +304,13 @@ def Stack(  Images,
                 pass
         else: #user defined center
             image.centerIndex=center
+            if regridFromZ:
+                if regridMethod=='scaleToMin':
+                    zToScale=min([tempIm.z for tempIm in Images])
+                elif regridMethod=='scaleToMax':
+                    zToScale=max([tempIm.z for tempIm in Images])
+                zRatio=(1.+image.z)/(1.+zToScale)
+                image.centerIndex=int(center*zRatio)
 
     if chansStack=='full': #use all bins
         pass
@@ -305,11 +323,20 @@ def Stack(  Images,
                 Images[i].velocities=Images[i].velocities[newImageLeftLim:newImageRightLim]
             if image.frequencies!=[]:
                 Images[i].frequencies=Images[i].frequencies[newImageLeftLim:newImageRightLim]
+            if int(image.centerIndex-chansStack/2)>0:
+                image.centerIndex=chansStack
+            else:
+                pass
+                #if int(image.centerIndex-chansStack/2)<=0 then keep same centerIndex
     else:
         raise Exception("chansStack must be an int or 'full' for full spectra" )
+    if image.velocities!=[]:
+        max_size=[int(max([image.centerIndex for image in Images])),
+            int(max([len(image.velocities)-image.centerIndex for image in Images]))] #determine the size of the stack output
+    elif image.frequencies!=[]:
+        max_size=[int(max([image.centerIndex for image in Images])),
+            int(max([len(image.frequencies)-image.centerIndex for image in Images]))] #determine the size of the stack output
 
-    max_size=[int(max([image.centerIndex for image in Images])),
-        int(max([len(image.velocities)-image.centerIndex for image in Images]))] #determine the size of the stack output
     toStack=np.zeros(( len(Images), max_size[0]+max_size[1])) #create an array, to be filled that will be stacked
     vliko=np.zeros(( len(Images), max_size[0]+max_size[1])) #create an array, to be filled that will be stacked
     for index in range(-max_size[0],max_size[1]):

@@ -23,6 +23,8 @@ from __future__ import division
 import math
 import LineStacker
 import LineStacker.image
+import LineStacker.tools
+import LineStacker.analysisTools
 import numpy as np
 from sys import modules
 
@@ -47,6 +49,8 @@ def stack(  coords,
             fEm = 0,
             chanwidth='default',
             plotIt=False,
+            regridFromZ=False,
+            regridMethod='scaleToMin',
             **kwargs):
     """
         Performs line stacking in the image domain.
@@ -88,6 +92,12 @@ def stack(  coords,
             number of channels of the resulting stack, default is number of channels in the first image.
         plotIt
             direct plot option
+        regridFromZ
+            if set to True new images will be created, regridded to take into account the redshift difference of the different sources. See LineStacker.analysisTools.regridFromZ for a more complete description.
+            NB: ALL IMAGES SHOULD HAVE SAME FREQUENCY BIN originally.
+        regridMethod
+            Used if regridFromZ is True. Can be set either to 'scaleToMin' or 'scaleToMax'.
+            In the first case all images are regrided to match the smallest redshift (over-gridding), all images are regridded to match the highest redshift in the other case (under-gridding)
     """
 
     from ..interval import interval
@@ -103,14 +113,32 @@ def stack(  coords,
     global skymap
     global data
     global oldimagenames
-    
+
+
+    if coords.coord_type == 'physical':
+        coords = LineStacker.getPixelCoords(coords, imagenames)
+
     if chanwidth=='default':
         ia.open(imagenames[0])
         chanwidth=ia.summary()['shape'][-1]
         ia.done()
 
-    if coords.coord_type == 'physical':
-        coords = LineStacker.getPixelCoords(coords, imagenames)
+    if regridFromZ:
+
+        ia.open(imagenames[0])
+        imInfo=ia.summary()
+        ia.done()
+
+        if imInfo['axisnames'][-1]=='Frequency':
+            imagenames, coords=LineStacker.analysisTools.regridFromZ(
+                                                    coords,
+                                                    imagenames,
+                                                    stampsize=stampsize,
+                                                    chanwidth=chanwidth,
+                                                    fEm=fEm,
+                                                    regridMethod=regridMethod)
+        else:
+            raise Exception('last axis is not Frequency, cant regrid')
 
     #fills skymap and loads data as zeros
     _allocate_buffers(coords.imagenames, stampsize, len(coords), chanwidth)
@@ -129,7 +157,12 @@ def stack(  coords,
 
     #write image output
     _write_stacked_image(outfile, stacked_im,
-                         coords.imagenames[0], stampsize, chanwidth, fEm)
+                         coords,
+                         stampsize,
+                         chanwidth,
+                         fEm,
+                         regridFromZ=regridFromZ,
+                         regridMethod=regridMethod)
 
     #plt.figure()
     if plotIt:
@@ -139,6 +172,8 @@ def stack(  coords,
         except ZeroDivisionError:
             print 'ERORR : your chanwidth is too large and no frequencies were found for ANY of your images in one or more bins'
 
+        plt.figure()
+        #ax=im.add_subplot(2)
         plt.plot(stacked_im[int(stampsize/2), int(stampsize/2),0,:], 'r', linewidth=5)
         plt.plot(unusedFrequencies*max(stacked_im[int(stampsize/2), int(stampsize/2),0,:])/len(coords), 'b', linewidth=2.5, label='percentage of the sources not used')
         plt.plot(stackedImIncludingBorderEffects, 'g', linewidth=5, label='corrected')
@@ -155,7 +190,7 @@ def stack(  coords,
     #
     casalog.post('#'*5 +  ' {0: <31}'.format("End Task: stacker")+'#'*5)
     casalog.post('#'*42)
-
+    oldimagenames=imagenames
     return [stacked_im[int(stampsize/2), int(stampsize/2),0,int(chanwidth/2)], stacked_im[int(stampsize/2), int(stampsize/2),0,:], stacked_im, unusedFrequencies]
 
 
@@ -226,7 +261,6 @@ def _allocate_buffers(  imagenames,
             imagesInfo['freqlen'].append(ia.shape()[3])
 
             ia.done()
-
     else:
         for imagename in imagenames:
             ia.open(imagename)
@@ -361,7 +395,6 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
         if spectralMethod=='z':
             obsFreq=fEm/(1.+coord.z)
             obsFreqArg=int(round((obsFreq-imagesInfo['freq0'][coord.image])/imagesInfo['freqBin'][coord.image]))
-
         elif spectralMethod=='centralFreq':
             obsFreq=coord.z
             obsFreqArg=int(round((obsFreq-imagesInfo['freq0'][coord.image])/imagesInfo['freqBin'][coord.image]))
@@ -370,9 +403,10 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
         #coord.obsSpecArg=obsFreqArg
         if coord.obsSpecArg!=0:
             obsFreqArg=coord.obsSpecArg
-        blcx = int(coord.x - stampsize/2 + 0.5)
-        blcy = int(coord.y - stampsize/2 + 0.5)
-        blcf = obsFreqArg - int(chanwidth/2)
+
+        blcx=int(coord.x - int(stampsize/2.)+0.5)
+        blcy=int(coord.y - int(stampsize/2.)+0.5)
+        blcf = obsFreqArg - int(chanwidth/2.)
         numberOfZeroLeftF=0
 
         trcx = blcx + stampsize
@@ -399,8 +433,8 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
 
 # Currently including positions on the edge of the skymap (in space) will raise an error.
 # This could certainly be improved upon.
-        if (interval[blcx, trcx] in interval[0, imagesInfo['imagesizes'][coord.image][0]-1]
-                and interval[blcy, trcy] in interval[0, imagesInfo['imagesizes'][coord.image][1]-1]):
+        if (interval[blcx, trcx] in interval[0, imagesInfo['imagesizes'][coord.image][0]]
+                and interval[blcy, trcy] in interval[0, imagesInfo['imagesizes'][coord.image][1]]):
 
             if not numberOfZeroRightF and not numberOfZeroLeftF:
                 data[i,:,:,0,:] = skymap[coord.image][blcx:trcx,blcy:trcy,0,blcf:trcf]
@@ -426,17 +460,25 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
                 len(coord.weight)
             except TypeError:
                 coord.weight=np.array([coord.weight for i in range(chanwidth)])
-
     if Return:
         return data
 
-def _write_stacked_image(imagename, pixels, template_image, stampsize, chanwidth, fEm):
+def _write_stacked_image(   imagename,
+                            pixels,
+                            coords,
+                            stampsize,
+                            chanwidth,
+                            fEm,
+                            regridFromZ=False,
+                            regridMethod='scaleToMin'):
     import os
     import shutil
     from taskinit import ia
 #     global stampsize
     if os.access(imagename, os.F_OK): shutil.rmtree(imagename)
 
+
+    template_image=coords.imagenames[0]
     ia.open(template_image)
     beam = ia.restoringbeam()
     cs = ia.coordsys()
@@ -445,11 +487,37 @@ def _write_stacked_image(imagename, pixels, template_image, stampsize, chanwidth
     csnew = cs.copy()
     csnew.setreferencevalue([0.]*2, 'dir')
     csnew.setreferencepixel([int(stampsize/2+0.5)]*2, 'dir')
-    if fEm=='no':
-        centralFreq=cs.referencevalue()['numeric'][3]
-    else:
-        centralFreq=fEm
-    csnew.setreferencevalue(centralFreq, type='spectral')
+    if not regridFromZ:
+        if fEm=='no':
+            centralFreq=cs.referencevalue()['numeric'][3]
+        else:
+            centralFreq=fEm
+        csnew.setreferencevalue(centralFreq, type='spectral')
+
+    elif regridFromZ:
+        c=299792.458#in km
+    	if regridMethod=='scaleToMin':
+            nonZeroZ=[]
+            nonZeroIndex=[]
+            for (i, coord) in enumerate(coords):
+                if coord.z==0:
+                    pass
+                else:
+                    nonZeroZ.append(coord.z)
+                    nonZeroIndex.append(i)
+            zToScale=min([zz for zz in nonZeroZ])
+            scaleIndex=np.argmin([zz for zz in nonZeroZ])
+            scaleIndex=nonZeroIndex[scaleIndex]
+        elif regridMethod=='scaleToMax':
+            zToScale=max([cc.z for cc in coords])
+            scaleIndex=np.argmax([cc.z for cc in coords])
+
+        csnew.setreferencevalue(float(fEm)/zToScale, type='spectral')
+        ia.open(coords.imagenames[scaleIndex])
+        newVelIncr=ia.summary()['incr'][-1]
+        ia.done()
+        csnew.setincrement(value=newVelIncr, type='spectral')
+
     csnew.setreferencepixel([int(chanwidth/2+0.5)]*2, type='spectral')
     ia.fromarray(imagename, pixels=pixels, csys = csnew.torecord())
     ia.open(imagename)
@@ -496,7 +564,7 @@ def _stack_stack(method, coords):
     #pixles array will be filled with the stack values
     import matplotlib.pyplot as plt
     pixels = np.zeros(data.shape[1:])
-
+    numberTemp=np.random.randint(12)
     if method == 'median':
         pixels = np.median(data[0:len(coords),:,:,:,:], 0)
 
@@ -506,5 +574,4 @@ def _stack_stack(method, coords):
             pixels=myVeryOwnWeightedAverage(data,coords)
         except TypeError:
             pixels = np.average(data[0:len(coords),:,:,:,:], axis=0, weights=([coord.weight for coord in coords]))
-
     return pixels
