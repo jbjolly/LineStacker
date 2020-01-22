@@ -4,5 +4,7 @@ Requirements:
 casapy
 + everything required to run casa
 
-Run Documentation/html-documentation/MainDoc.html for documentation
-Or Documentation/LineStacker.pdf
+Documentation can be accessed here:
+https://jbjolly.github.io/LineStacker/
+
+Or by running docs/index.html or docs/LineStacker.pdf
