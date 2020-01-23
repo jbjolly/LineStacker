@@ -312,58 +312,69 @@ def Stack(  Images,
                 zRatio=(1.+image.z)/(1.+zToScale)
                 image.centerIndex=int(center*zRatio)
 
-    if chansStack=='full': #use all bins
-        pass
-    elif type(chansStack)==int: #need to shorten image size to fit user size, center on stack center (centerIndex)
-        for (i, image) in enumerate(Images):
-            newImageLeftLim=max(0, int(image.centerIndex-chansStack/2))
-            newImageRightLim=min(len(Images[i].amp), int(image.centerIndex+chansStack/2))
-            Images[i].amp=Images[i].amp[newImageLeftLim:newImageRightLim]
-            if image.velocities!=[]:
-                Images[i].velocities=Images[i].velocities[newImageLeftLim:newImageRightLim]
-            if image.frequencies!=[]:
-                Images[i].frequencies=Images[i].frequencies[newImageLeftLim:newImageRightLim]
-            if int(image.centerIndex-chansStack/2)>0:
-                image.centerIndex=chansStack
-            else:
-                pass
-                #if int(image.centerIndex-chansStack/2)<=0 then keep same centerIndex
-    else:
+    if chansStack!='full' and type(chansStack)!=int:
         raise Exception("chansStack must be an int or 'full' for full spectra" )
-    if image.velocities!=[]:
-        max_size=[int(max([image.centerIndex for image in Images])),
-            int(max([len(image.velocities)-image.centerIndex for image in Images]))] #determine the size of the stack output
-    elif image.frequencies!=[]:
-        max_size=[int(max([image.centerIndex for image in Images])),
-            int(max([len(image.frequencies)-image.centerIndex for image in Images]))] #determine the size of the stack output
 
-    toStack=np.zeros(( len(Images), max_size[0]+max_size[1])) #create an array, to be filled that will be stacked
-    vliko=np.zeros(( len(Images), max_size[0]+max_size[1])) #create an array, to be filled that will be stacked
-    for index in range(-max_size[0],max_size[1]):
-        for (i,image) in enumerate(Images):
-            if 0<=image.centerIndex+index<len(image.amp): #add to stack only if stacked spectrum defined at this distance from center
-                toStack[i][index+max_size[0]]=image.amp[image.centerIndex+index]
-                vliko[i][index+max_size[0]]=image.amp[image.centerIndex+index]
-            else:
-                toStack[i][index+max_size[0]]=np.NaN
-    stacked=np.zeros(max_size[0]+max_size[1]) #initialize the actual stack output
-    numberOfSourcePerStack=np.zeros(max_size[0]+max_size[1]) #initialize the number of sources stacked in every channel
+    if chansStack=='full':
+        if image.velocities!=[]:
+            max_size=[int(max([image.centerIndex for image in Images])),
+                int(max([len(image.velocities)-image.centerIndex for image in Images]))] #determine the size of the stack output
+        elif image.frequencies!=[]:
+            max_size=[int(max([image.centerIndex for image in Images])),
+                int(max([len(image.frequencies)-image.centerIndex for image in Images]))] #determine the size of the stack output
 
-    if method=='mean':
-        for j in range(max_size[0]+max_size[1]):
-            notEmptyPos=np.where( ([not(np.isnan(image[j])) for image in toStack]) )[0] #only stack sources that are not empty at this distance from stack center
-            if notEmptyPos!=[]:
-                if type(Images[0].weights)!=list and type(Images[0].weights)!=np.ndarray: #if weigths is just one value per spectrum
-                    stacked[j]=np.average( ([ toStack[int(ll)][j] for ll in notEmptyPos]), weights=([Images[int(ll)].weights for ll in notEmptyPos]) )
-                else: #if weigth is defined as an array/list (individually for each sectral channel)
-                    stacked[j]=np.average( ([ toStack[int(ll)][j] for ll in notEmptyPos]), weights=([Images[int(ll)].weights[j-max_size[0]+Images[ll].centerIndex] for ll in notEmptyPos]) )
-            numberOfSourcePerStack[j]=np.sum([1 for pos in notEmptyPos])
+        toStack=np.zeros(( len(Images), max_size[0]+max_size[1])) #create an array, to be filled that will be stacked
+        for index in range(-max_size[0],max_size[1]):
+            for (i,image) in enumerate(Images):
+                if 0<=image.centerIndex+index<len(image.amp): #add to stack only if stacked spectrum defined at this distance from center
+                    toStack[i][index+max_size[0]]=image.amp[image.centerIndex+index]
+                else:
+                    toStack[i][index+max_size[0]]=np.NaN
+        stacked=np.zeros(max_size[0]+max_size[1]) #initialize the actual stack output
+        numberOfSourcePerStack=np.zeros(max_size[0]+max_size[1]) #initialize the number of sources stacked in every channel
 
-    if method=='median':
-        for j in range(max_size[0]+max_size[1]):
-            notEmptyPos=np.where( ([not(np.isnan(image[j])) for image in toStack]) )[0]
-            if notEmptyPos!=[]:
-                stacked[j]=np.median( ([ toStack[int(ll)][j] for ll in notEmptyPos]))
-            numberOfSourcePerStack[j]=np.sum([1 for pos in notEmptyPos])
+        if method=='mean':
+            for j in range(max_size[0]+max_size[1]):
+                notEmptyPos=np.where( ([not(np.isnan(image[j])) for image in toStack]) )[0] #only stack sources that are not empty at this distance from stack center
+                if notEmptyPos!=[]:
+                    if type(Images[0].weights)!=list and type(Images[0].weights)!=np.ndarray: #if weigths is just one value per spectrum
+                        stacked[j]=np.average( ([ toStack[int(ll)][j] for ll in notEmptyPos]), weights=([Images[int(ll)].weights for ll in notEmptyPos]) )
+                    else: #if weigth is defined as an array/list (individually for each sectral channel)
+                        stacked[j]=np.average( ([ toStack[int(ll)][j] for ll in notEmptyPos]), weights=([Images[int(ll)].weights[j-max_size[0]+Images[ll].centerIndex] for ll in notEmptyPos]) )
+                    numberOfSourcePerStack[j]=np.sum([1 for pos in notEmptyPos])
 
-    return stacked, numberOfSourcePerStack
+        if method=='median':
+            for j in range(max_size[0]+max_size[1]):
+                notEmptyPos=np.where( ([not(np.isnan(image[j])) for image in toStack]) )[0]
+                if notEmptyPos!=[]:
+                    stacked[j]=np.median( ([ toStack[int(ll)][j] for ll in notEmptyPos]))
+                    numberOfSourcePerStack[j]=np.sum([1 for pos in notEmptyPos])
+        return stacked, numberOfSourcePerStack
+
+    elif type(chansStack)==int:
+        toStack=np.zeros((len(Images), chansStack))
+        for index in range(chansStack):
+            for (i, image) in enumerate(Images):
+                if len(image.amp)>image.centerIndex-int(chansStack/2.)+index>=0:
+                    toStack[i][index]=image.amp[image.centerIndex-int(chansStack/2.)+index]
+                else:
+                    toStack[i][index]=np.NaN
+        stacked=np.zeros(chansStack)
+        numberOfSourcePerStack=np.zeros(chansStack)
+
+        if method=='mean':
+            for j in range(chansStack):
+                notEmptyPos=np.where( ([not(np.isnan(image[j])) for image in toStack]) )[0]
+                if notEmptyPos!=[]:
+                    if type(Images[0].weights)!=list and type(Images[0].weights)!=np.ndarray:
+                        stacked[j]=np.average( ([ toStack[int(ll)][j] for ll in notEmptyPos]), weights=([Images[int(ll)].weights for ll in notEmptyPos]) )
+                    else:
+                        stacked[j]=np.average( ([ toStack[int(ll)][j] for ll in notEmptyPos]), weights=([Images[int(ll)].weights[image.centerIndex-int(chansStack/2.+0.5)+j] for ll in notEmptyPos]) )
+                    numberOfSourcePerStack[j]=np.sum([1 for pos in notEmptyPos])
+        elif method=='median':
+            for j in range(chansStack):
+                notEmptyPos=np.where( ([not(np.isnan(image[j])) for image in toStack]) )[0]
+                if notEmptyPos!=[]:
+                    stacked[j]=np.median( ([ toStack[int(ll)][j] for ll in notEmptyPos]))
+                    numberOfSourcePerStack[j]=np.sum([1 for pos in notEmptyPos])
+        return stacked, numberOfSourcePerStack
