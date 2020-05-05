@@ -137,6 +137,9 @@ class Image():
             if self.fEmLine==False:
                 raise Exception('No emission frequency for spectra number '+str(i)+' ('+image.name+'), you need an emission frequency in frequency mode, alternativelly z=0 would raise this error')
             fObsLine=self.fEmLine/(1.+self.z)
+            if velOrFreq=='vel' and self.frequencies==[]:
+                self.frequencies=self.velToFreq(self.velocities, self.z, self.fEmLine)
+                self.freqBin=self.velToFreq(self.velBin, self.z, self.fEmLine)
             centerIndex=int(round((fObsLine-self.frequencies[0])/self.freqBin))
             self.centerIndex=centerIndex
         elif self.centralVelocity!=None:
@@ -190,7 +193,7 @@ class Image():
             self.weights=weights
 
     #
-    def velToFreq(vel,z, fEmLine):
+    def velToFreq(self, vel,z, fEmLine):
         """
             Function to go from velocites to frequencies.
             Requieres rest emission frequency and redshift.
@@ -198,7 +201,7 @@ class Image():
 
         fObsLine=fEmLine/(1+z)
         return fObsLine*(vel/(vel+c))
-    def freqToVel(freq,z, fEmLine):
+    def freqToVel(self, freq,z, fEmLine):
         """
             Function to go from frequencies to velocites.
             Requieres rest emission frequency and redshift.

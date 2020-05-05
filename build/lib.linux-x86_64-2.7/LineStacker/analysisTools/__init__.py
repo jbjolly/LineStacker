@@ -507,8 +507,10 @@ def maximizeAmp(spectra):
 
 def maximizeSNR(spectra):
 	import LineStacker.tools.fit as fitTools
-	#try:
-	fitos=fitTools.GaussFit(fctToFit=spectra, returnInfos=True)
+	try:
+		fitos=fitTools.GaussFit(fctToFit=spectra, returnInfos=True)
+	except RuntimeError:
+		return 0
 	amp, center, width=fitos[1]
 	#e
 	toSTD=[]
@@ -525,7 +527,11 @@ def maximizeSNR(spectra):
 	else:
 		return 0
 	toSTD=np.array(toSTD).flatten()
-	return float(amp)/np.std(toSTD)
+	STDed=np.std(toSTD)
+	if amp==0 or np.sum(STDed)==0:
+		return 0
+	toReturn=float(amp)/STDed
+	return toReturn
 
 def maximizeOutflow(spectra):
 	import LineStacker.tools.fit as fitTools
@@ -575,9 +581,113 @@ def subsample_OneD(	images,
 		newImages=randomizeSample(images)
 		tempStack=LineStacker.OneD_Stacker.Stack(newImages, **kwargs)
 		testResult=maxTest(tempStack[0])
+
 		for image in newImages:
 			imagesGrades[str(image.name)]+=testResult
 	return imagesGrades
+
+def noise_estimator(	imagenames,
+						nRandom=10000,
+						maskradius=0,
+						maskCenter=[0,0],
+						continuum=True,
+						chanToNoise='random'):
+	"""
+        Estimates noise of image cube.
+
+        Parameters
+        ---------
+        imagename
+        	Path to image
+        nRandom
+            Number of itterations
+		maskradius
+        	Radius of the mask (in pixels)
+        maskCenter
+            Center location of the mask (in pixels). NB: CENTER OF IMAGE IS DEFINED AS [0,0]
+		continuum
+        	If set to True points will be taken at random on the any of the spectral channels. Otherwise all channels are probbed independantly.
+        chanTonoise
+            If set to a specific (int) value then noise will be extracted from the specified channel. NB: only works if continuum i set to True.
+	"""
+
+	from taskinit import ia
+	import numpy as np
+	import LineStacker.tools
+
+	if type(imagenames)!=list:
+		imagenames=[imagenames]
+
+	toSTD={}
+	for (imNumber, imagename) in enumerate(imagenames):
+
+
+
+		ia.open(imagename)
+		allData=ia.getchunk()
+		ia.done()
+		#if imagename==imagenames[0]:
+		#	if maskradius-abs(maskCenter[0])>=1+allData.shape[0]/2.:
+		#		raise Exception('mask radius bigger than image size...')
+
+		if continuum==False and imagename==imagenames[0] and len(imagenames)>1:
+			print "\033[1;31;40m /!\\ \033[1;33;40m Warning: images spectral axis should be the same length or this ogcess will lead to an error. \033[0m"
+
+		LineStacker.tools.ProgressBar(imNumber, len(imagenames))
+		if maskradius!=0:
+			X = np.arange(0, allData.shape[0])-int(allData.shape[0]/2.)
+			Y = np.arange(0, allData.shape[1])-int(allData.shape[1]/2.)
+			X,Y = np.meshgrid(X,Y)
+
+			for i in range(allData.shape[2]):
+				for j in range(allData.shape[3]):
+					allData[:,:,i,j]=(allData[:,:,i,j]*np.double( (X-maskCenter[0])**2+(Y+maskCenter[1])**2>maskradius**2))
+			if np.sum(allData)==0:
+				raise Exception('data empty, mask radius bigger than image size...')
+		if imagename==imagenames[0]:
+			import matplotlib.pyplot as plt
+			plt.figure()
+			plt.title(str(imagename))
+			plt.imshow(np.sum(allData, axis=(2,3)))
+			plt.show()
+		if continuum:
+			toSTD[imagename]=np.zeros(nRandom)
+			chosen=0
+			for n in range(nRandom):
+				while chosen==0:
+					tempX=np.random.randint(allData.shape[0])
+					tempY=np.random.randint(allData.shape[1])
+					if chanToNoise=='random':
+						tempChan=np.random.randint(allData.shape[3])
+					else:
+						tempChan=chanToNoise
+					chosen=allData[tempX,tempY,0, tempChan]
+				toSTD[imagename][n]=float(chosen)
+				chosen=0
+			#return np.std(toSTD)
+		elif not continuum:
+			toSTD[imagename]=np.zeros((nRandom, allData.shape[3]))
+			for f in range(allData.shape[3]):
+				chosen=0
+				for n in range(nRandom):
+					while chosen==0:
+						tempX=np.random.randint(allData.shape[0])
+						tempY=np.random.randint(allData.shape[1])
+						chosen=allData[tempX,tempY,0, f]
+					toSTD[imagename][n,f]=float(chosen)
+					chosen=0
+			#return np.std(toSTD, axis=0)
+
+	#flattens all values in dict to one List
+	if continuum:
+		toSTD=[item for List in [toSTD[u] for u in toSTD] for item in List]
+		return np.std(toSTD)
+	else:
+		tempStd=([0 for f in range(toSTD[imagename].shape[1])])
+		for f in range((toSTD[imagename].shape[1])):
+			tempStd[f]=[item for List in [toSTD[u][:,f] for u in toSTD] for item in List]
+		toSTD=tempStd
+		return np.std(toSTD, axis=1)
 
 def stack_estimator(    coords,
                         nRandom=100,
@@ -800,7 +910,7 @@ def regridFromZ(		coords,
 					csnew = cs.copy()
 					csnew.setreferencevalue([0.]*2, 'dir')
 					#csnew.setreferencepixel([int(stampsize/2)]*2, 'dir')
-					csnew.setreferencepixel(int(chanwidth/2+0.5), type='spectral')
+					#csnew.setreferencepixel(int(chanwidth/2+0.5), type='spectral')
 					obsFreq=fEm/(1.+coord.z)
 					freq0=imInfo['refval'][3]-imInfo['refpix'][3]*oldFreqBin
 					tempObsSpecArg=int(round((obsFreq-freq0)/velIncr))

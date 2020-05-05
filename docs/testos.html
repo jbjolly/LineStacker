@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Line-Stacker beta documentation" href="index.html" />
     <link rel="next" title="Example" href="example.html" />
-    <link rel="prev" title="Welcome to Line-Stacker’s documentation!" href="index.html" />
+    <link rel="prev" title="LineStacker functionning principle" href="flowCharts.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -248,7 +248,7 @@ Default is 5.</li>
 
 <dl class="function">
 <dt id="LineStacker.line_image.stack">
-<code class="descclassname">LineStacker.line_image.</code><code class="descname">stack</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile='stackResult.image'</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>spectralMethod='z'</em>, <em>weighting=None</em>, <em>maskradius=0</em>, <em>psfmode='point'</em>, <em>primarybeam=None</em>, <em>fEm=0</em>, <em>chanwidth='default'</em>, <em>plotIt=False</em>, <em>regridFromZ=False</em>, <em>regridMethod='scaleToMin'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.stack" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">LineStacker.line_image.</code><code class="descname">stack</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile='stackResult.image'</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>spectralMethod='z'</em>, <em>weighting=None</em>, <em>maskradius=0</em>, <em>psfmode='point'</em>, <em>primarybeam=None</em>, <em>fEm=0</em>, <em>chanwidth='default'</em>, <em>plotIt=False</em>, <em>regridFromZ=False</em>, <em>regridMethod='scaleToMin'</em>, <em>saveSubCubes=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.stack" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs line stacking in the image domain.
 returns: Estimate of stacked flux assuming point source.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -284,6 +284,7 @@ Target name for stacked image.</li>
 NB: ALL IMAGES SHOULD HAVE SAME FREQUENCY BIN originally.</li>
 <li><strong>regridMethod</strong> &#8211; Used if regridFromZ is True. Can be set either to &#8216;scaleToMin&#8217; or &#8216;scaleToMax&#8217;.
 In the first case all images are regrided to match the smallest redshift (over-gridding), all images are regridded to match the highest redshift in the other case (under-gridding)</li>
+<li><strong>saveSubCubes</strong> &#8211; If set to True (or to str) sub cubes will be saved as a numpy file. (outSubCubes.npy if set to True, user defined is set to str)</li>
 </ul>
 </td>
 </tr>
@@ -447,6 +448,30 @@ See stacker.OneD_Stacker.stack for further information on centering methods.</li
 <p><strong>&#8216;amp&#8217;</strong> saves the amplitude of the line (maximum value of the stack) at each bootstrap itteration, fastest</p>
 <p><strong>&#8216;ampAndWidth&#8217;</strong> fits the line with a gaussian and saves the corresponding amplitude and width at each bootstrap itteration, can be cpu exppensive.</p>
 </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="LineStacker.analysisTools.noise_estimator">
+<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">noise_estimator</code><span class="sig-paren">(</span><em>imagenames, nRandom=10000, maskradius=0, maskCenter=[0, 0], continuum=True, chanToNoise='random'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.noise_estimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimates noise of image cube.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>imagename</strong> &#8211; Path to image</li>
+<li><strong>nRandom</strong> &#8211; Number of itterations
+maskradius
+Radius of the mask (in pixels)</li>
+<li><strong>maskCenter</strong> &#8211; Center location of the mask (in pixels). NB: CENTER OF IMAGE IS DEFINED AS [0,0]
+continuum
+If set to True points will be taken at random on the any of the spectral channels. Otherwise all channels are probbed independantly.</li>
+<li><strong>chanTonoise</strong> &#8211; If set to a specific (int) value then noise will be extracted from the specified channel. NB: only works if continuum i set to True.</li>
 </ul>
 </td>
 </tr>
@@ -706,7 +731,7 @@ See stacker.OneD_Stacker.stack for further information on centering methods.</li
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">Welcome to Line-Stacker&#8217;s documentation!</a></li>
+      <li>Previous: <a href="flowCharts.html" title="previous chapter">LineStacker functionning principle</a></li>
       <li>Next: <a href="example.html" title="next chapter">Example</a></li>
   </ul></li>
 </ul>

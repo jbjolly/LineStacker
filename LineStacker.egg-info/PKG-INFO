@@ -1,12 +1,15 @@
 Metadata-Version: 2.1
 Name: LineStacker
-Version: 1.5.2
+Version: 1.5.3
 Summary: Python module to stack spectra in the image domain.
 Home-page: https://github.com/jbjolly/LineStacker/releases
 Author: Jean-Baptiste Jolly, Lukas Lindroos
 Author-email: jean.jolly@chalmers.se
 License: UNKNOWN
 Description: Python module to stack spectra in the image domain.
+        
+        Install through pip: pip install LineStacker
+        NB: REQUIERES python2.7! (so depending on your pip version you may need to install using: pip2.7 install LineStacker )
         
         Requirements:
         casapy

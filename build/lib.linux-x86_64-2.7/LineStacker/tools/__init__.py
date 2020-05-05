@@ -20,7 +20,7 @@ def ProgressBar(n, total):
             todo = ' '*(10-g)
             s = '|{0}|'.format(done+todo)
             s+="\033[1;33m"+' LOADING '+'\x1b[0m'
-            s+="\033[0;32m"+str((float(n)/total)*100)+'% '+'\x1b[0m'
+            s+="\033[0;32m"+str(int((float(n)/total)*100))+'% '+'\x1b[0m'
             s = '\r'+s
             print s,
             sys.stdout.flush()

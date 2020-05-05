@@ -312,7 +312,7 @@ def readCoords(coordfiles, unit='deg', lineON=True, delimiter='default'):
     for (j,delimiter) in enumerate(delimiter):
 
         try:
-            coords=_readCoords(coordfiles, unit='deg', lineON=True, delimiter=delimiter)
+            coords=_readCoords(coordfiles, unit=unit, lineON=True, delimiter=delimiter)
             return coords
         except RuntimeError:
             print "\033[1;33m"+"\nUsing delimiter '"+str(delimiterNames[j])+"' lead to an error, trying other delimiter (if any)"+"\x1b[0m"+'\n'
@@ -682,7 +682,7 @@ def _getPixelCoords1Im(coords, imagename, imageNumber):
 
     pixcoords = []
 
-    for coord in coords:
+    for (cc,coord) in enumerate(coords):
         if imageNumber==coord.image:
 
             dx = (coord.x - x0)*math.cos(coord.y)
@@ -698,9 +698,12 @@ def _getPixelCoords1Im(coords, imagename, imageNumber):
                 pixcoords.append(c)
             else:
                 if x in interval[0, Nx-1]:
+                    print x,y , Nx, Ny, coord, imagename, imageNumber
                     raise Exception(' y not in autorized interval')
                 elif y in interval[0., Ny-1]:
+                    print x,y , Nx, Ny, coord, imagename, imageNumber
                     raise Exception('x  not in autorized interval')
                 else:
+                    print x,y , Nx, Ny, coord, imagename, imageNumber
                     raise Exception('x and y not in autorized interval')
     return pixcoords
