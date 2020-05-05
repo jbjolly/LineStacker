@@ -1,0 +1,386 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Example &mdash; Line-Stacker beta documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     'beta',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Line-Stacker beta documentation" href="index.html" />
+    <link rel="prev" title="LineStacker" href="testos.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="example">
+<span id="id1"></span><h1>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h1>
+<p>All examples presented bellow, as well as the example data sets used to execute them, are provided in LineStacker/Example.
+Methods used for plotting can be found in LineStacker/Example.</p>
+<div class="section" id="d-linestacker">
+<h2>1D LineStacker<a class="headerlink" href="#d-linestacker" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="basic-usage">
+<h3>Basic usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h3>
+<p>One dimensional example use of Line-Stacker</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1">#This files shows basic examplpe use of</span>
+<span class="c1">#one dimmensional stacking with LineStacker</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">LineStacker.OneD_Stacker</span>
+
+<span class="c1">#In this example we stack 100 spectra that are located in the data folder</span>
+<span class="c1">#and are named spectra_&#39;+str(i) for i in range(100),</span>
+<span class="c1">#the lines are identified with a central velocity,</span>
+<span class="c1">#which can be found in the file &#39;data/central_velocity_&#39;</span>
+<span class="c1">#lines can be idenfified in many ways however,</span>
+<span class="c1">#see LineStacker.OneD_Stacker.Stack for more information</span>
+<span class="n">numberOfSpectra</span><span class="o">=</span><span class="mi">100</span>
+<span class="n">allImages</span><span class="o">=</span><span class="p">([</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numberOfSpectra</span><span class="p">)])</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numberOfSpectra</span><span class="p">):</span>
+    <span class="n">tempSpectra</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">&#39;data/spectra_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+    <span class="n">tempCenter</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">&#39;data/central_velocity_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+    <span class="c1">#initializing all spectra as Image class,</span>
+    <span class="c1">#this is necessary to use OneD_Stacker.Stack</span>
+    <span class="n">allImages</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">OneD_Stacker</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">spectrum</span><span class="o">=</span><span class="n">tempSpectra</span><span class="p">,</span> <span class="n">centralVelocity</span><span class="o">=</span><span class="n">tempCenter</span><span class="p">)</span>
+<span class="n">stacked</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">OneD_Stacker</span><span class="o">.</span><span class="n">Stack</span><span class="p">(</span><span class="n">allImages</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With a resulting plot looking like this:</p>
+<img alt="_images/1Dstack.png" src="_images/1Dstack.png" />
+</div>
+<div class="section" id="extended-example">
+<h3>Extended example<a class="headerlink" href="#extended-example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1">#This files shows a more extended examplpe use of</span>
+<span class="c1">#one dimmensional stacking with LineStacker.</span>
+<span class="c1">#Showcasing the bootstrapping and subsampling tools.</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">LineStacker.OneD_Stacker</span>
+<span class="kn">import</span> <span class="nn">LineStacker.analysisTools</span>
+<span class="kn">import</span> <span class="nn">LineStacker.tools.fit</span> <span class="kn">as</span> <span class="nn">fitTools</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+
+<span class="c1">#==================================================</span>
+<span class="c1">#                       Stack</span>
+<span class="c1">#==================================================</span>
+
+<span class="c1">#In this example all spectra are stored in the dataExtended folder</span>
+<span class="c1">#There are 50 spectra, 40 having a line amplitude of 1mJy (number 0 to 39)</span>
+<span class="c1">#while 10 have a line amplitude of 10mJy (number 40 to 49).</span>
+<span class="c1">#Spectra are simply called spectra_NUMBER with NUMBER going from 0 to 49.</span>
+<span class="c1">#In addition to each spectra is associated</span>
+<span class="c1">#an other file called central_velocity_NUMBER</span>
+<span class="c1">#containing the associated central velocity.</span>
+<span class="c1">#</span>
+<span class="c1">#In this example we will perform a median stack of all the spectra.</span>
+<span class="c1">#In a second time we will perform a bootstrapping analysis,</span>
+<span class="c1">#indicating the presence of outlayers.</span>
+<span class="c1">#Finally we will perform a subsampling analysis</span>
+<span class="c1">#to identify these outlayers.</span>
+
+<span class="n">numberOfSpectra</span><span class="o">=</span><span class="mi">50</span>
+<span class="n">allNames</span><span class="o">=</span><span class="p">[]</span>
+<span class="n">allImages</span><span class="o">=</span><span class="p">([</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numberOfSpectra</span><span class="p">)])</span>
+<span class="c1">#We start by initializing all spectra as LineStacker.OneD_Stacker.Image</span>
+<span class="c1">#Which is requiered to do one dimensional stacking</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numberOfSpectra</span><span class="p">):</span>
+    <span class="n">tempSpectra</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">&#39;dataExtended/spectra_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+    <span class="n">tempCenter</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">&#39;dataExtended/central_velocity_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+    <span class="n">allImages</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">OneD_Stacker</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span>    <span class="n">spectrum</span><span class="o">=</span><span class="n">tempSpectra</span><span class="p">,</span>
+                                                    <span class="n">centralVelocity</span><span class="o">=</span><span class="n">tempCenter</span><span class="p">,</span>
+                                                    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;spectrum_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+    <span class="c1">#While the name handling is not requiered it allows easier</span>
+    <span class="c1">#treatment and understanding of the subsampling.</span>
+    <span class="n">allNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">allImages</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="c1">#Here we perform the actuall stack</span>
+<span class="n">stacked</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">OneD_Stacker</span><span class="o">.</span><span class="n">Stack</span><span class="p">(</span><span class="n">allImages</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;median&#39;</span><span class="p">)</span>
+<span class="c1">#The stack amplitude is stored for later vizualization</span>
+<span class="n">stackAmp</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">stacked</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="c1">#==================================================</span>
+<span class="c1">#              bootstrapping analysis</span>
+<span class="c1">#==================================================</span>
+
+<span class="n">bootstrapped</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">analysisTools</span><span class="o">.</span><span class="n">bootstraping_OneD</span><span class="p">(</span>   <span class="n">allImages</span><span class="p">,</span>
+                                                            <span class="n">save</span><span class="o">=</span><span class="s1">&#39;amp&#39;</span><span class="p">,</span>
+                                                            <span class="n">nRandom</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
+                                                            <span class="n">method</span><span class="o">=</span><span class="s1">&#39;median&#39;</span><span class="p">)</span>
+
+<span class="c1">#plotting</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="n">fig</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="n">counts</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">patches</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">bootstrapped</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="c1">#for vizualization purposes...</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">bins</span><span class="o">+</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(([</span><span class="nb">str</span><span class="p">(</span><span class="nb">bin</span><span class="p">)[:</span><span class="mi">4</span><span class="p">]</span> <span class="k">for</span> <span class="nb">bin</span> <span class="ow">in</span> <span class="n">bins</span><span class="p">]))</span>
+<span class="c1">#A red vertical line indicates</span>
+<span class="c1">#the value of the amplitude of the original stack</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">stackAmp</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;stack amplitude&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;count&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Bootstrapping analysis&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/bootstrap.png" src="_images/bootstrap.png" />
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1">#==================================================</span>
+<span class="c1">#              subsampling analysis</span>
+<span class="c1">#==================================================</span>
+
+<span class="n">subSample</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">analysisTools</span><span class="o">.</span><span class="n">subsample_OneD</span><span class="p">(</span> <span class="n">allImages</span><span class="p">,</span>
+                                                    <span class="n">nRandom</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
+                                                    <span class="n">method</span><span class="o">=</span><span class="s1">&#39;median&#39;</span><span class="p">)</span>
+
+<span class="c1">#plotting</span>
+<span class="n">fig</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="n">meanSub</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(([</span><span class="n">subSample</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">subSample</span><span class="p">]))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">subSample</span><span class="p">)),</span> <span class="p">([</span><span class="n">subSample</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">-</span><span class="n">meanSub</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">allNames</span><span class="p">]))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">allNames</span><span class="p">))</span><span class="o">+</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">allNames</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Spectrum grade - average grade&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Subsampling analysis&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/subSample.png" src="_images/subSample.png" />
+</div>
+</div>
+<div class="section" id="cube-linestacker">
+<h2>Cube LineStacker<a class="headerlink" href="#cube-linestacker" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id2">
+<h3>Basic usage<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">LineStacker</span>
+<span class="kn">import</span> <span class="nn">LineStacker.line_image</span>
+
+<span class="c1">#coordinates files are selected using the GUI</span>
+<span class="n">coordNames</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">readCoordsNamesGUI</span><span class="p">()</span>
+<span class="n">coords</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">readCoords</span><span class="p">(</span><span class="n">coordNames</span><span class="p">)</span>
+
+<span class="c1">#image names are identical to coordinates files,</span>
+<span class="c1">#with &#39;.image&#39; replacing &#39;_coords.txt&#39;</span>
+<span class="n">imagenames</span><span class="o">=</span><span class="p">([</span><span class="n">coord</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;_coords.txt&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.image&#39;</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">coordNames</span><span class="p">])</span>
+
+<span class="c1">#because redshift is used to identify the line center,</span>
+<span class="c1">#the emission frequency is also provided</span>
+<span class="n">stacked</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">line_image</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>   <span class="n">coords</span><span class="p">,</span>
+                                        <span class="n">imagenames</span><span class="o">=</span><span class="n">imagenames</span><span class="p">,</span>
+                                        <span class="n">fEm</span><span class="o">=</span><span class="mf">1897420620253.1646</span><span class="p">,</span>
+                                        <span class="n">stampsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here the GUI is used to select the coordinates files, it looks like this:</p>
+<img alt="_images/gui.png" src="_images/gui.png" />
+<p>The above lines produce a stacked cube who that can be viewed with the &#8220;viewer&#8221; task in CASA:</p>
+<img alt="_images/stack-result-cube-example.png" src="_images/stack-result-cube-example.png" />
+</div>
+<div class="section" id="id3">
+<h3>Extended example<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">LineStacker</span>
+<span class="kn">import</span> <span class="nn">LineStacker.line_image</span>
+<span class="kn">import</span> <span class="nn">LineStacker.analysisTools</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">taskinit</span> <span class="kn">import</span> <span class="n">ia</span>
+<span class="kn">import</span> <span class="nn">LineStacker.tools.fit</span> <span class="kn">as</span> <span class="nn">fitTools</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+
+<span class="c1">#coordinates files are selected using the GUI</span>
+<span class="n">coordNames</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">readCoordsNamesGUI</span><span class="p">()</span>
+<span class="n">coords</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">readCoords</span><span class="p">(</span><span class="n">coordNames</span><span class="p">)</span>
+
+<span class="c1">#image names are identical to coordinates files,</span>
+<span class="c1">#with &#39;.image&#39; replacing &#39;_coords.txt&#39;</span>
+<span class="n">imagenames</span><span class="o">=</span><span class="p">([</span><span class="n">coord</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;_coords.txt&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.image&#39;</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">coordNames</span><span class="p">])</span>
+
+<span class="c1">#because redshift is used to identify the line center,</span>
+<span class="c1">#the emission frequency is also provided</span>
+<span class="n">stacked</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">line_image</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>   <span class="n">coords</span><span class="p">,</span>
+                                        <span class="n">imagenames</span><span class="o">=</span><span class="n">imagenames</span><span class="p">,</span>
+                                        <span class="n">fEm</span><span class="o">=</span><span class="mf">1897420620253.1646</span><span class="p">,</span>
+                                        <span class="n">stampsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+<span class="c1">#showing every spectra</span>
+<span class="c1">#(spectra are extracted from the central 5x5 pixels of each cube)</span>
+<span class="n">fig</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">image</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">imagenames</span><span class="p">):</span>
+    <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">pix</span><span class="o">=</span><span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">()</span>
+    <span class="n">ia</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+    <span class="n">xlen</span><span class="o">=</span><span class="n">pix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">spectrum</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">pix</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">xlen</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">xlen</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span>
+                        <span class="nb">int</span><span class="p">(</span><span class="n">xlen</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">xlen</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span>
+                        <span class="p">:,</span>
+                        <span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/allLines.png" src="_images/allLines.png" />
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1">#the stack results are stored in the cube stackResult.image by default</span>
+<span class="c1">#Here we open and extract the stacked spectra from the stacked cube,</span>
+<span class="c1">#and fit it with 1 and 2 Gaussians</span>
+<span class="c1">#Both the spectrum and the fits are then plotted.</span>
+<span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;stackResult.image&#39;</span><span class="p">)</span>
+<span class="n">stackResultIm</span><span class="o">=</span><span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">()</span>
+<span class="n">ia</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+<span class="n">integratedImage</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">stackResultIm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="n">fited</span><span class="o">=</span><span class="n">fitTools</span><span class="o">.</span><span class="n">GaussFit</span><span class="p">(</span><span class="n">fctToFit</span><span class="o">=</span><span class="n">integratedImage</span><span class="p">)</span>
+<span class="n">doubleFited</span><span class="o">=</span><span class="n">fitTools</span><span class="o">.</span><span class="n">DoubleGaussFit</span><span class="p">(</span><span class="n">fctToFit</span><span class="o">=</span><span class="n">integratedImage</span><span class="p">,</span> <span class="n">returnAllComp</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">integratedImage</span><span class="p">,</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;stack&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fited</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Single Gaussian fit&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">doubleFited</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;r--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Double Gaussian Fit, all&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">doubleFited</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Double Gaussian Fit, 1st component&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">doubleFited</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Double Gaussian Fit, 2nd component&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/noRebin.png" src="_images/noRebin.png" />
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1">#Cubes are rebinned,</span>
+<span class="c1">#here the linewidths used for rebenning</span>
+<span class="c1">#are automatically identified using Gaussian fitting</span>
+<span class="n">rebinnedImageNames</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">analysisTools</span><span class="o">.</span><span class="n">rebin_CubesSpectra</span><span class="p">(</span>    <span class="n">coords</span><span class="p">,</span>
+                                                                <span class="n">imagenames</span><span class="p">)</span>
+
+<span class="c1">#Rebinned cubes are then stacked</span>
+<span class="n">rebinnedStack</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">line_image</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>   <span class="n">coords</span><span class="p">,</span>
+                                                      <span class="n">imagenames</span><span class="o">=</span><span class="n">rebinnedImageNames</span><span class="p">,</span>
+                                                      <span class="n">fEm</span><span class="o">=</span><span class="mf">1897420620253.1646</span><span class="p">,</span>
+                                                      <span class="n">stampsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="c1">#Similarly to the previous stack, spectrum is extracted, fited and plotted.</span>
+<span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;stackResult.image&#39;</span><span class="p">)</span>
+<span class="n">stackResultIm</span><span class="o">=</span><span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">()</span>
+<span class="n">ia</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+<span class="n">integratedImage</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">stackResultIm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="n">fited</span><span class="o">=</span><span class="n">fitTools</span><span class="o">.</span><span class="n">GaussFit</span><span class="p">(</span><span class="n">fctToFit</span><span class="o">=</span><span class="n">integratedImage</span><span class="p">)</span>
+<span class="n">doubleFited</span><span class="o">=</span><span class="n">fitTools</span><span class="o">.</span><span class="n">DoubleGaussFit</span><span class="p">(</span><span class="n">fctToFit</span><span class="o">=</span><span class="n">integratedImage</span><span class="p">,</span> <span class="n">returnAllComp</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">integratedImage</span><span class="p">,</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;stack&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fited</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Single Gaussian fit&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">doubleFited</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;r--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Double Gaussian Fit, all&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">doubleFited</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Double Gaussian Fit, 1st component&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">doubleFited</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Double Gaussian Fit, 2nd component&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;rebin&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/rebinned.png" src="_images/rebinned.png" />
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/Line-Stacker.jpg" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Example</a><ul>
+<li><a class="reference internal" href="#d-linestacker">1D LineStacker</a><ul>
+<li><a class="reference internal" href="#basic-usage">Basic usage</a></li>
+<li><a class="reference internal" href="#extended-example">Extended example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cube-linestacker">Cube LineStacker</a><ul>
+<li><a class="reference internal" href="#id2">Basic usage</a></li>
+<li><a class="reference internal" href="#id3">Extended example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="testos.html" title="previous chapter">LineStacker</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/example.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/example.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
