@@ -51,6 +51,7 @@ def stack(  coords,
             plotIt=False,
             regridFromZ=False,
             regridMethod='scaleToMin',
+            saveSubCubes=False,
             **kwargs):
     """
         Performs line stacking in the image domain.
@@ -98,6 +99,8 @@ def stack(  coords,
         regridMethod
             Used if regridFromZ is True. Can be set either to 'scaleToMin' or 'scaleToMax'.
             In the first case all images are regrided to match the smallest redshift (over-gridding), all images are regridded to match the highest redshift in the other case (under-gridding)
+        saveSubCubes
+            If set to True (or to str) sub cubes will be saved as a numpy file. (outSubCubes.npy if set to True, user defined is set to str)
     """
 
     from ..interval import interval
@@ -139,7 +142,6 @@ def stack(  coords,
                                                     regridMethod=regridMethod)
         else:
             raise Exception('last axis is not Frequency, cant regrid')
-
     #fills skymap and loads data as zeros
     _allocate_buffers(coords.imagenames, stampsize, len(coords), chanwidth)
 
@@ -155,6 +157,7 @@ def stack(  coords,
     #actual stack
     stacked_im  = _stack_stack(method, coords)
 
+
     #write image output
     _write_stacked_image(outfile, stacked_im,
                          coords,
@@ -163,7 +166,19 @@ def stack(  coords,
                          fEm,
                          regridFromZ=regridFromZ,
                          regridMethod=regridMethod)
-
+    if saveSubCubes!=False:
+        if type(saveSubCubes)==str:
+            np.save(saveSubCubes+'.npy', data)
+            outCoordFile=open(saveSubCubes+'_outCoordsFile.txt','w')
+            for (co, coord) in enumerate(coords):
+                outCoordFile.write(str(coord.x)+', '+str(coord.y)+', '+str(coord.z)+'\n')
+            outCoordFile.close()
+        else:
+            np.save('outSubCubes.npy', data)
+            outCoordFile=open('outCoordsFile.txt','w')
+            for (co, coord) in enumerate(coords):
+                outCoordFile.write(str(coord.x)+', '+str(coord.y)+', '+str(coord.z)+'\n')
+            outCoordFile.close()
     #plt.figure()
     if plotIt:
         import matplotlib.pyplot as plt
@@ -403,7 +418,6 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
         #coord.obsSpecArg=obsFreqArg
         if coord.obsSpecArg!=0:
             obsFreqArg=coord.obsSpecArg
-
         blcx=int(coord.x - int(stampsize/2.)+0.5)
         blcy=int(coord.y - int(stampsize/2.)+0.5)
         blcf = obsFreqArg - int(chanwidth/2.)
@@ -488,7 +502,7 @@ def _write_stacked_image(   imagename,
     csnew.setreferencevalue([0.]*2, 'dir')
     csnew.setreferencepixel([int(stampsize/2+0.5)]*2, 'dir')
     if not regridFromZ:
-        if fEm=='no':
+        if fEm==0:
             centralFreq=cs.referencevalue()['numeric'][3]
         else:
             centralFreq=fEm
@@ -512,7 +526,7 @@ def _write_stacked_image(   imagename,
             zToScale=max([cc.z for cc in coords])
             scaleIndex=np.argmax([cc.z for cc in coords])
 
-        csnew.setreferencevalue(float(fEm)/zToScale, type='spectral')
+        csnew.setreferencevalue(float(fEm)/(1+zToScale), type='spectral')
         ia.open(coords.imagenames[scaleIndex])
         newVelIncr=ia.summary()['incr'][-1]
         ia.done()
@@ -564,7 +578,6 @@ def _stack_stack(method, coords):
     #pixles array will be filled with the stack values
     import matplotlib.pyplot as plt
     pixels = np.zeros(data.shape[1:])
-    numberTemp=np.random.randint(12)
     if method == 'median':
         pixels = np.median(data[0:len(coords),:,:,:,:], 0)
 
