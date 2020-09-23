@@ -238,6 +238,7 @@ def DoubleGaussFit(         fctToFit=[],
                                 f02=popt[3],
                                 sigma1=popt[4],
                                 sigma2=popt[5])
+                                
 def DoublePeakFit(         fctToFit=[],
                             fullFreq=[],
                             returnInfos=False):

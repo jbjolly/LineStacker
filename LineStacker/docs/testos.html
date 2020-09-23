@@ -248,7 +248,7 @@ Default is 5.</li>
 
 <dl class="function">
 <dt id="LineStacker.line_image.stack">
-<code class="descclassname">LineStacker.line_image.</code><code class="descname">stack</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile='stackResult.image'</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>spectralMethod='z'</em>, <em>weighting=None</em>, <em>maskradius=0</em>, <em>psfmode='point'</em>, <em>primarybeam=None</em>, <em>fEm=0</em>, <em>chanwidth='default'</em>, <em>plotIt=False</em>, <em>regridFromZ=False</em>, <em>regridMethod='scaleToMin'</em>, <em>saveSubCubes=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.stack" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">LineStacker.line_image.</code><code class="descname">stack</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile='stackResult.image'</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>spectralMethod='z'</em>, <em>weighting=None</em>, <em>maskradius=0</em>, <em>psfmode='point'</em>, <em>primarybeam=None</em>, <em>fEm=0</em>, <em>chanwidth='default'</em>, <em>plotIt=False</em>, <em>regridFromZ=False</em>, <em>regridMethod='scaleToMax'</em>, <em>saveSubCubes=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.stack" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs line stacking in the image domain.
 returns: Estimate of stacked flux assuming point source.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -392,7 +392,7 @@ In the first case all spetcra are regrided to match the smallest redshift (over-
 <p>Module containing statistical/analysis tools for stacking.</p>
 <dl class="function">
 <dt id="LineStacker.analysisTools.bootStraping_Cube">
-<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">bootStraping_Cube</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>weighting=None</em>, <em>maxmaskradius=0</em>, <em>fEm=0</em>, <em>chanwidth=30</em>, <em>nRandom=1000</em>, <em>save='amp'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.bootStraping_Cube" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">bootStraping_Cube</code><span class="sig-paren">(</span><em>coords</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>weighting=None</em>, <em>maxmaskradius=0</em>, <em>fEm=0</em>, <em>chanwidth=30</em>, <em>nRandom=1000</em>, <em>save='amp'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.bootStraping_Cube" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs bootstrapping stack of cubes. See stacker.line_image.stack for further information on stack parametres</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -400,7 +400,6 @@ In the first case all spetcra are regrided to match the smallest redshift (over-
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>coords</strong> &#8211; A stacker.coordList object of all target coordinates</li>
-<li><strong>outfile</strong> &#8211; Target name for stacked image</li>
 <li><strong>stampsize</strong> &#8211; size of target image in pixels</li>
 <li><strong>imagenames</strong> &#8211; Name of images to extract cubes from</li>
 <li><strong>method</strong> &#8211; stacking method, &#8216;mean&#8217; or &#8216;median&#8217;</li>
@@ -465,12 +464,10 @@ See stacker.OneD_Stacker.stack for further information on centering methods.</li
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>imagename</strong> &#8211; Path to image</li>
-<li><strong>nRandom</strong> &#8211; Number of itterations
-maskradius
-Radius of the mask (in pixels)</li>
-<li><strong>maskCenter</strong> &#8211; Center location of the mask (in pixels). NB: CENTER OF IMAGE IS DEFINED AS [0,0]
-continuum
-If set to True points will be taken at random on the any of the spectral channels. Otherwise all channels are probbed independantly.</li>
+<li><strong>nRandom</strong> &#8211; Number of itterations</li>
+<li><strong>maskradius</strong> &#8211; Radius of the mask (in pixels)</li>
+<li><strong>maskCenter</strong> &#8211; Center location of the mask (in pixels). NB: CENTER OF IMAGE IS DEFINED AS [0,0]</li>
+<li><strong>continuum</strong> &#8211; If set to True points will be taken at random on the any of the spectral channels. Otherwise all channels are probbed independantly.</li>
 <li><strong>chanTonoise</strong> &#8211; If set to a specific (int) value then noise will be extracted from the specified channel. NB: only works if continuum i set to True.</li>
 </ul>
 </td>
@@ -506,49 +503,48 @@ If set to True points will be taken at random on the any of the spectral channel
 <dl class="function">
 <dt id="LineStacker.analysisTools.rebin_CubesSpectra">
 <code class="descclassname">LineStacker.analysisTools.</code><code class="descname">rebin_CubesSpectra</code><span class="sig-paren">(</span><em>coords</em>, <em>imagenames</em>, <em>regionSize=False</em>, <em>widths=False</em>, <em>outputName='_SpectralRebinned'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.rebin_CubesSpectra" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rebin a list of image-cubes so that all width have the same width as the smallest width</p>
+<dd><blockquote>
+<div>Rebin a list of image-cubes so that all width have the same width as the smallest width</div></blockquote>
 <p><strong>/!\ Lines must be visible before stacking to operate rebinning</strong></p>
 <p>/!\ Only one coord per image is necessary for rebinning</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>coords</strong> &#8211; A coordList object of all target coordinates.</li>
-<li><strong>imagenames</strong> &#8211; Name of images to rebin</li>
-<li><strong>regionSize</strong> &#8211; <p>size (in pixels) to extract the spectra from</p>
-<p>If set to False spectra will be extracted solely from the coord pixel</p>
-</li>
-<li><strong>widths</strong> &#8211; <p>widths of the lines</p>
-<p>If set to &#8216;False&#8217; the spectra will be fitted with a gaussian to extract the width</p>
-</li>
-<li><strong>outputName</strong> &#8211; Suffix of the rebinned cube, to add to the original cube name.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<blockquote>
+<div><dl class="docutils">
+<dt>coords</dt>
+<dd>A coordList object of all target coordinates.</dd>
+<dt>imagenames</dt>
+<dd>Name of images to rebin</dd>
+<dt>regionSize</dt>
+<dd><p class="first">size (in pixels) to extract the spectra from</p>
+<p class="last">If set to False spectra will be extracted solely from the coord pixel</p>
+</dd>
+<dt>widths</dt>
+<dd><p class="first">widths of the lines</p>
+<p class="last">If set to &#8216;False&#8217; the spectra will be fitted with a gaussian to extract the width</p>
+</dd>
+<dt>outputName</dt>
+<dd>Suffix of the rebinned cube, to add to the original cube name.</dd>
+</dl>
+</div></blockquote>
 </dd></dl>
 
 <dl class="function">
 <dt id="LineStacker.analysisTools.rebin_OneD">
 <code class="descclassname">LineStacker.analysisTools.</code><code class="descname">rebin_OneD</code><span class="sig-paren">(</span><em>images</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.rebin_OneD" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rebin a list of images so that all width have the same width as the smallest width</p>
+<dd><blockquote>
+<div>Rebin a list of images so that all width have the same width as the smallest width</div></blockquote>
 <p><strong>/!\ Lines must be visible before stacking to operate rebinning</strong></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>images</strong> &#8211; A list of stacker.OneD_Stacker.images</td>
-</tr>
-</tbody>
-</table>
+<blockquote>
+<div><dl class="docutils">
+<dt>images</dt>
+<dd>A list of stacker.OneD_Stacker.images</dd>
+</dl>
+</div></blockquote>
 </dd></dl>
 
 <dl class="function">
 <dt id="LineStacker.analysisTools.regridFromZ">
 <code class="descclassname">LineStacker.analysisTools.</code><code class="descname">regridFromZ</code><span class="sig-paren">(</span><em>coords</em>, <em>imagenames</em>, <em>stampsize=32</em>, <em>chanwidth=0</em>, <em>fEm=0</em>, <em>writeImage=True</em>, <em>regridMethod='scaleToMin'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.regridFromZ" title="Permalink to this definition">¶</a></dt>
-<dd><p>Cube regridding function coorecting the observed linewidth change due to redshift.              Spectral dimensions are rebinned to a new_size=old_size*zRatio where zRatio=(1+z)/(1+zRef)              where z is the observed line redshift and zRef is either the smaller (<strong>scaleToMin</strong>) or bigger (<strong>scaleToMax</strong>) redshift among the studied lines.</p>
+<dd><p>Cube regridding function coorecting the observed linewidth change due to redshift.         Spectral dimensions are rebinned to a new_size=old_size*zRatio where zRatio=(1+z)/(1+zRef)         where z is the observed line redshift and zRef is either the smaller (<strong>scaleToMin</strong>) or bigger (<strong>scaleToMax</strong>) redshift among the studied lines.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -560,7 +556,7 @@ If set to True points will be taken at random on the any of the spectral channel
 <li><strong>chanwidth</strong> &#8211; number of channels of the resulting stack, default is number of channels in the first image.</li>
 <li><strong>fEm</strong> &#8211; rest emission frequency of the line</li>
 <li><strong>writeImage</strong> &#8211; boolean, if set to <strong>True</strong> regridded images will be written to disk (in ./regridedImages)</li>
-<li><strong>regridMethod</strong> &#8211; Method of regridding, can be set either to <strong>&#8216;scaleToMin&#8217;</strong> or <strong>&#8216;scaleToMax&#8217;</strong>.                    In the first case all spetcra are regrided to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).                  <strong>NB</strong>: Using <strong>&#8216;scaleToMin&#8217;</strong> while having sources at z=0 will lead to errors when writting stacked image to disk.</li>
+<li><strong>regridMethod</strong> &#8211; Method of regridding, can be set either to <strong>&#8216;scaleToMin&#8217;</strong> or <strong>&#8216;scaleToMax&#8217;</strong>.            In the first case all spetcra are regrided to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).            <strong>NB</strong>: Using <strong>&#8216;scaleToMin&#8217;</strong> while having sources at z=0 will lead to errors when writting stacked image to disk.</li>
 <li><strong>Returns</strong> &#8211; List of new regridded image cubes and associated coordinates if writeImage is <strong>True</strong> or list of regridded stamps otherwise.</li>
 </ul>
 </td>
@@ -572,14 +568,14 @@ If set to True points will be taken at random on the any of the spectral channel
 <dl class="function">
 <dt id="LineStacker.analysisTools.regridFromZ1D">
 <code class="descclassname">LineStacker.analysisTools.</code><code class="descname">regridFromZ1D</code><span class="sig-paren">(</span><em>images</em>, <em>regridMethod='scaleToMin'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.regridFromZ1D" title="Permalink to this definition">¶</a></dt>
-<dd><p>1D regridding function correcting the observed linewidth change due to redshift.                Spectra are rebinned to a new_size=old_size*zRatio where zRatio=(1+z)/(1+zRef)          where z is the observed line redshit and zRef is either the smaller (<strong>scaleToMin</strong>) or bigger (<strong>scaleToMax</strong>) redshift among the studied lines.</p>
+<dd><p>1D regridding function correcting the observed linewidth change due to redshift.         Spectra are rebinned to a new_size=old_size*zRatio where zRatio=(1+z)/(1+zRef)        where z is the observed line redshit and zRef is either the smaller (<strong>scaleToMin</strong>) or bigger (<strong>scaleToMax</strong>) redshift among the studied lines.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>Images</strong> &#8211; List of images, images have to objects of the Image class (LineStacker.OneD_Stacker.Image).</li>
-<li><strong>regridMethod</strong> &#8211; Method of regridding, can be set either to <strong>&#8216;scaleToMin&#8217;</strong> or <strong>&#8216;scaleToMax&#8217;</strong>.                    In the first case all spetcra are regrided to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).</li>
+<li><strong>regridMethod</strong> &#8211; Method of regridding, can be set either to <strong>&#8216;scaleToMin&#8217;</strong> or <strong>&#8216;scaleToMax&#8217;</strong>.            In the first case all spetcra are regrided to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).</li>
 <li><strong>Returns</strong> &#8211; List of new regridded images.</li>
 </ul>
 </td>
@@ -603,9 +599,9 @@ If set to True points will be taken at random on the any of the spectral channel
 <li><strong>stampsize</strong> &#8211; Size of the stamp to stack (because only the central pixel is extracted anyway, this should be kept to default to enhance efficiency)</li>
 <li><strong>method</strong> &#8211; Method for stacking, see LineStacker.line_image.stack</li>
 <li><strong>chanwidth</strong> &#8211; Number of channels in the stack</li>
-<li><strong>lowerLimit</strong> &#8211; Lower spatial limit (distance from stacking position) to randomize new stacking position.                       Default is 5 beams</li>
-<li><strong>upperLimit</strong> &#8211; Upper spatial limit (distance from stacking position) to randomize new stacking position.                       Default is 10 beams</li>
-<li><strong>returns</strong> &#8211; Estimate of stacked flux assuming point source.</li>
+<li><strong>lowerLimit</strong> &#8211; Lower spatial limit (distance from stacking position) to randomize new stacking position.            Default is 5 beams</li>
+<li><strong>upperLimit</strong> &#8211; Upper spatial limit (distance from stacking position) to randomize new stacking position.             Default is 10 beams</li>
+<li><strong>returns</strong> &#8211; STD, mean and all random stacks.</li>
 </ul>
 </td>
 </tr>
@@ -616,8 +612,7 @@ If set to True points will be taken at random on the any of the spectral channel
 <dl class="function">
 <dt id="LineStacker.analysisTools.subsample_OneD">
 <code class="descclassname">LineStacker.analysisTools.</code><code class="descname">subsample_OneD</code><span class="sig-paren">(</span><em>images</em>, <em>nRandom=10000</em>, <em>maxTest=&lt;function maximizeSNR&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.subsample_OneD" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Randomly ressamples spectra and grades them accordingly to a given grade function. Returns the grade of each spectra as a dictionnary.</div></blockquote>
+<dd><p>Randomly ressamples spectra and grades them accordingly to a given grade function. Returns the grade of each spectra as a dictionnary.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -625,7 +620,7 @@ If set to True points will be taken at random on the any of the spectral channel
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>images</strong> &#8211; A list of stacker.OneD_Stacker.images</li>
 <li><strong>nRandom</strong> &#8211; Number of itterations of the Monte-Carlo process</li>
-<li><strong>maxTest</strong> &#8211; function test to grade the sources build your own, or use existing: <strong>maximizeAmp</strong>, <strong>maximizeSNR</strong>, <strong>maximizeOutflow</strong>.                  Default is to maximize amplitude (amplitude being simply maximum value of spectra)</li>
+<li><strong>maxTest</strong> &#8211; function test to grade the sources build your own, or use existing: <strong>maximizeAmp</strong>, <strong>maximizeSNR</strong>, <strong>maximizeOutflow</strong>.             Default is to maximize amplitude (amplitude being simply maximum value of spectra)</li>
 </ul>
 </td>
 </tr>

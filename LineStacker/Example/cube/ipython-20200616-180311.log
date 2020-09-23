@@ -1,0 +1,15 @@
+#log# Automatic Logger file. *** THIS MUST BE THE FIRST LINE ***
+#log# DO NOT CHANGE THIS LINE OR THE TWO BELOW -* coding: UTF-8 *-
+#log# opts = Struct({'__allownew': True,
+ 'autocall': 2,
+ 'banner': 0,
+ 'colors': 'LightBG',
+ 'ipythondir': '/home/oso/.casa/ipython',
+ 'logfile': 'ipython-20200616-180311.log',
+ 'messages': 0,
+ 'prompt_in1': 'CASA <\\#>: '})
+#log# args = []
+#log# It is safe to make manual edits below here.
+#log#-----------------------------------------------------------------------
+execfile("/home/oso/Downloads/casa-release-4.5.2-el5/lib/python2.7/assignmentFilter.py")
+execfile('extended_example.py')

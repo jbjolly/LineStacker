@@ -50,7 +50,7 @@ def stack(  coords,
             chanwidth='default',
             plotIt=False,
             regridFromZ=False,
-            regridMethod='scaleToMin',
+            regridMethod='scaleToMax',
             saveSubCubes=False,
             **kwargs):
     """
@@ -147,6 +147,7 @@ def stack(  coords,
 
     #fills data with skymap accordingly
     _load_stack(coords, psfmode, fEm=fEm, spectralMethod=spectralMethod)
+
     if method=='mean' and weighting=='sigma2':
         calculate_sigma2_weights(coords, maskradius=maskradius)
     if method=='mean' and weighting=='sigma2F':
@@ -159,7 +160,8 @@ def stack(  coords,
 
 
     #write image output
-    _write_stacked_image(outfile, stacked_im,
+    if outfile!=None:
+        _write_stacked_image(outfile, stacked_im,
                          coords,
                          stampsize,
                          chanwidth,
@@ -277,6 +279,11 @@ def _allocate_buffers(  imagenames,
 
             ia.done()
     else:
+        imagesInfo={}
+        imagesInfo['imagesizes']=[]
+        imagesInfo['freq0']=[]
+        imagesInfo['freqBin']=[]
+        imagesInfo['freqlen']=[]
         for imagename in imagenames:
             ia.open(imagename)
             infos = ia.summary()
@@ -323,9 +330,13 @@ def calculate_sigma2_weights(coords, maskradius=0.):
                     tmpdata[:,:,j,k]  = (tmpdata[:,:,j,k]*np.double( X**2+Y**2>maskradius**2))
         else:
             pass
+
         sigma = np.std(tmpdata[np.nonzero(tmpdata)])
         if sigma == 0:
             coord.weight = coord.weight*0.
+        if np.isnan(sigma):
+            coord.weight=coord.weight*0.
+            print 'warning: coord number '+str(i)+' lead to NaN weigths. Map is probably empty. (weights set to 0)'
         else:
             coord.weight = coord.weight*1./sigma**2
 
@@ -406,6 +417,7 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
     if len(coords) > data.shape[0]:
         _allocate_buffers(coords.imagenames, stampsize, len(coords))
     #the number of cubes not used at the given spectral bin
+
     for (i,coord) in enumerate(coords):
         if spectralMethod=='z':
             obsFreq=fEm/(1.+coord.z)
@@ -502,11 +514,18 @@ def _write_stacked_image(   imagename,
     csnew.setreferencevalue([0.]*2, 'dir')
     csnew.setreferencepixel([int(stampsize/2+0.5)]*2, 'dir')
     if not regridFromZ:
-        if fEm==0:
-            centralFreq=cs.referencevalue()['numeric'][3]
+        if imagesInfo:
+            centralFreq=np.mean(imagesInfo['freq0'])
+            incrFreq=np.mean(imagesInfo['freqBin'])
+        #elif fEm==0:
+        #    centralFreq=cs.referencevalue()['numeric'][3]
+        #    incrFreq=cs.increment()['numeric'][3]
         else:
-            centralFreq=fEm
+            centralFreq=cs.referencevalue()['numeric'][3]
+            #centralFreq=fEm
+            incrFreq=cs.increment()['numeric'][3]
         csnew.setreferencevalue(centralFreq, type='spectral')
+        csnew.setincrement(incrFreq, type='spectral')
 
     elif regridFromZ:
         c=299792.458#in km
@@ -555,6 +574,8 @@ def myVeryOwnWeightedAverage(data,coords):
 
     #if weights for each frequencies and not just for each image
     allPix=np.zeros(data.shape[1:])
+
+
     for i in range(chanwidth):
         freqWeight=([coord.weight[i] for coord in coords])
         #if freqWeight==([0 for coord in coords]) or freqWeight==([0.0 for coord in coords]) or freqWeight is np.zeros(len(coords)):
