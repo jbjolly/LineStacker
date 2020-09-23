@@ -3,7 +3,7 @@ Python module to stack spectra in the image domain.
 Install dirreclty using pip: pip install LineStacker.
 
 Requirements:
-casapy
+casapy v<5
 + everything required to run casa
 
 Documentation can be accessed here:
