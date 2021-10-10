@@ -698,12 +698,12 @@ def _getPixelCoords1Im(coords, imagename, imageNumber):
                 pixcoords.append(c)
             else:
                 if x in interval[0, Nx-1]:
-                    print x,y , Nx, Ny, coord, imagename, imageNumber
+                    #print x,y , Nx, Ny, coord, imagename, imageNumber
                     raise Exception(' y not in autorized interval')
                 elif y in interval[0., Ny-1]:
-                    print x,y , Nx, Ny, coord, imagename, imageNumber
+                    #print x,y , Nx, Ny, coord, imagename, imageNumber
                     raise Exception('x  not in autorized interval')
                 else:
-                    print x,y , Nx, Ny, coord, imagename, imageNumber
+                    #print x,y , Nx, Ny, coord, imagename, imageNumber
                     raise Exception('x and y not in autorized interval')
     return pixcoords

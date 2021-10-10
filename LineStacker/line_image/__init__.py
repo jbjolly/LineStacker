@@ -43,11 +43,12 @@ def stack(  coords,
             method = 'mean',
             spectralMethod='z',
             weighting = None,
+            returnWeights=False,
             maskradius=0,
             psfmode = 'point',
             primarybeam = None,
             fEm = 0,
-            chanwidth='default',
+            N_chans='default',
             plotIt=False,
             regridFromZ=False,
             regridMethod='scaleToMax',
@@ -81,6 +82,9 @@ def stack(  coords,
             **'sigma2F'**, similar to **sigma2** except weights are individually computed for each spectral bin. See **calculate_sigma2_weights_spectral**\n
             **'1/A'**, **/!\\\\ only use if lines are visible pre-stacking**, weights are set to one over the line amplitude. See **calculate_amp_weights**\n
             **None**, using weights in coords (set to 1 by default).
+        returnWeights
+            If true weights of each source are written in outfile "weightFile.csv" in format: coord.x, coord.y, coord.z, coord.weight.\n
+            If multiple weights exist for one source (for each spectral channel) all are written.  
         maskradius
             allows blanking of centre pixels in weight calculation
         psfmode
@@ -89,7 +93,7 @@ def stack(  coords,
             only applies if weighting='pb'
         fEm
             rest emission frequency of the line,
-        chanwidth
+        N_chans
             number of channels of the resulting stack, default is number of channels in the first image.
         plotIt
             direct plot option
@@ -121,9 +125,9 @@ def stack(  coords,
     if coords.coord_type == 'physical':
         coords = LineStacker.getPixelCoords(coords, imagenames)
 
-    if chanwidth=='default':
+    if N_chans=='default':
         ia.open(imagenames[0])
-        chanwidth=ia.summary()['shape'][-1]
+        N_chans=ia.summary()['shape'][-1]
         ia.done()
 
     if regridFromZ:
@@ -137,13 +141,13 @@ def stack(  coords,
                                                     coords,
                                                     imagenames,
                                                     stampsize=stampsize,
-                                                    chanwidth=chanwidth,
+                                                    N_chans=N_chans,
                                                     fEm=fEm,
                                                     regridMethod=regridMethod)
         else:
             raise Exception('last axis is not Frequency, cant regrid')
     #fills skymap and loads data as zeros
-    _allocate_buffers(coords.imagenames, stampsize, len(coords), chanwidth)
+    _allocate_buffers(coords.imagenames, stampsize, len(coords), N_chans)
 
     #fills data with skymap accordingly
     _load_stack(coords, psfmode, fEm=fEm, spectralMethod=spectralMethod)
@@ -155,6 +159,24 @@ def stack(  coords,
     if method=='mean' and weighting=='1/A':
         calculate_amp_weights(coords, **kwargs)
 
+    #if returnWeights is set to True weights from each coordinate is written to file
+    if returnWeights:
+        outWeightFile=open('weightFile.csv','w')
+        for co in coords:
+            outWeightFile.write(co.x+', '+co.y+', '+co.z+', ')
+            try:
+                len(co.weight)
+                #if all weights are the same write only one
+                if np.sum(co.weight)==co.weight[0]*len(co.weight):
+                    outWeightFile.write(co.weight[0]+'\n')
+                else:
+                    strW=[str(ww) for ww in co.weight]
+                    strW=', '.join(strW)
+                    outWeightFile.write(strW+'\n')        
+            except TypeError:
+                outWeightFile.write(co.weight+'\n')    
+        outWeightFile.close()
+
     #actual stack
     stacked_im  = _stack_stack(method, coords)
 
@@ -164,7 +186,7 @@ def stack(  coords,
         _write_stacked_image(outfile, stacked_im,
                          coords,
                          stampsize,
-                         chanwidth,
+                         N_chans,
                          fEm,
                          regridFromZ=regridFromZ,
                          regridMethod=regridMethod)
@@ -187,7 +209,7 @@ def stack(  coords,
         try:
             stackedImIncludingBorderEffects=stacked_im[int(stampsize/2), int(stampsize/2),0,:]*(len(coords)/(len(coords)-unusedFrequencies))
         except ZeroDivisionError:
-            print 'ERORR : your chanwidth is too large and no frequencies were found for ANY of your images in one or more bins'
+            print 'ERORR : your N_chans is too large and no frequencies were found for ANY of your images in one or more bins'
 
         plt.figure()
         #ax=im.add_subplot(2)
@@ -208,13 +230,13 @@ def stack(  coords,
     casalog.post('#'*5 +  ' {0: <31}'.format("End Task: stacker")+'#'*5)
     casalog.post('#'*42)
     oldimagenames=imagenames
-    return [stacked_im[int(stampsize/2), int(stampsize/2),0,int(chanwidth/2)], stacked_im[int(stampsize/2), int(stampsize/2),0,:], stacked_im, unusedFrequencies]
+    return [stacked_im[int(stampsize/2), int(stampsize/2),0,int(N_chans/2)], stacked_im[int(stampsize/2), int(stampsize/2),0,:], stacked_im, unusedFrequencies]
 
 
 def _allocate_buffers(  imagenames,
                         new_stampsize,
                         nstackpos,
-                        new_chanwidth):
+                        new_N_chans):
 
     #buffers skymap (all cubes) and data (empty cubes that will be filled and stacked)
     try:
@@ -227,7 +249,7 @@ def _allocate_buffers(  imagenames,
     global oldimagenames
     global stampsize
     global imagesInfo
-    global chanwidth
+    global N_chans
 
     #ia.open(imagenames[0])
     #cs = ia.coordsys()
@@ -235,7 +257,7 @@ def _allocate_buffers(  imagenames,
     #ia.done()
 
     outnstokes = 1
-    chanwidth=new_chanwidth
+    N_chans=new_N_chans
 # To improve performance this module will keep buffers between run.
 # This following code resets these buffers if they have grown obsolete.
     if oldimagenames == []:
@@ -297,7 +319,7 @@ def _allocate_buffers(  imagenames,
     # The data buffer is used to save the right stacking positions before stacking them.
     # During stacking this is where the full stack will actually be saved.
     if data == []:
-        data = np.zeros((nstackpos, new_stampsize, new_stampsize, outnstokes, new_chanwidth))
+        data = np.zeros((nstackpos, new_stampsize, new_stampsize, outnstokes, new_N_chans))
     else:
         data = 0.*data
 
@@ -334,7 +356,7 @@ def calculate_sigma2_weights(coords, maskradius=0.):
         sigma = np.std(tmpdata[np.nonzero(tmpdata)])
         if sigma == 0:
             coord.weight = coord.weight*0.
-        if np.isnan(sigma):
+        elif np.isnan(sigma):
             coord.weight=coord.weight*0.
             print 'warning: coord number '+str(i)+' lead to NaN weigths. Map is probably empty. (weights set to 0)'
         else:
@@ -413,7 +435,7 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
     global data
     global unusedFrequencies
     listWeights=False
-    unusedFrequencies=np.zeros(chanwidth)
+    unusedFrequencies=np.zeros(N_chans)
     if len(coords) > data.shape[0]:
         _allocate_buffers(coords.imagenames, stampsize, len(coords))
     #the number of cubes not used at the given spectral bin
@@ -432,20 +454,20 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
             obsFreqArg=coord.obsSpecArg
         blcx=int(coord.x - int(stampsize/2.)+0.5)
         blcy=int(coord.y - int(stampsize/2.)+0.5)
-        blcf = obsFreqArg - int(chanwidth/2.)
+        blcf = obsFreqArg - int(N_chans/2.)
         numberOfZeroLeftF=0
 
         trcx = blcx + stampsize
         trcy = blcy + stampsize
-        trcf = blcf + chanwidth
+        trcf = blcf + N_chans
         numberOfZeroRightF=0
-        #coords[i].setWeightToX(chanwidth,X=1)
+        #coords[i].setWeightToX(N_chans,X=1)
         if blcf<0:
             listWeights=True
             numberOfZeroLeftF=blcf
             coords[i].setZeroWeightLeft(numberOfZeroLeftF,imagesInfo['freqlen'][coord.image])
-            if len(coord.weight)>chanwidth:
-                coord.weight=coord.weight[:chanwidth]
+            if len(coord.weight)>N_chans:
+                coord.weight=coord.weight[:N_chans]
             blcf=0
 
         if trcf>imagesInfo['freqlen'][coord.image]-1:
@@ -453,8 +475,8 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
             numberOfZeroRightF=trcf-imagesInfo['freqlen'][coord.image]
             coords[i].setZeroWeightRight(numberOfZeroRightF, imagesInfo['freqlen'][coord.image])
             trcf=imagesInfo['freqlen'][coord.image]
-            if len(coord.weight)>chanwidth:
-                coord.weight=coord.weight[len(coord.weight)-chanwidth:]
+            if len(coord.weight)>N_chans:
+                coord.weight=coord.weight[len(coord.weight)-N_chans:]
 
 
 # Currently including positions on the edge of the skymap (in space) will raise an error.
@@ -485,7 +507,7 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
             try:
                 len(coord.weight)
             except TypeError:
-                coord.weight=np.array([coord.weight for i in range(chanwidth)])
+                coord.weight=np.array([coord.weight for i in range(N_chans)])
     if Return:
         return data
 
@@ -493,7 +515,7 @@ def _write_stacked_image(   imagename,
                             pixels,
                             coords,
                             stampsize,
-                            chanwidth,
+                            N_chans,
                             fEm,
                             regridFromZ=False,
                             regridMethod='scaleToMin'):
@@ -551,7 +573,7 @@ def _write_stacked_image(   imagename,
         ia.done()
         csnew.setincrement(value=newVelIncr, type='spectral')
 
-    csnew.setreferencepixel([int(chanwidth/2+0.5)]*2, type='spectral')
+    csnew.setreferencepixel([int(N_chans/2+0.5)]*2, type='spectral')
     ia.fromarray(imagename, pixels=pixels, csys = csnew.torecord())
     ia.open(imagename)
     #ia.setrestoringbeam(beam=beam)
@@ -576,7 +598,7 @@ def myVeryOwnWeightedAverage(data,coords):
     allPix=np.zeros(data.shape[1:])
 
 
-    for i in range(chanwidth):
+    for i in range(N_chans):
         freqWeight=([coord.weight[i] for coord in coords])
         #if freqWeight==([0 for coord in coords]) or freqWeight==([0.0 for coord in coords]) or freqWeight is np.zeros(len(coords)):
         #if np.array(freqWeight) is np.zeros(len(coords)):

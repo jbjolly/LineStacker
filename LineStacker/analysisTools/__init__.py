@@ -92,7 +92,8 @@ def bootStraping_Cube(    coords,
                         weighting = None,
                         maxmaskradius=0,
                         fEm = 0,
-                        chanwidth=30,
+                        spectralMethod='z',
+                        N_chans=30,
                         nRandom=1000,
                         save='amp'):#'all', 'amp', 'ampAndWidth'
 
@@ -117,7 +118,7 @@ def bootStraping_Cube(    coords,
             radius of the mask used to blank the centre pixels in weight calculation
         fEm
             rest emission frequency of the line
-        chanwidth
+        N_chans
             number of channels of the resulting stack
         nRandom
             number of boostrap itterations
@@ -138,7 +139,7 @@ def bootStraping_Cube(    coords,
     if coords.coord_type == 'physical':
         coords = LineStacker.getPixelCoords(coords, imagenames)
 
-    LineStacker.line_image._allocate_buffers(coords.imagenames, stampsize, len(coords), chanwidth)
+    LineStacker.line_image._allocate_buffers(coords.imagenames, stampsize, len(coords), N_chans)
 
     if method=='mean' and coords[0].weight==1 and weighting=='sigma2':
         LineStacker.line_image._calculate_sigma2_weights(coords, maskradius=maskradius)
@@ -148,7 +149,7 @@ def bootStraping_Cube(    coords,
         LineStacker.line_image._calculate_amp_weights(coords)
 
     #fills data with skymap accordingly
-    data=LineStacker.line_image._load_stack(coords, fEm=fEm, Return=True)
+    data=LineStacker.line_image._load_stack(coords, fEm=fEm, Return=True, spectralMethod=spectralMethod)
     stacked_im  = LineStacker.line_image._stack_stack(method, coords)
 
     saved=([0 for i in range(nRandom+1)])
@@ -694,9 +695,11 @@ def stack_estimator(    coords,
                         imagenames=[],
                         stampsize=1,
                         method='mean',
-                        chanwidth=30,
+                        N_chans=30,
                         lowerLimit='default',
                         upperLimit='default',
+                        save='central_pixel',
+                        fEm=0,
                         **kwargs):
     """
         Performs stacks at random positions a set number of times.\ Allows to probe the relevance of stack through stacking random positions as a Monte Carlo process.
@@ -713,7 +716,7 @@ def stack_estimator(    coords,
             Size of the stamp to stack (because only the central pixel is extracted anyway, this should be kept to default to enhance efficiency)
         method
             Method for stacking, see LineStacker.line_image.stack
-        chanwidth
+        N_chans
             Number of channels in the stack
         lowerLimit
             Lower spatial limit (distance from stacking position) to randomize new stacking position.\
@@ -721,6 +724,8 @@ def stack_estimator(    coords,
         upperLimit
             Upper spatial limit (distance from stacking position) to randomize new stacking position. \
             Default is 10 beams
+        save
+            either 'central_pixel' or 'all'. If 'central_pixel' only the spectrum of central pixel is saved.
         returns
             STD, mean and all random stacks.
     """
@@ -740,7 +745,7 @@ def stack_estimator(    coords,
     _allocate_buffers(    imagenames,
                         stampsize,
                         len(coords),
-                        chanwidth)
+                        N_chans)
     dist=([0 for i in range(nRandom)])
     '''
     /!\\ z is not random, which means the
@@ -748,21 +753,33 @@ def stack_estimator(    coords,
     (CF: randomizeCoords)
     '''
     for i in range(nRandom):
-        random_coords = randomizeCoords(    coords,
+        tries=0
+        while True and tries<1000:
+            try:
+                random_coords = randomizeCoords(    coords,
                                             beam=beam,
                                             lowerLimit=lowerLimit,
                                             upperLimit=upperLimit)
 
-        random_coords = LineStacker.getPixelCoords(random_coords, imagenames)
-        _load_stack(    random_coords,
+                random_coords = LineStacker.getPixelCoords(random_coords, imagenames)
+                break
+            except Exception:
+                tries+=1
+                pass
+        if tries==1000:
+            raise Exception('no random position found after 1000 tries. Try setting lower limits.')        
+        LineStacker.line_image._load_stack(    random_coords,
                         psfmode,
                         fEm=fEm,
                         spectralMethod=spectralMethod)
 
-        stacked_im  = _stack_stack(method, random_coords)
+        stacked_im  = LineStacker.line_image._stack_stack(method, random_coords)
         #from the stack of random positions only the
-        #spectrum of the central pixel is kept
-        dist[i]=(stacked_im[int(stampsize/2+0.5), int(stampsize/2+0.5),0,:])
+        #spectrum of the central pixel is kept or all
+        if save=='central_pixel':
+            dist[i]=(stacked_im[int(stampsize/2+0.5), int(stampsize/2+0.5),0,:])
+        elif save=='all':
+            dist[i]=(stacked_im)
     return [np.std(dist), np.mean(dist), dist]
 
 def randomizeCoords(    coords,
@@ -827,7 +844,7 @@ def RebinToRest(    coord,
 def regridFromZ(        coords,
                         imagenames,
                         stampsize=32,
-                        chanwidth=0,
+                        N_chans=0,
                         fEm=0,
                         writeImage=True,
                         regridMethod='scaleToMin'):
@@ -845,7 +862,7 @@ def regridFromZ(        coords,
             Name of images to extract flux from.
         stampsize
             size of target image in pixels
-        chanwidth
+        N_chans
             number of channels of the resulting stack, default is number of channels in the first image.
         fEm
             rest emission frequency of the line
@@ -895,8 +912,8 @@ def regridFromZ(        coords,
 
         imInfo=ia.summary()
         oldFreqBin=imInfo['incr'][-1]
-        if chanwidth=='default':
-            chanwidth=tempStamp.shape[-1]
+        if N_chans=='default':
+            N_chans=tempStamp.shape[-1]
 
         if writeImage:
             if coord.z!=zToScale:
@@ -910,7 +927,7 @@ def regridFromZ(        coords,
                     csnew = cs.copy()
                     csnew.setreferencevalue([0.]*2, 'dir')
                     #csnew.setreferencepixel([int(stampsize/2)]*2, 'dir')
-                    #csnew.setreferencepixel(int(chanwidth/2+0.5), type='spectral')
+                    #csnew.setreferencepixel(int(N_chans/2+0.5), type='spectral')
                     obsFreq=fEm/(1.+coord.z)
                     freq0=imInfo['refval'][3]-imInfo['refpix'][3]*oldFreqBin
                     tempObsSpecArg=int(round((obsFreq-freq0)/velIncr))
