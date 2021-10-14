@@ -20,7 +20,8 @@ imagenames=([coord.strip('_coords.txt')+'.image' for coord in coordNames])
 stacked=LineStacker.line_image.stack(   coords,
                                         imagenames=imagenames,
                                         fEm=1897420620253.1646,
-                                        stampsize=8)
+                                        N_chans=16,
+                                        stampsize=16)
 
 #showing every spectra
 #(spectra are extracted from the central 5x5 pixels of each cube)
@@ -75,10 +76,11 @@ for (i, im) in enumerate(rebinnedImageNames):
     
 
 #Rebinned cubes are then stacked
-rebinnedStack=LineStacker.line_image.stack(   coords,
-              		                          imagenames=rebinnedImageNames,
-              		                          fEm=1897420620253.1646,
-              		                          stampsize=8)
+rebinnedStack=LineStacker.line_image.stack( coords,
+              		                        imagenames=rebinnedImageNames,
+              		                        fEm=1897420620253.1646,
+              		                        N_chans=16,
+                                            stampsize=16)
 #Similarly to the previous stack, spectrum is extracted, fited and plotted.
 ia.open('stackResult.image')
 stackResultIm=ia.getchunk()

@@ -14,4 +14,5 @@ imagenames=([coord.strip('_coords.txt')+'.image' for coord in coordNames])
 stacked=LineStacker.line_image.stack(   coords,
                                         imagenames=imagenames,
                                         fEm=1897420620253.1646,
-                                        stampsize=16)
+                                        stampsize=16,
+                                        N_chans=16)

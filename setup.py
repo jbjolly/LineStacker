@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="LineStacker",
-    version='1.5.3',
+    version='1.5.5',
     author="Jean-Baptiste Jolly, Lukas Lindroos",
     author_email="jean.jolly@chalmers.se",
     description="Python module to stack spectra in the image domain.",
