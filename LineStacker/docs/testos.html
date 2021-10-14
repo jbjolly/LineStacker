@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>LineStacker &mdash; Line-Stacker beta documentation</title>
+    <title>LineStacker &mdash; LineStacker beta documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Line-Stacker beta documentation" href="index.html" />
+    <link rel="top" title="LineStacker beta documentation" href="index.html" />
     <link rel="next" title="Example" href="example.html" />
     <link rel="prev" title="LineStacker functionning principle" href="flowCharts.html" />
    
@@ -248,7 +248,7 @@ Default is 5.</li>
 
 <dl class="function">
 <dt id="LineStacker.line_image.stack">
-<code class="descclassname">LineStacker.line_image.</code><code class="descname">stack</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile='stackResult.image'</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>spectralMethod='z'</em>, <em>weighting=None</em>, <em>maskradius=0</em>, <em>psfmode='point'</em>, <em>primarybeam=None</em>, <em>fEm=0</em>, <em>chanwidth='default'</em>, <em>plotIt=False</em>, <em>regridFromZ=False</em>, <em>regridMethod='scaleToMax'</em>, <em>saveSubCubes=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.stack" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">LineStacker.line_image.</code><code class="descname">stack</code><span class="sig-paren">(</span><em>coords</em>, <em>outfile='stackResult.image'</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>spectralMethod='z'</em>, <em>weighting=None</em>, <em>returnWeights=False</em>, <em>maskradius=0</em>, <em>psfmode='point'</em>, <em>primarybeam=None</em>, <em>fEm=0</em>, <em>N_chans='default'</em>, <em>plotIt=False</em>, <em>regridFromZ=False</em>, <em>regridMethod='scaleToMax'</em>, <em>saveSubCubes=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.line_image.stack" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs line stacking in the image domain.
 returns: Estimate of stacked flux assuming point source.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -274,11 +274,14 @@ Target name for stacked image.</li>
 <p><strong>&#8216;1/A&#8217;</strong>, <strong>/!\ only use if lines are visible pre-stacking</strong>, weights are set to one over the line amplitude. See <strong>calculate_amp_weights</strong></p>
 <p><strong>None</strong>, using weights in coords (set to 1 by default).</p>
 </li>
+<li><strong>returnWeights</strong> &#8211; <p>If true weights of each source are written in outfile &#8220;weightFile.csv&#8221; in format: coord.x, coord.y, coord.z, coord.weight.</p>
+<p>If multiple weights exist for one source (for each spectral channel) all are written.</p>
+</li>
 <li><strong>maskradius</strong> &#8211; allows blanking of centre pixels in weight calculation</li>
 <li><strong>psfmode</strong> &#8211; Allows application of filters to stacking, currently not supported.</li>
 <li><strong>primarybeam</strong> &#8211; only applies if weighting=&#8217;pb&#8217;</li>
 <li><strong>fEm</strong> &#8211; rest emission frequency of the line,</li>
-<li><strong>chanwidth</strong> &#8211; number of channels of the resulting stack, default is number of channels in the first image.</li>
+<li><strong>N_chans</strong> &#8211; number of channels of the resulting stack, default is number of channels in the first image.</li>
 <li><strong>plotIt</strong> &#8211; direct plot option</li>
 <li><strong>regridFromZ</strong> &#8211; if set to True new images will be created, regridded to take into account the redshift difference of the different sources. See LineStacker.analysisTools.regridFromZ for a more complete description.
 NB: ALL IMAGES SHOULD HAVE SAME FREQUENCY BIN originally.</li>
@@ -392,7 +395,7 @@ In the first case all spetcra are regrided to match the smallest redshift (over-
 <p>Module containing statistical/analysis tools for stacking.</p>
 <dl class="function">
 <dt id="LineStacker.analysisTools.bootStraping_Cube">
-<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">bootStraping_Cube</code><span class="sig-paren">(</span><em>coords</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>weighting=None</em>, <em>maxmaskradius=0</em>, <em>fEm=0</em>, <em>chanwidth=30</em>, <em>nRandom=1000</em>, <em>save='amp'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.bootStraping_Cube" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">bootStraping_Cube</code><span class="sig-paren">(</span><em>coords</em>, <em>stampsize=32</em>, <em>imagenames=[]</em>, <em>method='mean'</em>, <em>weighting=None</em>, <em>maxmaskradius=0</em>, <em>fEm=0</em>, <em>spectralMethod='z'</em>, <em>N_chans=30</em>, <em>nRandom=1000</em>, <em>save='amp'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.bootStraping_Cube" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs bootstrapping stack of cubes. See stacker.line_image.stack for further information on stack parametres</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -409,7 +412,7 @@ In the first case all spetcra are regrided to match the smallest redshift (over-
 </li>
 <li><strong>maskradius</strong> &#8211; radius of the mask used to blank the centre pixels in weight calculation</li>
 <li><strong>fEm</strong> &#8211; rest emission frequency of the line</li>
-<li><strong>chanwidth</strong> &#8211; number of channels of the resulting stack</li>
+<li><strong>N_chans</strong> &#8211; number of channels of the resulting stack</li>
 <li><strong>nRandom</strong> &#8211; number of boostrap itterations</li>
 <li><strong>save</strong> &#8211; <p>data to save at each bootstrap itterations</p>
 <p>possible values are <strong>&#8216;all&#8217;</strong>, <strong>&#8216;amp&#8217;</strong>, <strong>&#8216;ampAndWidth&#8217;</strong> and <strong>&#8216;outflow&#8217;</strong></p>
@@ -543,7 +546,7 @@ See stacker.OneD_Stacker.stack for further information on centering methods.</li
 
 <dl class="function">
 <dt id="LineStacker.analysisTools.regridFromZ">
-<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">regridFromZ</code><span class="sig-paren">(</span><em>coords</em>, <em>imagenames</em>, <em>stampsize=32</em>, <em>chanwidth=0</em>, <em>fEm=0</em>, <em>writeImage=True</em>, <em>regridMethod='scaleToMin'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.regridFromZ" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">regridFromZ</code><span class="sig-paren">(</span><em>coords</em>, <em>imagenames</em>, <em>stampsize=32</em>, <em>N_chans=0</em>, <em>fEm=0</em>, <em>writeImage=True</em>, <em>regridMethod='scaleToMin'</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.regridFromZ" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cube regridding function coorecting the observed linewidth change due to redshift.         Spectral dimensions are rebinned to a new_size=old_size*zRatio where zRatio=(1+z)/(1+zRef)         where z is the observed line redshift and zRef is either the smaller (<strong>scaleToMin</strong>) or bigger (<strong>scaleToMax</strong>) redshift among the studied lines.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -553,7 +556,7 @@ See stacker.OneD_Stacker.stack for further information on centering methods.</li
 <li><strong>coords</strong> &#8211; A coordList object of all target coordinates.</li>
 <li><strong>imagenames</strong> &#8211; Name of images to extract flux from.</li>
 <li><strong>stampsize</strong> &#8211; size of target image in pixels</li>
-<li><strong>chanwidth</strong> &#8211; number of channels of the resulting stack, default is number of channels in the first image.</li>
+<li><strong>N_chans</strong> &#8211; number of channels of the resulting stack, default is number of channels in the first image.</li>
 <li><strong>fEm</strong> &#8211; rest emission frequency of the line</li>
 <li><strong>writeImage</strong> &#8211; boolean, if set to <strong>True</strong> regridded images will be written to disk (in ./regridedImages)</li>
 <li><strong>regridMethod</strong> &#8211; Method of regridding, can be set either to <strong>&#8216;scaleToMin&#8217;</strong> or <strong>&#8216;scaleToMax&#8217;</strong>.            In the first case all spetcra are regrided to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).            <strong>NB</strong>: Using <strong>&#8216;scaleToMin&#8217;</strong> while having sources at z=0 will lead to errors when writting stacked image to disk.</li>
@@ -586,7 +589,7 @@ See stacker.OneD_Stacker.stack for further information on centering methods.</li
 
 <dl class="function">
 <dt id="LineStacker.analysisTools.stack_estimator">
-<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">stack_estimator</code><span class="sig-paren">(</span><em>coords</em>, <em>nRandom=100</em>, <em>imagenames=[]</em>, <em>stampsize=1</em>, <em>method='mean'</em>, <em>chanwidth=30</em>, <em>lowerLimit='default'</em>, <em>upperLimit='default'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.stack_estimator" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">LineStacker.analysisTools.</code><code class="descname">stack_estimator</code><span class="sig-paren">(</span><em>coords</em>, <em>nRandom=100</em>, <em>imagenames=[]</em>, <em>stampsize=1</em>, <em>method='mean'</em>, <em>N_chans=30</em>, <em>lowerLimit='default'</em>, <em>upperLimit='default'</em>, <em>save='central_pixel'</em>, <em>fEm=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#LineStacker.analysisTools.stack_estimator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs stacks at random positions a set number of times.Allows to probe the relevance of stack through stacking random positions as a Monte Carlo process.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -598,9 +601,10 @@ See stacker.OneD_Stacker.stack for further information on centering methods.</li
 <li><strong>imagenames</strong> &#8211; Name of imagenames to stack</li>
 <li><strong>stampsize</strong> &#8211; Size of the stamp to stack (because only the central pixel is extracted anyway, this should be kept to default to enhance efficiency)</li>
 <li><strong>method</strong> &#8211; Method for stacking, see LineStacker.line_image.stack</li>
-<li><strong>chanwidth</strong> &#8211; Number of channels in the stack</li>
+<li><strong>N_chans</strong> &#8211; Number of channels in the stack</li>
 <li><strong>lowerLimit</strong> &#8211; Lower spatial limit (distance from stacking position) to randomize new stacking position.            Default is 5 beams</li>
 <li><strong>upperLimit</strong> &#8211; Upper spatial limit (distance from stacking position) to randomize new stacking position.             Default is 10 beams</li>
+<li><strong>save</strong> &#8211; either &#8216;central_pixel&#8217; or &#8216;all&#8217;. If &#8216;central_pixel&#8217; only the spectrum of central pixel is saved.</li>
 <li><strong>returns</strong> &#8211; STD, mean and all random stacks.</li>
 </ul>
 </td>
