@@ -1,0 +1,42 @@
+.. _testos:
+
+
+***************
+LineStacker
+***************
+
+main
+=============================
+
+.. automodule:: LineStacker
+    :members:
+	
+
+line_image
+=============================
+
+.. automodule:: LineStacker.line_image
+    :members:
+
+OneD_Stacker
+=============================
+
+.. automodule:: LineStacker.OneD_Stacker
+    :members:
+
+analysisTools
+=============================
+
+.. automodule:: LineStacker.analysisTools
+    :members:
+
+
+tools
+=============================
+
+.. automodule:: LineStacker.tools
+    :members:
+.. automodule:: LineStacker.tools.fit
+	:members:
+
+
