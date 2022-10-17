@@ -522,16 +522,25 @@ def _write_stacked_image(   imagename,
     import os
     import shutil
     from taskinit import ia
+    from imreframe import imreframe
 #     global stampsize
     if os.access(imagename, os.F_OK): shutil.rmtree(imagename)
-
 
     template_image=coords.imagenames[0]
     ia.open(template_image)
     beam = ia.restoringbeam()
+    if beam=={}:
+        print('No beam found in template image: ', template_image)
+        print('Setting arbitrary beam size (maj and min axes) to 3*pixel size, and position angle to 0 degrees.')
+        su=ia.summary()
+        unit=su['axisunits'][0]
+        incr=abs(su['incr'][0])
+        beam['major']={'unit': unit, 'value': incr*3}
+        beam['minor']={'unit': unit, 'value': incr*3}
+        beam['positionangle']={'unit': 'deg', 'value': 0}
     cs = ia.coordsys()
     ia.done()
-
+    csFreqUnit=cs.units()[-1]
     csnew = cs.copy()
     csnew.setreferencevalue([0.]*2, 'dir')
     csnew.setreferencepixel([int(stampsize/2+0.5)]*2, 'dir')
@@ -539,19 +548,15 @@ def _write_stacked_image(   imagename,
         if imagesInfo:
             centralFreq=np.mean(imagesInfo['freq0'])
             incrFreq=np.mean(imagesInfo['freqBin'])
-        #elif fEm==0:
-        #    centralFreq=cs.referencevalue()['numeric'][3]
-        #    incrFreq=cs.increment()['numeric'][3]
         else:
             centralFreq=cs.referencevalue()['numeric'][3]
-            #centralFreq=fEm
             incrFreq=cs.increment()['numeric'][3]
         csnew.setreferencevalue(centralFreq, type='spectral')
         csnew.setincrement(incrFreq, type='spectral')
 
     elif regridFromZ:
         c=299792.458#in km
-    	if regridMethod=='scaleToMin':
+        if regridMethod=='scaleToMin':
             nonZeroZ=[]
             nonZeroIndex=[]
             for (i, coord) in enumerate(coords):
@@ -575,8 +580,17 @@ def _write_stacked_image(   imagename,
 
     csnew.setreferencepixel([int(N_chans/2+0.5)]*2, type='spectral')
     ia.fromarray(imagename, pixels=pixels, csys = csnew.torecord())
+    ia.done()    
     ia.open(imagename)
-    #ia.setrestoringbeam(beam=beam)
+    ia.setrestoringbeam(remove=True)  
+    try:
+        ia.setrestoringbeam(beam=beam)
+    except RuntimeError:
+        print('No beam added to stacked image')
+        pass
+    ia.done()
+    #setting 0 vel to stack freq
+    imreframe(imagename=imagename, restfreq=str(centralFreq)+str(csFreqUnit))
     ia.done()
 
 def  Weights_freq_image(imagename):
