@@ -1,10 +1,10 @@
 """
 **LineStacker Module:**\n
-Main Stacker module. Contains all basic functions.
+Main LineStacker module. Contains all basic functions.
 """
 # -*- coding: utf-8; -*-
-# stacker, Python module for stacking of interferometric data.
-# Copyright (C) 2014  Lukas Lindroos
+# LineStacker, Python module for stacking of interferometric data.
+# Copyright (C) 2019  Jean-Baptiste Jolly
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,8 +21,10 @@ Main Stacker module. Contains all basic functions.
 # Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+#LineStacker is based on Stacker by Lukas Lindroos, 
+#Most of the main module (this one) is hence dirrectly taken from Stacker
 """
-    Library to stack interferometric images.
+    Library to stack interferometric data-cubes, or lines from 1D data.
 """
 
 import math
@@ -32,12 +34,12 @@ import re
 import glob
 import numpy as np
 
-__author__ = 'Lukas Lindroos'
-__copyright__ = 'Copyright 2014'
+__author__ = 'Jean-Baptiste Jolly'
+__copyright__ = 'Copyright 2019'
 __license__ = 'GPL'
 __version__ = '1.0.3'
-__maintainer__ = 'Lukas Lindroos'
-__email__ = 'lindroos@chalmers.se'
+__maintainer__ = 'Jean-Baptiste Jolly'
+__email__ = 'jbjolly@mpe.mpg.de'
 
 PB_CONST = 0
 PB_MS = 1
@@ -297,12 +299,6 @@ def readCoordsNamesGUI():
     filez=list(filez)
     return filez
 
-
-#def selectImagesGUI():
-#    import Tkinter, Tkconstants, tkFileDialog
-#    filez=  tkFileDialog.askopenfilenames(initialdir = ".",title = "Select image files",filetypes = (("casa im cubes","*.im"),("casa image cubes","*.image"),("all files","*.*")))
-#    return list(filez)
-
 def readCoords(coordfiles, unit='deg', lineON=True, delimiter='default'):
     if delimiter=='default':
         delimiter=[',',' ','\t']
@@ -312,7 +308,7 @@ def readCoords(coordfiles, unit='deg', lineON=True, delimiter='default'):
     for (j,delimiter) in enumerate(delimiter):
 
         try:
-            coords=_readCoords(coordfiles, unit=unit, lineON=True, delimiter=delimiter)
+            coords=_readCoords(coordfiles, unit=unit, lineON=lineON, delimiter=delimiter)
             return coords
         except RuntimeError:
             print "\033[1;33m"+"\nUsing delimiter '"+str(delimiterNames[j])+"' lead to an error, trying other delimiter (if any)"+"\x1b[0m"+'\n'
@@ -369,7 +365,7 @@ def _readCoords(coordfiles, unit='deg', lineON=True, delimiter=','):
                     lineON=True
                     print '/!\\ care : Line mode is set to False but 4 coordinate rows are found, line mode is now set to True'
                 else:
-                    raise Exception('too many rows in coordfile, structure should be x, y, z, w')
+                    raise Exception('too many rows in coordfile, structure should be x, y, w (or x, y, z, w and LineON set to True)')
 
             elif lineON:
                 if len(row) == 4:

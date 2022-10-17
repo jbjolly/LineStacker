@@ -113,9 +113,9 @@ def stack(  coords,
     import numpy as np
     from taskinit import ia, casalog
 
-    casalog.origin('line-stacker')
+    casalog.origin('LineStacker')
     casalog.post('#'*42,'INFO')
-    casalog.post('#'*5 +  ' {0: <31}'.format("Begin Task: Line-Stacker")+'#'*5, 'INFO')
+    casalog.post('#'*5 +  ' {0: <31}'.format("Begin Task: LineStacker.line_image")+'#'*5, 'INFO')
 
     global skymap
     global data
@@ -227,7 +227,7 @@ def stack(  coords,
         plt.legend()
         plt.show()
     #
-    casalog.post('#'*5 +  ' {0: <31}'.format("End Task: stacker")+'#'*5)
+    casalog.post('#'*5 +  ' {0: <31}'.format("End Task: LineStacker.line_image")+'#'*5)
     casalog.post('#'*42)
     oldimagenames=imagenames
     return [stacked_im[int(stampsize/2), int(stampsize/2),0,int(N_chans/2)], stacked_im[int(stampsize/2), int(stampsize/2),0,:], stacked_im, unusedFrequencies]
@@ -242,7 +242,7 @@ def _allocate_buffers(  imagenames,
     try:
         from taskinit import ia
     except ImportError:
-        raise Exception('ia import failed, please run Line-Stacker from CASA')
+        raise Exception('ia import failed, please run LineStacker.line_image from CASA (or use the 1D module: LineStacker.OneD_Stacker')
 
     global skymap
     global data
@@ -436,8 +436,8 @@ def _load_stack(coords, psfmode='point', fEm=0, spectralMethod='z', Return=False
     global unusedFrequencies
     listWeights=False
     unusedFrequencies=np.zeros(N_chans)
-    if len(coords) > data.shape[0]:
-        _allocate_buffers(coords.imagenames, stampsize, len(coords))
+    if len(coords) != data.shape[0]:
+        _allocate_buffers(coords.imagenames, stampsize, len(coords), N_chans)
     #the number of cubes not used at the given spectral bin
 
     for (i,coord) in enumerate(coords):
@@ -618,8 +618,8 @@ def _stack_stack(method, coords):
         Performs the actual stacking on the data in the stack.
         All data should be loaded in to stack before calling this function.
     """
-    #pixles array will be filled with the stack values
-    import matplotlib.pyplot as plt
+    #pixels array will be filled with the stack values
+    
     pixels = np.zeros(data.shape[1:])
     if method == 'median':
         pixels = np.median(data[0:len(coords),:,:,:,:], 0)

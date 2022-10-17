@@ -700,6 +700,7 @@ def stack_estimator(    coords,
                         upperLimit='default',
                         save='central_pixel',
                         fEm=0,
+                        spectralMethod='z',
                         **kwargs):
     """
         Performs stacks at random positions a set number of times.\ Allows to probe the relevance of stack through stacking random positions as a Monte Carlo process.
@@ -726,13 +727,17 @@ def stack_estimator(    coords,
             Default is 10 beams
         save
             either 'central_pixel' or 'all'. If 'central_pixel' only the spectrum of central pixel is saved.
+        spectralMethod    
+            Method to select the central frequency of the stack. See line_image.stack function.
         returns
             STD, mean and all random stacks.
     """
 
     import LineStacker
+    import LineStacker.line_image
     import numpy as np
     from taskinit import ia, qa
+    global data
     print 'estimating stack relevance'
     ia.open(imagenames[0])
     cs=ia.coordsys()
@@ -742,7 +747,7 @@ def stack_estimator(    coords,
     #restoringbeam is picked from the central frequency
     beam=qa.convert(ia.restoringbeam(int(Number_Of_Channels/2))['major'], 'rad')['value']
     ia.done()
-    _allocate_buffers(    imagenames,
+    LineStacker.line_image._allocate_buffers(    imagenames,
                         stampsize,
                         len(coords),
                         N_chans)
@@ -752,7 +757,14 @@ def stack_estimator(    coords,
     random coordinate will have the same z as the not random one
     (CF: randomizeCoords)
     '''
+    if coords.imagenames==[]:
+        coords.imagenames=imagenames
+    ori_coords=coords
+
     for i in range(nRandom):
+        coords=ori_coords
+        LineStacker.tools.ProgressBar(i, nRandom)
+
         tries=0
         while True and tries<1000:
             try:
@@ -768,10 +780,10 @@ def stack_estimator(    coords,
                 pass
         if tries==1000:
             raise Exception('no random position found after 1000 tries. Try setting lower limits.')        
-        LineStacker.line_image._load_stack(    random_coords,
-                        psfmode,
-                        fEm=fEm,
-                        spectralMethod=spectralMethod)
+        data=LineStacker.line_image._load_stack(    random_coords,
+                        fEm=fEm, spectralMethod=spectralMethod, Return=True,
+                        **kwargs)
+                        
 
         stacked_im  = LineStacker.line_image._stack_stack(method, random_coords)
         #from the stack of random positions only the
@@ -805,6 +817,7 @@ def randomizeCoords(    coords,
 
     import numpy as np
     import math
+    import LineStacker
     if lowerLimit=='default':
         lowerLimit=beam*5.
     if upperLimit=='default':
@@ -818,7 +831,7 @@ def randomizeCoords(    coords,
         dphi = np.random.uniform(0, 2*math.pi)
         x = coord.x + dr*math.cos(dphi)
         y = coord.y + dr*math.sin(dphi)
-        randomcoords.append(stacker.Coord(x, y, coord.z, coord.weight, coord.image))
+        randomcoords.append(LineStacker.Coord(x, y, z=coord.z, weight=coord.weight, image=coord.image))
     return randomcoords
 
 def RebinToRest(    coord,
