@@ -53,7 +53,7 @@ def stack(  coords,
             regridFromZ=False,
             regridMethod='scaleToMax',
             saveSubCubes=False,
-            **kwargs):
+            out_fits=False):
     """
         Performs line stacking in the image domain.
         returns: Estimate of stacked flux assuming point source.
@@ -105,6 +105,8 @@ def stack(  coords,
             In the first case all images are regrided to match the smallest redshift (over-gridding), all images are regridded to match the highest redshift in the other case (under-gridding)
         saveSubCubes
             If set to True (or to str) sub cubes will be saved as a numpy file. (outSubCubes.npy if set to True, user defined is set to str)
+        out_fits
+            Bool, if set to True a fits file will be generated along with the output CASA image file from the stack.
     """
 
     from ..interval import interval
@@ -189,7 +191,8 @@ def stack(  coords,
                          N_chans,
                          fEm,
                          regridFromZ=regridFromZ,
-                         regridMethod=regridMethod)
+                         regridMethod=regridMethod,
+                         out_fits=out_fits)
     if saveSubCubes!=False:
         if type(saveSubCubes)==str:
             np.save(saveSubCubes+'.npy', data)
@@ -518,7 +521,8 @@ def _write_stacked_image(   imagename,
                             N_chans,
                             fEm,
                             regridFromZ=False,
-                            regridMethod='scaleToMin'):
+                            regridMethod='scaleToMin',
+                            out_fits=False):
     import os
     import shutil
     from taskinit import ia
@@ -592,6 +596,10 @@ def _write_stacked_image(   imagename,
     #setting 0 vel to stack freq
     imreframe(imagename=imagename, restfreq=str(centralFreq)+str(csFreqUnit))
     ia.done()
+
+    if out_fits==True:
+        from exportfits import exportfits
+        exportfits(imagename, fitsimage=imagename.replace('.image', '.fits'), overwrite=True)
 
 def  Weights_freq_image(imagename):
     from taskinit import ia, casalog
