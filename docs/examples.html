@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Examples &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="_static/documentation_options.js?v=db988ed8"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="LineStacker examples" href="_generated/examples_notebook.html" />
+    <link rel="prev" title="Analysis tools" href="analysis.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="index.html"><img src="_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="principle.html">How stacking works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="positions.html">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectra.html">Stacking spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_generated/examples_notebook.html">LineStacker examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="analysis.html" title="previous chapter">Analysis tools</a></li>
+      <li>Next: <a href="_generated/examples_notebook.html" title="next chapter">LineStacker examples</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h1>
+<p>The repository comes with example data and scripts in <code class="docutils literal notranslate"><span class="pre">LineStacker/Example</span></code>,
+and a notebook that runs all of them:
+<a class="reference internal" href="_generated/examples_notebook.html"><span class="std std-doc">Examples notebook</span></a>.</p>
+<section id="notebook">
+<h2>Notebook<a class="headerlink" href="#notebook" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">LineStacker/Example/LineStacker_examples.ipynb</span></code> runs every example on the
+example data in about half a minute and writes its files to
+<code class="docutils literal notranslate"><span class="pre">Example/notebook_outputs/</span></code>. Start it from the <code class="docutils literal notranslate"><span class="pre">Example</span></code> folder:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>LineStacker/Example
+jupyter<span class="w"> </span>notebook<span class="w"> </span>LineStacker_examples.ipynb
+</pre></div>
+</div>
+<p>It covers 1D stacking, bootstrapping and subsampling of spectra; cube
+stacking from coordinate files, from a CSV catalogue and from Python arrays;
+line fits, rebinning and bootstrapping of cubes; and continuum stacking with
+stacks at random positions.</p>
+</section>
+<section id="scripts">
+<h2>Scripts<a class="headerlink" href="#scripts" title="Link to this heading">¶</a></h2>
+<p>Spectra (<code class="docutils literal notranslate"><span class="pre">Example/oneD</span></code>, run from that folder):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">basic-example.py</span></code> stacks 100 spectra (<code class="docutils literal notranslate"><span class="pre">data/spectra_&lt;i&gt;</span></code>, velocity and
+flux columns) on their central velocities (<code class="docutils literal notranslate"><span class="pre">data/central_velocity_&lt;i&gt;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extended-example.py</span></code> takes 50 spectra, 10 of which have lines ten times
+brighter: a median stack, a bootstrap that shows the stack depends on
+which sources are drawn, and a subsampling that finds the bright spectra.</p></li>
+</ul>
+<p>Cubes (<code class="docutils literal notranslate"><span class="pre">Example/cube</span></code>): 30 CASA cubes of simulated line emitters in <code class="docutils literal notranslate"><span class="pre">data</span></code>
+and 50 in <code class="docutils literal notranslate"><span class="pre">dataExtended</span></code>, each with its coordinate file. Give the scripts
+the data folder:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>LineStacker/Example/cube
+python<span class="w"> </span>basic_example.py<span class="w"> </span>data<span class="w">              </span><span class="c1"># line stack of the 30 cubes</span>
+python<span class="w"> </span>extended_example.py<span class="w"> </span>dataExtended<span class="w">   </span><span class="c1"># spectra, fits, rebinning, bootstrap</span>
+python<span class="w"> </span>continuum_example.py<span class="w"> </span>data<span class="w">          </span><span class="c1"># continuum stack and random positions</span>
+</pre></div>
+</div>
+<p>Without a folder, the scripts open a file dialog to choose the coordinate
+files.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>API reference &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="_static/documentation_options.js?v=db988ed8"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="LineStacker 2.0: Python 3 / CASA 6 port" href="changes.html" />
+    <link rel="prev" title="LineStacker examples" href="_generated/examples_notebook.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="index.html"><img src="_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="principle.html">How stacking works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="positions.html">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectra.html">Stacking spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_generated/examples_notebook.html">LineStacker examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="_generated/examples_notebook.html" title="previous chapter">LineStacker examples</a></li>
+      <li>Next: <a href="changes.html" title="next chapter">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="api-reference">
+<h1>API reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h1>
+<section id="module-LineStacker">
+<span id="linestacker"></span><h2>LineStacker<a class="headerlink" href="#module-LineStacker" title="Link to this heading">¶</a></h2>
+<p>Stacking positions (<a class="reference internal" href="#LineStacker.Coord" title="LineStacker.Coord"><code class="xref py py-class docutils literal notranslate"><span class="pre">Coord</span></code></a>, <a class="reference internal" href="#LineStacker.readCatalog" title="LineStacker.readCatalog"><code class="xref py py-func docutils literal notranslate"><span class="pre">readCatalog()</span></code></a>, <a class="reference internal" href="#LineStacker.makeCoords" title="LineStacker.makeCoords"><code class="xref py py-func docutils literal notranslate"><span class="pre">makeCoords()</span></code></a>,
+<a class="reference internal" href="#LineStacker.readCoords" title="LineStacker.readCoords"><code class="xref py py-func docutils literal notranslate"><span class="pre">readCoords()</span></code></a>), their conversion to pixels, random positions, and the
+package settings (<a class="reference internal" href="#LineStacker.verbose" title="LineStacker.verbose"><code class="xref py py-data docutils literal notranslate"><span class="pre">verbose</span></code></a>, <a class="reference internal" href="#LineStacker.casa_logfile" title="LineStacker.casa_logfile"><code class="xref py py-data docutils literal notranslate"><span class="pre">casa_logfile</span></code></a>). The stacking itself
+is in <a class="reference internal" href="#module-LineStacker.image" title="LineStacker.image"><code class="xref py py-mod docutils literal notranslate"><span class="pre">LineStacker.image</span></code></a> (cubes) and <a class="reference internal" href="#module-LineStacker.OneD_Stacker" title="LineStacker.OneD_Stacker"><code class="xref py py-mod docutils literal notranslate"><span class="pre">LineStacker.OneD_Stacker</span></code></a>
+(spectra); <a class="reference internal" href="#module-LineStacker.analysisTools" title="LineStacker.analysisTools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">LineStacker.analysisTools</span></code></a> tests stacks.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="LineStacker.verbose">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">verbose</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#LineStacker.verbose" title="Link to this definition">¶</a></dt>
+<dd><p>When True (default), LineStacker reports what it does, the files it writes
+(with their full path), what it reads, and progress bars. Set
+<code class="docutils literal notranslate"><span class="pre">LineStacker.verbose</span> <span class="pre">=</span> <span class="pre">False</span></code> to silence it; every function that prints
+also takes <code class="docutils literal notranslate"><span class="pre">verbose=True/False</span></code> to decide for one call. Warnings about
+possible problems are shown either way.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="LineStacker.casa_logfile">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">casa_logfile</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'auto'</span></span><a class="headerlink" href="#LineStacker.casa_logfile" title="Link to this definition">¶</a></dt>
+<dd><p>Where CASA writes its log when LineStacker starts CASA itself (only to
+read or write CASA images; FITS cubes never start CASA):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'auto'</span></code> (default): one file, <code class="docutils literal notranslate"><span class="pre">&lt;temporary</span> <span class="pre">dir&gt;/linestacker-casa-&lt;user&gt;.log</span></code>,
+instead of a new <code class="docutils literal notranslate"><span class="pre">casa-&lt;date&gt;.log</span></code> in the working directory at every
+run; a <code class="docutils literal notranslate"><span class="pre">logfile</span></code> set in <code class="docutils literal notranslate"><span class="pre">~/.casa/config.py</span></code> is used instead.</p></li>
+<li><p>a path: CASA’s log goes there.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: no log file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'casa'</span></code>: CASA’s own default (<code class="docutils literal notranslate"><span class="pre">casa-&lt;date&gt;.log</span></code> in the working directory).</p></li>
+</ul>
+<p>Set it before the first CASA image is read. Inside a CASA session, or once
+casatools/casatasks were imported, CASA’s own settings apply.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="LineStacker.cache_check">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">cache_check</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#LineStacker.cache_check" title="Link to this definition">¶</a></dt>
+<dd><p>Cubes are read once and kept in memory. When True (default) LineStacker
+checks, every time it uses a cached cube, that its file has not changed
+(about 0.1 ms per CASA image, a few microseconds per FITS file) and reads
+it again if it has. Set <code class="docutils literal notranslate"><span class="pre">LineStacker.cache_check</span> <span class="pre">=</span> <span class="pre">False</span></code> to trust the
+cache until <code class="docutils literal notranslate"><span class="pre">LineStacker.image.clear_cache()</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.round_half_up">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">round_half_up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker.html#round_half_up"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.round_half_up" title="Link to this definition">¶</a></dt>
+<dd><p>Round like Python 2’s round() did (halves away from zero). Python 3’s
+round() rounds halves to even, which would move some stack centres by one
+channel compared with LineStacker &lt; 2.0.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="LineStacker.Coord">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">Coord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'continuum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'physical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagenumber</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icrs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker.html#Coord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.Coord" title="Link to this definition">¶</a></dt>
+<dd><p>Describes a stacking position on an image.</p>
+<p>Class used internally to represent coordinates. May describe a
+physical coordinate or a pixel coordinate.</p>
+<p>Init: Creates a coordinate. A pixel coordinate should always specify
+to which image it belongs. Physical coordinates are astropy angles
+(as produced by <strong>LineStacker.readCoords</strong>, <strong>readCatalog</strong> and
+<strong>makeCoords</strong>) or plain numbers in radians, in the equatorial frame
+given by <strong>frame</strong> (default ICRS).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ra</strong> – x coordinate of stacking target (RA, or x pixel for pixel coordinates).
+Also available as <code class="docutils literal notranslate"><span class="pre">coord.x</span></code>.</p></li>
+<li><p><strong>dec</strong> – y coordinate of stacking target (Dec, or y pixel). Also <code class="docutils literal notranslate"><span class="pre">coord.y</span></code>.</p></li>
+<li><p><strong>spec</strong> – spectral coordinate of stacking target (redshift, observed spectral
+value or channel depending on spectralMethod). Also <code class="docutils literal notranslate"><span class="pre">coord.z</span></code>.</p></li>
+<li><p><strong>weight</strong> – Weight of the source for mean stacking.
+Default is 1.</p></li>
+<li><p><strong>image</strong> – Cube associated to the source, either its path or its index in the
+list of images given to the stacking function.
+Automatically set with <strong>LineStacker.readCoords</strong>.</p></li>
+<li><p><strong>type</strong> – Either ‘physical’ or ‘pixel’</p></li>
+<li><p><strong>imagenumber</strong> – Index of the cube in the image list (set by readCoords to the index
+of the coordinate file the source was read from).</p></li>
+<li><p><strong>frame</strong> – Equatorial frame of ra, dec: ‘icrs’ (default), ‘fk5’ (J2000), ‘fk4’…</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="LineStacker.Coord.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker.html#Coord.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.Coord.copy" title="Link to this definition">¶</a></dt>
+<dd><p>Independent copy (weights arrays are copied too).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.readCoordsNamesGUI">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">readCoordsNamesGUI</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker.html#readCoordsNamesGUI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.readCoordsNamesGUI" title="Link to this definition">¶</a></dt>
+<dd><p>Opens a file dialog (Tk) to select coordinate files; returns their paths.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.readCoords">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">readCoords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordfiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'deg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lineON</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icrs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'physical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker.html#readCoords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.readCoords" title="Link to this definition">¶</a></dt>
+<dd><p>Reads coordinate files (one file per cube, the format of LineStacker
+1.x) and returns a list of LineStacker.Coord.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordfiles</strong> – List of path to coordinate files. Files in csv format. x and y should be in J2000. If using to stack line, redshift should be in the third column. A weight may be added in the last column to weight positions for mean stacking. If set to <strong>None</strong> stacking position is defined as the center of each cube.
+Coordinates can either be in degrees (e.g. “10.625, 41.2”), or in hour angle + deg, as hms dms format (e.g. “‘00h42m30s’, ‘+41d12m00s’”), or as hour angle + deg without hms nor dms (e.g. “00 42 30, +41 12 00” or CASA’s “00:42:30, +41.12.00”). Empty lines and lines starting with # are ignored.</p></li>
+<li><p><strong>unit</strong> – Unit of input coordinates. Allows two values, <strong>‘deg’</strong> or <strong>‘rad’</strong>.</p></li>
+<li><p><strong>lineON</strong> – Either <strong>True</strong> or <strong>False</strong>, should be set to <strong>True</strong> if doing line stacking. Default is <strong>True</strong>.</p></li>
+<li><p><strong>delimiter</strong> – Delimiter used to separate coordinates, ‘default’ tries comma, space and tab (in that order).</p></li>
+<li><p><strong>images</strong> – List of images to which each coordfile is assigned, if set to ‘default’, image names are same as coordfiles, with ‘.fits’ instead of ‘_coord.txt’.
+The stacking functions also accept coordinates whose image is not in their imagenames list: the n-th coordinate file is then matched to the n-th image.</p></li>
+<li><p><strong>type</strong> – Coordinate type, can be either ‘physical’ (default), or ‘pixel’</p></li>
+<li><p><strong>verbose</strong> – report how many positions were read (default: LineStacker.verbose)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.makeCoords">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">makeCoords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'deg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icrs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'physical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker.html#makeCoords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.makeCoords" title="Link to this definition">¶</a></dt>
+<dd><p>Builds stacking coordinates directly from Python values (lists, numpy
+arrays, astropy quantities or a SkyCoord), e.g. in a notebook.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ra</strong> – Positions, one value per source. Numbers are in <strong>unit</strong> (or pixels
+if type=’pixel’); astropy Angles/Quantities carry their own unit;
+strings are sexagesimal with RA in hours (‘03:31:04.15’,
+‘-27:40:59.87’, or CASA’s ‘-027.40.59.866’). A SkyCoord can be
+given as ra, with dec=None.</p></li>
+<li><p><strong>dec</strong> – Positions, one value per source. Numbers are in <strong>unit</strong> (or pixels
+if type=’pixel’); astropy Angles/Quantities carry their own unit;
+strings are sexagesimal with RA in hours (‘03:31:04.15’,
+‘-27:40:59.87’, or CASA’s ‘-027.40.59.866’). A SkyCoord can be
+given as ra, with dec=None.</p></li>
+<li><p><strong>z</strong> – Spectral value of each source: the redshift for spectralMethod=’z’
+(the default of LineStacker.image.stack), the observed
+frequency/wavelength for ‘obsSpec’, the channel for ‘channel’.
+None for continuum stacking.</p></li>
+<li><p><strong>weight</strong> – Weight of each source for mean stacks (default 1).</p></li>
+<li><p><strong>image</strong> – Cube of each source (path to a FITS file or CASA image), or one
+path for all sources. None when all sources lie in the single cube
+given to the stacking function.</p></li>
+<li><p><strong>unit</strong> – ‘deg’ (default) or ‘rad’, for plain numbers.</p></li>
+<li><p><strong>frame</strong> – Equatorial frame of the positions: ‘icrs’ (default), ‘fk5’ (J2000), ‘fk4’…
+A SkyCoord in any frame (e.g. Galactic) is converted to it.</p></li>
+<li><p><strong>type</strong> – ‘physical’ (sky positions, default) or ‘pixel’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>list of LineStacker.Coord</em> – to give to LineStacker.image.stack (imagenames can then be omitted
+when every source names its cube).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.readCatalog">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">readCatalog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">catalog</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ra'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dec'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'deg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icrs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagedir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker.html#readCatalog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.readCatalog" title="Link to this definition">¶</a></dt>
+<dd><p>Reads the stacking positions of all sources from one catalogue table,
+one row per source. The cube of each source is given in the table
+(image column); it is never guessed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>catalog</strong> – Path to a table file: CSV (with a header line), ECSV, FITS table,
+VOTable or any format astropy.table reads (see <strong>format</strong>). Also
+accepted: an astropy Table, a pandas DataFrame or a dict of columns.</p></li>
+<li><p><strong>ra</strong> – Column names of the positions (default ‘ra’, ‘dec’; also found:
+RAJ2000/DEJ2000, ra_deg/dec_deg…). Numbers are in <strong>unit</strong> unless
+the column has a unit (FITS, ECSV, VOTable); strings are
+sexagesimal with RA in hours (CASA’s ‘-027.40.59.866’ accepted).</p></li>
+<li><p><strong>dec</strong> – Column names of the positions (default ‘ra’, ‘dec’; also found:
+RAJ2000/DEJ2000, ra_deg/dec_deg…). Numbers are in <strong>unit</strong> unless
+the column has a unit (FITS, ECSV, VOTable); strings are
+sexagesimal with RA in hours (CASA’s ‘-027.40.59.866’ accepted).</p></li>
+<li><p><strong>z</strong> – Column of the spectral value (default ‘z’, also ‘redshift’): the
+redshift, or the observed frequency/wavelength or channel for
+spectralMethod ‘obsSpec’/’channel’. If the catalogue has no such
+column (or z=None) the positions are for continuum stacking.</p></li>
+<li><p><strong>weight</strong> – Column of the weights (optional, default 1).</p></li>
+<li><p><strong>image</strong> – Column naming the cube of each source (FITS file or CASA image;
+default ‘image’, also ‘cube’, ‘file’). Relative paths are looked
+up next to the catalogue first, then from the working directory.
+Without this column, give the stacking function a single cube.</p></li>
+<li><p><strong>unit</strong> – ‘deg’ (default) or ‘rad’, for unit-less numeric positions.</p></li>
+<li><p><strong>imagedir</strong> – Folder to which relative cube names are relative (overrides the
+rule above).</p></li>
+<li><p><strong>format</strong> – astropy table format, e.g. ‘ascii.csv’, ‘ascii.commented_header’
+(default: guessed from the file).</p></li>
+<li><p><strong>verbose</strong> – report what was read (default: LineStacker.verbose)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>list of LineStacker.Coord</em> – for LineStacker.image.stack and the analysis tools; imagenames can
+be omitted there when the catalogue has an image column.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.getPixelCoords">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">getPixelCoords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagenames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker.html#getPixelCoords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.getPixelCoords" title="Link to this definition">¶</a></dt>
+<dd><p>Creates pixel coordinate list from a physical coordinate
+list and a list of images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> – A list of LineStacker.Coord coordinates.</p></li>
+<li><p><strong>imagenames</strong> – A list of images’ paths (FITS files or CASA images). Optional when
+every coordinate names its cube (readCatalog, makeCoords).</p></li>
+<li><p><strong>hdul</strong> – index of the FITS HDU holding the cube; ‘auto’ (default) uses the
+first HDU containing an image (HDU 0 for ALMA/CASA FITS, 1 for MUSE).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>list of LineStacker.Coord</em> – new coordinates of type ‘pixel’; the original coordinates are not
+modified. Each new coordinate’s <code class="docutils literal notranslate"><span class="pre">index</span></code> is the position of the
+original in <code class="docutils literal notranslate"><span class="pre">coords</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.randomCoords">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">randomCoords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imagenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncoords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker.html#randomCoords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.randomCoords" title="Link to this definition">¶</a></dt>
+<dd><p>Random positions anywhere in a set of images: pixel coordinates whose
+spec is a random channel of their cube, to be stacked with
+spectralMethod=’channel’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imagenames</strong> – A list of images paths (or one path).</p></li>
+<li><p><strong>ncoords</strong> – Number of random coordinates. Default is 10.</p></li>
+<li><p><strong>margin</strong> – Minimal distance (pixels) to the image edges, e.g. half the stampsize.</p></li>
+<li><p><strong>rng</strong> – numpy Generator or seed, for reproducible draws.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.randomizeCoords">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.</span></span><span class="sig-name descname"><span class="pre">randomizeCoords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxBeamRange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagenames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxTries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker.html#randomizeCoords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.randomizeCoords" title="Link to this definition">¶</a></dt>
+<dd><p>New positions at a random distance between beam and maxBeamRange*beam
+from each of the original coordinates (random direction).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> – list of original coordinates (LineStacker.Coord instances)</p></li>
+<li><p><strong>beam</strong> – beam size is radians,
+new random coordinates will be at a minimum distance beam
+from the original coordinates.</p></li>
+<li><p><strong>maxBeamRange</strong> – maximum distance from original coordinates
+at which new coordinates can be located, in units of beams.
+Default is 5.</p></li>
+<li><p><strong>imagenames</strong> – images the coordinates refer to; when given, new positions are
+kept inside their image.</p></li>
+<li><p><strong>rng</strong> – numpy Generator or seed, for reproducible draws.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-LineStacker.image">
+<span id="linestacker-image"></span><h2>LineStacker.image<a class="headerlink" href="#module-LineStacker.image" title="Link to this heading">¶</a></h2>
+<p>Stacking in the image domain: spectral lines in data cubes, or continuum.</p>
+<p>Inputs are FITS files or CASA images (CASA images need casatools), and can be
+mixed. Line stacking extracts a sub-cube around each source, centred on its
+line; continuum stacking (<code class="docutils literal notranslate"><span class="pre">continuum=True</span></code>) stacks images. Cubes without a
+spectral axis (or with a single channel) are always stacked as continuum;
+cubes with a spectral axis are collapsed in memory when continuum stacking is
+asked for (with a warning).</p>
+<p>What the stacked cube is:</p>
+<ul class="simple">
+<li><p>Stamps are cut on each cube’s own pixel grid, centred on the source; cubes
+are not reprojected. Cubes whose pixels differ in size or orientation, or
+whose projection, celestial frame or distortions differ, from the first
+cube’s give a warning: reproject them first (e.g. CASA imregrid) to use
+the stacked image spatially.</p></li>
+<li><p>The output sky axes are offsets from the stacked position, (0, 0) at the
+stamp centre, with the first cube’s pixel size and orientation.</p></li>
+<li><p>All cubes must have the same kind of spectral axis (FREQ, WAVE, AWAV, VRAD…);
+units are converted to those of the first cube, in which fEm, lEm and
+observed spectral values are given. Non-linear spectral axes are refused
+for line stacks. Different spectral reference frames (SPECSYS) give a
+warning: LineStacker does not convert frames.</p></li>
+<li><p>The beam in the header (BMAJ, BMIN, BPA) is the mean of the input beams, an
+approximation of the stack’s effective beam when they differ.</p></li>
+<li><p>Blank pixels (NaN) stay NaN and are left out pixel by pixel; stacked
+pixels without any valid data are NaN.</p></li>
+<li><p>Pixel units (BUNIT) are compared: scaled units are converted to the first
+cube’s (mJy/beam to Jy/beam), recognised but physically different ones
+are refused, unrecognised ones give a warning.</p></li>
+<li><p>A continuum stack of collapsed cubes keeps BUNIT, which is then per
+channel (‘sum’ adds channels); the COLLAPSE keyword says how.</p></li>
+</ul>
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.image.stack">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.image.</span></span><span class="sig-name descname"><span class="pre">stack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stackResult.fits'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stampsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagenames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectralMethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weighting</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">returnWeights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskradius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fEm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lEm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_chans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotIt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regridFromZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regridMethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scaleToMax'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saveSubCubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collapse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primarybeam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/image.html#stack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.image.stack" title="Link to this definition">¶</a></dt>
+<dd><p>Performs line (or continuum) stacking in the image domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> – A list of LineStacker.Coord (see LineStacker.readCatalog, LineStacker.makeCoords, LineStacker.readCoords). Set to None to stack the centre of every cube.</p></li>
+<li><p><strong>outfile</strong> – Target name for stacked image. Names ending in .fits are written as FITS, other names (e.g. ‘stackResult.image’) as CASA images (needs casatools). None to skip writing.</p></li>
+<li><p><strong>stampsize</strong> – size of target image in pixels</p></li>
+<li><p><strong>imagenames</strong> – Cubes or images to extract flux from: FITS files or CASA images (both can be mixed), in the same order as the coordinate files.
+Can be omitted when every coordinate names its cube (readCatalog with an image column, makeCoords(image=…)).
+All cubes must have the same kind of spectral axis (e.g. all FREQ); different units (Hz, GHz) are converted to those of the first cube.
+Stamps are cut on each cube’s own pixel grid: cubes with other pixel sizes or orientations are not reprojected (a warning says so).</p></li>
+<li><p><strong>method</strong> – ‘mean’ (weighted) or ‘median’ (over the sources covering each channel; weights are ignored)</p></li>
+<li><p><strong>spectralMethod</strong> – <p>What the spectral value of each coordinate (its z, the 3rd column of a coordinate file) is. Possible methods are:</p>
+<p><strong>’z’</strong>: the redshift of the observed line, if used
+<strong>fEm</strong> (emission frequency) or <strong>lEm</strong> (emission wavelength) must be informed as an argument of this Stack function.</p>
+<p><strong>’obsSpec’</strong>: the (observed) central frequency, wavelength or velocity, in the spectral unit of the first cube.</p>
+<p><strong>’channel’</strong>: the channel number (0-based) of the line.</p>
+</p></li>
+<li><p><strong>weighting</strong> – <p>used if method set to <strong>‘mean’</strong>, possible values are:</p>
+<p><strong>’sigma2’</strong>: weight times 1/sigma**2, sigma being the standard deviation of the source’s stamp (pixels outside <strong>maskradius</strong>, blank pixels excluded)</p>
+<p><strong>’sigma2F’</strong>: the same, computed channel by channel</p>
+<p><strong>’1/A’</strong>, <strong>/!\ only use if lines are visible pre-stacking</strong>: weight divided by the line amplitude (maximum of the central-pixel spectrum; sources with a non-positive amplitude get weight 0)</p>
+<p><strong>’sigma’</strong>: weight times 1/sigma (sigma as for ‘sigma2’; if maskradius is 0 the mask radius is twice the beam major axis)</p>
+<p><strong>’pb’</strong>: weight times the squared primary-beam response at each source (needs <strong>primarybeam</strong>); for primary-beam corrected images this is inverse-variance weighting</p>
+<p><strong>None</strong>: the weights of the coordinates (1 by default).</p>
+<p>Each weighting multiplies the coordinates’ own weights. Weights must be finite and &gt;= 0.</p>
+</p></li>
+<li><p><strong>returnWeights</strong> – <p>If true weights of each source are written in outfile “weightFile.csv” in format: coord.ra, coord.dec, coord.z, coord.weight.</p>
+<p>If multiple weights exist for one source (for each spectral channel) all are written.</p>
+</p></li>
+<li><p><strong>maskradius</strong> – allows blanking of centre pixels in weight calculation</p></li>
+<li><p><strong>fEm</strong> – rest emission frequency of the line, should be used if spectralMethod = ‘z’ and spectral axis of image cube is in frequency (in the unit of the first cube, usually Hz).</p></li>
+<li><p><strong>lEm</strong> – rest emission wavelength of the line, should be used if spectralMethod = ‘z’ and spectral axis of image cube is in wavelength (in the unit of the first cube, e.g. Angstrom for MUSE).</p></li>
+<li><p><strong>N_chans</strong> – number of channels of the resulting stack, default is number of channels in the first image.</p></li>
+<li><p><strong>plotIt</strong> – direct plot option</p></li>
+<li><p><strong>regridFromZ</strong> – if set to True each source’s spectrum is resampled (linear interpolation) so that all sources share the same rest-frame channel width, correcting the redshift dependence of observed line widths. Requires spectralMethod=’z’.</p></li>
+<li><p><strong>regridMethod</strong> – Used if regridFromZ is True. Can be set either to ‘scaleToMin’ or ‘scaleToMax’.
+The common rest-frame channel is the one of the source with the smallest (‘scaleToMin’) or highest (‘scaleToMax’) redshift.</p></li>
+<li><p><strong>saveSubCubes</strong> – If set to True (or to str) sub cubes will be saved as a numpy file. (outSubCubes.npy if set to True, user defined is set to str)</p></li>
+<li><p><strong>hdul</strong> – index of the FITS HDU holding the cube; ‘auto’ (default) picks the first HDU containing an image.</p></li>
+<li><p><strong>continuum</strong> – If True, stack continuum images instead of lines (spectralMethod, fEm, lEm, N_chans and regridFromZ are then not used).
+Continuum stacking is also used automatically when no image has a spectral axis (or only one channel),
+and when the coordinates carry no spectral value (readCoords(…, lineON=False)).
+Cubes with a spectral axis are then collapsed in memory (with a warning), see <strong>collapse</strong>.</p></li>
+<li><p><strong>collapse</strong> – How cubes are collapsed for continuum stacking: ‘sum’ (default), ‘mean’ or ‘median’ over channels. Blanked channels are ignored.</p></li>
+<li><p><strong>primarybeam</strong> – Used by weighting=’pb’: the primary-beam image of each cube (FITS or CASA, e.g. tclean’s .pb), as one path for a single cube,
+a list in the order of imagenames or a dict {cube: pb image}; the response is read at each source’s position (and line channel).
+Or a function f(dx, dy, nu) returning the response at offsets dx, dy (radians, east and north on the sky) from the image reference pixel
+and frequency nu (Hz, None without a frequency axis), e.g. <strong>GaussianPrimaryBeam(dish=12.)</strong>. Entries of a list or dict can also be functions.</p></li>
+<li><p><strong>verbose</strong> – If True, print the path of every file written (stacked cube, weights, sub-cubes).
+Default: LineStacker.verbose (True unless changed).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>list</em> – [central pixel at the central channel, spectrum of the central pixel,
+stacked cube (x, y, stokes, channel), number of sources missing from
+each channel]. For a continuum stack the spectrum has one channel.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="LineStacker.image.GaussianPrimaryBeam">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">LineStacker.image.</span></span><span class="sig-name descname"><span class="pre">GaussianPrimaryBeam</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dish</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.13</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nu0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/image.html#GaussianPrimaryBeam"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.image.GaussianPrimaryBeam" title="Link to this definition">¶</a></dt>
+<dd><p>Gaussian primary beam (power pattern) of a dish, for weighting=’pb’:
+response exp(-4 ln2 r**2 / FWHM**2) with FWHM = factor * c / (nu * dish),
+r being the offset from the image reference pixel (the pointing centre
+of single-pointing images). factor=1.13 is the ALMA 12 m value, as in
+LineStacker.uv.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dish</strong> – dish diameter in metres (default 12)</p></li>
+<li><p><strong>factor</strong> – FWHM in units of lambda/D (default 1.13)</p></li>
+<li><p><strong>nu0</strong> – frequency (Hz) to use for images without a frequency axis</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="LineStacker.image.GaussianPrimaryBeam.fwhm">
+<span class="sig-name descname"><span class="pre">fwhm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/image.html#GaussianPrimaryBeam.fwhm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.image.GaussianPrimaryBeam.fwhm" title="Link to this definition">¶</a></dt>
+<dd><p>FWHM in radians at frequency nu (Hz).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.image.readCube">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.image.</span></span><span class="sig-name descname"><span class="pre">readCube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imagename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collapse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/image.html#readCube"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.image.readCube" title="Link to this definition">¶</a></dt>
+<dd><p>Reads a cube or image (FITS file or CASA image) as a numpy array
+ordered (x, y, stokes, channel), x along RA and y along Dec, as
+LineStacker uses it. Blank pixels are NaN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imagename</strong> – path of the FITS file or CASA image</p></li>
+<li><p><strong>hdul</strong> – FITS HDU holding the data (‘auto’: first HDU with an image)</p></li>
+<li><p><strong>collapse</strong> – None (default) for the full cube, or ‘sum’, ‘mean’, ‘median’ to
+collapse the spectral axis (blank channels ignored).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.image.clear_cache">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.image.</span></span><span class="sig-name descname"><span class="pre">clear_cache</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/image.html#clear_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.image.clear_cache" title="Link to this definition">¶</a></dt>
+<dd><p>Forget the cubes read so far: LineStacker reads each cube once and keeps
+it in memory for the following stacks and analysis tools (a cube is read
+again when its file changes). This frees that memory.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.image.getFlux">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.image.</span></span><span class="sig-name descname"><span class="pre">getFlux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imagename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/image.html#getFlux"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.image.getFlux" title="Link to this definition">¶</a></dt>
+<dd><p>Pixel value at the reference pixel of an image, e.g. the centre of a
+stacked image (first Stokes plane and channel).</p>
+</dd></dl>
+
+</section>
+<section id="module-LineStacker.OneD_Stacker">
+<span id="linestacker-oned-stacker"></span><h2>LineStacker.OneD_Stacker<a class="headerlink" href="#module-LineStacker.OneD_Stacker" title="Link to this heading">¶</a></h2>
+<p>Stacking of 1D spectra: each spectrum is a <a class="reference internal" href="#LineStacker.OneD_Stacker.Spectrum" title="LineStacker.OneD_Stacker.Spectrum"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spectrum</span></code></a>, which knows
+where its line is; <a class="reference internal" href="#LineStacker.OneD_Stacker.Stack" title="LineStacker.OneD_Stacker.Stack"><code class="xref py py-func docutils literal notranslate"><span class="pre">Stack()</span></code></a> aligns the spectra on their lines and
+averages them channel by channel. Velocities are in km/s.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="LineStacker.OneD_Stacker.Spectrum">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">LineStacker.OneD_Stacker.</span></span><span class="sig-name descname"><span class="pre">Spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectrum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velocities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fEmLine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centerIndex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centralVelocity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centralFrequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velOrFreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'vel'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velConvention</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'radio'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/OneD_Stacker.html#Spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.OneD_Stacker.Spectrum" title="Link to this definition">¶</a></dt>
+<dd><p>One spectrum to stack: its fluxes, optionally its spectral values, and
+where its line is.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spectrum</strong> – Spectrum should be of the shape [N,2] or [2,N],
+where N is the number of spectral bins.
+The second dimension being the flux
+and the first the spectral values, which must be evenly spaced
+(increasing or decreasing; within 5% of a channel).</p></li>
+<li><p><strong>amp</strong> – Instead of defining spectrum one can define only the amplitude (flux).</p></li>
+<li><p><strong>velocities</strong> – In the case where amp is defined
+it is still possible to define the velocities</p></li>
+<li><p><strong>frequencies</strong> – In the case where amp is defined
+it is still possible to define the frequencies</p></li>
+<li><p><strong>z</strong> – Redshift, one of the possible way to define central frequency.
+If using redshift <strong>fEmLine</strong> (emission frequency of the line) should be defined.
+In addition the spectrum should consist of BOTH amplitudes and spectral information (frequencies or velocities), and not amplitude alone.
+Velocities are then in km/s relative to the rest frequency fEmLine (as e.g. a CASA spectrum with restfreq=fEmLine), in the convention
+<strong>velConvention</strong>: the line is at v = c z/(1+z) (radio), c z (optical) or c((1+z)**2-1)/((1+z)**2+1) (relativistic).</p></li>
+<li><p><strong>fEmLine</strong> – Emission frequency of the line, needed if redshift argument is used.</p></li>
+<li><p><strong>centerIndex</strong> – channel index of the line center, another possible way to define line center.</p></li>
+<li><p><strong>centralFrequency</strong> – (observed) Frequency of the line center, another possible way to define line center.</p></li>
+<li><p><strong>centralVelocity</strong> – Observed velocity of the line center, another possible way to define line center.</p></li>
+<li><p><strong>weights</strong> – <p>The weighting scheme to use.</p>
+<p>Can be set to <strong>‘1/A’</strong> or <strong>‘sigma2’</strong>.
+If <strong>sigma2</strong> is used std of the entire spectra is used UNLESS, <strong>fit</strong> is set to <strong>True</strong>, in which case the central part around the line is excluded from std calculation (central here means one FWHM on each side of the center of the line).</p>
+<p>Alternatively user input can be used, float or list (or array)</p>
+</p></li>
+<li><p><strong>name</strong> – name of the spectrum, can allow easier identification</p></li>
+<li><p><strong>fit</strong> – If fit is set to <strong>True</strong>, the spectrum will be fitted with a gaussian to try and identify the line center (as well as amplitude if weight is set to 1/A)</p></li>
+<li><p><strong>velOrFreq</strong> – Defining if spectral dimension is velocity or frequency.</p></li>
+<li><p><strong>velConvention</strong> – Velocity convention of the velocities (km/s), used with z: <strong>‘radio’</strong> (default, as CASA and LineStacker.uv),
+<strong>‘optical’</strong> or <strong>‘relativistic’</strong>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="LineStacker.OneD_Stacker.Spectrum.velToFreq">
+<span class="sig-name descname"><span class="pre">velToFreq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fEmLine</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/OneD_Stacker.html#Spectrum.velToFreq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.OneD_Stacker.Spectrum.velToFreq" title="Link to this definition">¶</a></dt>
+<dd><p>Frequency of the velocity vel (km/s) relative to the frequency
+fEmLine/(1+z) (z=0: the rest frequency), in the spectrum’s
+velConvention. Same unit as fEmLine.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="LineStacker.OneD_Stacker.Spectrum.freqToVel">
+<span class="sig-name descname"><span class="pre">freqToVel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fEmLine</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/OneD_Stacker.html#Spectrum.freqToVel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.OneD_Stacker.Spectrum.freqToVel" title="Link to this definition">¶</a></dt>
+<dd><p>Velocity (km/s) of the frequency freq relative to fEmLine/(1+z)
+(z=0: the rest frequency), in the spectrum’s velConvention.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.OneD_Stacker.velocity_to_frequency">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.OneD_Stacker.</span></span><span class="sig-name descname"><span class="pre">velocity_to_frequency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fRef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convention</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'radio'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/OneD_Stacker.html#velocity_to_frequency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.OneD_Stacker.velocity_to_frequency" title="Link to this definition">¶</a></dt>
+<dd><p>Frequency (unit of fRef) of velocities vel (km/s) relative to fRef:
+radio f = fRef (1 - v/c), optical f = fRef / (1 + v/c), relativistic
+f = fRef sqrt((1 - v/c) / (1 + v/c)).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.OneD_Stacker.frequency_to_velocity">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.OneD_Stacker.</span></span><span class="sig-name descname"><span class="pre">frequency_to_velocity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fRef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convention</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'radio'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/OneD_Stacker.html#frequency_to_velocity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.OneD_Stacker.frequency_to_velocity" title="Link to this definition">¶</a></dt>
+<dd><p>Velocity (km/s) of frequencies freq relative to fRef (inverse of
+velocity_to_frequency).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.OneD_Stacker.Stack">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.OneD_Stacker.</span></span><span class="sig-name descname"><span class="pre">Stack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chansStack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lineCenterIndex'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regridFromZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regridMethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scaleToMin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/OneD_Stacker.html#Stack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.OneD_Stacker.Stack" title="Link to this definition">¶</a></dt>
+<dd><p>Stacks spectra (LineStacker.OneD_Stacker.Spectrum objects), aligned on
+their lines: weighted mean or median, channel by channel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spectra</strong> – List of spectra (LineStacker.OneD_Stacker.Spectrum objects).</p></li>
+<li><p><strong>chansStack</strong> – Number of channels to stack. Set to ‘full’ to stack all channels from all spectra. User input (int) otherwise</p></li>
+<li><p><strong>method</strong> – stacking method, <strong>‘mean’</strong> and <strong>‘median’</strong> supported</p></li>
+<li><p><strong>center</strong> – <p>Method to find central frequency of the stack, possible values are:</p>
+<p><strong>”center”</strong>, to stack all spectra center to center,</p>
+<p><strong>’fit’</strong> to use gaussian fitting on the spectrum to determine line center,</p>
+<p><strong>’zero_vel’</strong> to stack on velocity=0 bin,</p>
+<p><strong>’lineCenterIndex’</strong> use the line center initiated with the spectrum,</p>
+<p>Or directly defined by the user (int)</p>
+</p></li>
+<li><p><strong>regridFromZ</strong> – if set to True spectra will be regridded to take into account the redshift difference of the different sources. See LineStacker.analysisTools.regridFromZ1D for a more complete description.</p></li>
+<li><p><strong>regridMethod</strong> – Used if regridFromZ is True. Can be set either to <strong>‘scaleToMin’</strong> or <strong>‘scaleToMax’</strong>.
+In the first case all spectra are regridded to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).</p></li>
+<li><p><strong>verbose</strong> – report the regridding (default: LineStacker.verbose)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>tuple</em> – (stacked spectrum, number of spectra in each channel). Channels
+without valid data (no spectrum covers them, or only blank
+fluxes or zero weights) are NaN.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-LineStacker.analysisTools">
+<span id="linestacker-analysistools"></span><h2>LineStacker.analysisTools<a class="headerlink" href="#module-LineStacker.analysisTools" title="Link to this heading">¶</a></h2>
+<p>Tools to test stacks and prepare data for stacking: bootstrapping,
+subsampling, stacks at random positions, noise estimates, rebinning and
+regridding of lines of different widths and redshifts.</p>
+<p>The Monte-Carlo tools (bootstraping_OneD, bootStraping_Cube, subsample_OneD,
+stack_estimator) accept <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> (number of CPU cores, -1 for all),
+<code class="docutils literal notranslate"><span class="pre">backend</span></code> (‘process’ or ‘thread’, see LineStacker.tools.parallel),
+<code class="docutils literal notranslate"><span class="pre">seed</span></code> and <code class="docutils literal notranslate"><span class="pre">verbose</span></code>. All random draws happen before the work is split, so results do not
+depend on n_jobs. With seed=None the draws come from numpy’s global random
+state, so np.random.seed() still makes runs reproducible.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.bootstraping_OneD">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">bootstraping_OneD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nRandom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chansStack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lineCenterIndex'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#bootstraping_OneD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.bootstraping_OneD" title="Link to this definition">¶</a></dt>
+<dd><p>Bootstrapping of a 1D stack: stacks of random draws, with replacement, of the spectra. See LineStacker.OneD_Stacker.Stack for the stacking parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spectra</strong> – a list of LineStacker.OneD_Stacker.Spectrum objects</p></li>
+<li><p><strong>nRandom</strong> – number of bootstrap iterations</p></li>
+<li><p><strong>chansStack</strong> – number of channels to stack, either a fixed number or ‘full’ for entire spectra</p></li>
+<li><p><strong>method</strong> – stacking method, ‘mean’ or ‘median’</p></li>
+<li><p><strong>center</strong> – Method to center spectra.
+See LineStacker.OneD_Stacker.Stack for further information on centering methods.</p></li>
+<li><p><strong>save</strong> – <p>data to save at each bootstrap iterations</p>
+<p>possible values are <strong>‘all’</strong>, <strong>‘amp’</strong> and <strong>‘ampAndWidth’</strong></p>
+<p><strong>’all’</strong> saves the full stack at each bootstrap iteration (can use a lot of memory)</p>
+<p><strong>’amp’</strong> saves the amplitude of the line (maximum value of the stack) at each bootstrap iteration, fastest</p>
+<p><strong>’ampAndWidth’</strong> fits the line with a gaussian and saves the corresponding amplitude and width at each bootstrap iteration (fits that do not converge are stored as [nan, nan]), can be cpu expensive.</p>
+</p></li>
+<li><p><strong>seed</strong> – seed for reproducible resampling (None uses numpy’s global random state)</p></li>
+<li><p><strong>n_jobs</strong> – number of CPU cores to use (-1 for all). Worth it mostly for ‘ampAndWidth’ and for medians.</p></li>
+<li><p><strong>backend</strong> – ‘process’ or ‘thread’, see LineStacker.tools.parallel</p></li>
+<li><p><strong>verbose</strong> – print what is done and a progress bar (default: LineStacker.verbose)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>list</em> – nRandom+1 entries (as chosen by save), the first one for the stack
+of all spectra.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.bootStraping_Cube">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">bootStraping_Cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stampsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagenames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weighting</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxmaskradius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fEm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectralMethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_chans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nRandom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'amp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lEm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskradius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collapse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#bootStraping_Cube"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.bootStraping_Cube" title="Link to this definition">¶</a></dt>
+<dd><p>Bootstrapping of a cube stack: stacks of random draws, with replacement, of the sources. See LineStacker.image.stack for the stacking parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> – A list of LineStacker.Coord of all target coordinates</p></li>
+<li><p><strong>stampsize</strong> – size of target image in pixels</p></li>
+<li><p><strong>imagenames</strong> – Name of images to extract cubes from</p></li>
+<li><p><strong>method</strong> – stacking method, ‘mean’ or ‘median’</p></li>
+<li><p><strong>weighting</strong> – <p>weighting method to use if stacking method is mean</p>
+<p>possible values are ‘sigma2’, ‘sigma2F’, ‘1/A’ or None (weights of the coords)</p>
+<p>see LineStacker.image.stack for a complete description of weighting methods</p>
+</p></li>
+<li><p><strong>maxmaskradius</strong> – radius of the mask used to blank the centre pixels in weight calculation (also accepted as maskradius)</p></li>
+<li><p><strong>fEm</strong> – rest emission frequency of the line (or lEm for wavelength cubes)</p></li>
+<li><p><strong>N_chans</strong> – number of channels of the resulting stack</p></li>
+<li><p><strong>nRandom</strong> – number of bootstrap iterations</p></li>
+<li><p><strong>save</strong> – <p>data to save at each bootstrap iterations</p>
+<p>possible values are <strong>‘all’</strong>, <strong>‘amp’</strong>, <strong>‘ampAndWidth’</strong> and <strong>‘outflow’</strong></p>
+<p><strong>’all’</strong> saves the full stack at each bootstrap iteration (can use a lot of memory)</p>
+<p><strong>’amp’</strong> saves the amplitude (maximum value of the stack) of the line, at each bootstrap iteration, fastest</p>
+<p><strong>’ampAndWidth’</strong> fits the line with a gaussian and saves the corresponding amplitude and width at each bootstrap iteration (fits that do not converge are stored as [nan, nan]), can be cpu expensive</p>
+<p><strong>’outflow’</strong> fits the line with two gaussian components and saves the stack parameters at each bootstrap iteration, can be cpu expensive</p>
+<p>for ‘amp’, ‘ampAndWidth’ and ‘outflow’ the line is obtained by summing all pixels inside the stack stamp.</p>
+</p></li>
+<li><p><strong>seed</strong> – see the module description</p></li>
+<li><p><strong>n_jobs</strong> – see the module description</p></li>
+<li><p><strong>backend</strong> – see the module description</p></li>
+<li><p><strong>continuum</strong> – continuum stacking, see LineStacker.image.stack (‘amp’ is then the
+stamp-summed flux; ‘ampAndWidth’ and ‘outflow’ need a spectral axis)</p></li>
+<li><p><strong>collapse</strong> – continuum stacking, see LineStacker.image.stack (‘amp’ is then the
+stamp-summed flux; ‘ampAndWidth’ and ‘outflow’ need a spectral axis)</p></li>
+<li><p><strong>verbose</strong> – print what is done and a progress bar (default: LineStacker.verbose)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>list</em> – nRandom+1 entries (as chosen by save), the first one for the stack
+of all sources.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.congrid">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">congrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newdims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minusone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#congrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.congrid" title="Link to this definition">¶</a></dt>
+<dd><p>Arbitrary resampling of an array to new dimension sizes (same number
+of dimensions), with the sampling points of IDL’s congrid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – array to resample</p></li>
+<li><p><strong>newdims</strong> – new size of every dimension</p></li>
+<li><p><strong>method</strong> – <strong>‘neighbour’</strong> (closest value), <strong>‘nearest’</strong> or <strong>‘linear’</strong>
+(n 1-D interpolations with scipy.interpolate.interp1d), or
+<strong>‘spline’</strong> (scipy.ndimage.map_coordinates, cubic)</p></li>
+<li><p><strong>centre</strong> – True: interpolation points at the centres of the bins; False
+(default): at their front edges</p></li>
+<li><p><strong>minusone</strong> – False (default): an axis of i samples resized to x is sampled by
+factors of i/x; True: by (i-1)/(x-1), which avoids extrapolating
+one sample beyond the input</p></li>
+<li><p><strong>LineStacker's</strong> (<em>Blank</em><em> (</em><em>NaN</em><em>) </em><em>values are not handled specially here;</em>)</p></li>
+<li><p><strong>rebin_OneD</strong><strong>)</strong><strong>.</strong> (<em>rebinning functions handle them</em><em> (</em><em>see</em>)</p></li>
+<li><p><strong>https</strong> (<em>From</em>)</p></li>
+<li><p><strong>2001</strong> (<em>(</em><em>Copyright</em><em> (</em><em>c</em><em>)</em>)</p></li>
+<li><p><strong>Enthought</strong> (<em>2002</em>)</p></li>
+<li><p><strong>2003-2017</strong> (<em>Inc.; Copyright</em><em> (</em><em>c</em><em>)</em>)</p></li>
+<li><p><strong>reserved.</strong><strong>)</strong> (<em>SciPy Developers. All rights</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.rebin_OneD">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">rebin_OneD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#rebin_OneD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.rebin_OneD" title="Link to this definition">¶</a></dt>
+<dd><p>Rebin a list of spectra so that all lines span as many channels as
+the narrowest one (widths in channels, from Gaussian fits).
+<strong>The lines must be visible source by source.</strong>
+Fluxes are linearly interpolated; a rebinned channel interpolated
+from a blank (NaN) channel is NaN. The spectral axes, per-channel
+weights and line centres (centerIndex) follow the new channels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spectra</strong> – A list of LineStacker.OneD_Stacker.Spectrum objects</p></li>
+<li><p><strong>verbose</strong> – print what is done (default: LineStacker.verbose)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>list of LineStacker.OneD_Stacker.Spectrum</em> – the rebinned spectra (copies).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.rebin_CubesSpectra">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">rebin_CubesSpectra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagenames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regionSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">widths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'_SpectralRebinned'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#rebin_CubesSpectra"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.rebin_CubesSpectra" title="Link to this definition">¶</a></dt>
+<dd><p>Rebin a list of image-cubes so that all lines have the width of the
+narrowest one (widths from Gaussian fits, or given).
+<strong>The lines must be visible source by source.</strong>
+A rebinned channel interpolated from a blank (NaN) channel is NaN. One coordinate per cube
+is enough (the first one of each cube is used).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> – A list of LineStacker.Coord (one per image).</p></li>
+<li><p><strong>imagenames</strong> – Name of images to rebin (FITS or CASA images)</p></li>
+<li><p><strong>regionSize</strong> – <p>size (in pixels) of the square region whose summed spectrum is fitted (placed around the source as
+the stamps of LineStacker.image.stack)</p>
+<p>If set to False spectra will be extracted solely from the coord pixel</p>
+</p></li>
+<li><p><strong>widths</strong> – <p>widths of the lines</p>
+<p>If set to ‘False’ the spectra will be fitted with a gaussian to extract the width</p>
+</p></li>
+<li><p><strong>outputName</strong> – Suffix of the rebinned cube, to add to the original cube name.</p></li>
+<li><p><strong>outdir</strong> – Folder for the rebinned cubes (created if needed); default: next to the originals.</p></li>
+<li><p><strong>verbose</strong> – print where the rebinned cubes are written, and a progress bar (default: LineStacker.verbose)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>list of str</em> – the names of the rebinned cubes (same format as the inputs).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.maximizeAmp">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">maximizeAmp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectra</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#maximizeAmp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.maximizeAmp" title="Link to this definition">¶</a></dt>
+<dd><p>Grade of a stacked spectrum: its maximum (blank channels ignored; 0 if
+every channel is blank).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.maximizeSNR">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">maximizeSNR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectra</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#maximizeSNR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.maximizeSNR" title="Link to this definition">¶</a></dt>
+<dd><p>Grade of a stacked spectrum: amplitude of a Gaussian fit over the
+standard deviation of the valid (finite) channels outside the line
+(2.35 sigma on each side). 0 if the fit fails, finds no line inside the
+spectrum, or leaves fewer than 2 valid channels outside it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.maximizeOutflow">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">maximizeOutflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectra</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#maximizeOutflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.maximizeOutflow" title="Link to this definition">¶</a></dt>
+<dd><p>Grade of a stacked spectrum for a second (e.g. outflow) component:
+amplitude x width**2 of the fainter component of a two-Gaussian fit
+(blank channels ignored; 0 if the fit fails).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.subsample_OneD">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">subsample_OneD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nRandom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxTest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">maximizeSNR&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#subsample_OneD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.subsample_OneD" title="Link to this definition">¶</a></dt>
+<dd><p>Stacks random subsets of the spectra and grades every stack with maxTest; each spectrum collects the grades of the stacks it was part of.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spectra</strong> – A list of LineStacker.OneD_Stacker.Spectrum objects</p></li>
+<li><p><strong>nRandom</strong> – Number of iterations of the Monte-Carlo process</p></li>
+<li><p><strong>maxTest</strong> – function test to grade the sources build your own, or use existing: <strong>maximizeAmp</strong>, <strong>maximizeSNR</strong>, <strong>maximizeOutflow</strong>.
+Default is to maximize the signal to noise ratio. With backend=’process’ a custom function must be defined at module level (not a lambda) so it can be sent to the workers.</p></li>
+<li><p><strong>minSize</strong> – range of the random subsample sizes (default 3 to all spectra)</p></li>
+<li><p><strong>maxSize</strong> – range of the random subsample sizes (default 3 to all spectra)</p></li>
+<li><p><strong>seed</strong> – see the module description. Gaussian-fit based grades (maximizeSNR, maximizeOutflow) benefit from n_jobs&gt;1.</p></li>
+<li><p><strong>n_jobs</strong> – see the module description. Gaussian-fit based grades (maximizeSNR, maximizeOutflow) benefit from n_jobs&gt;1.</p></li>
+<li><p><strong>backend</strong> – see the module description. Gaussian-fit based grades (maximizeSNR, maximizeOutflow) benefit from n_jobs&gt;1.</p></li>
+<li><p><strong>verbose</strong> – print what is done and a progress bar (default: LineStacker.verbose)</p></li>
+<li><p><strong>**kwargs</strong> – passed to LineStacker.OneD_Stacker.Stack (method, center, chansStack…)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>dict</em> – {spectrum name: summed grade} (spectra without a name are named by their index).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.noise_estimator">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">noise_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imagenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nRandom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskradius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskCenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chanToNoise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotIt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#noise_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.noise_estimator" title="Link to this definition">¶</a></dt>
+<dd><p>Estimates the noise of images or cubes from randomly drawn pixels
+(blank, i.e. NaN or infinite, pixels are never drawn; pixels that are
+exactly zero are data).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imagenames</strong> – Path to image (FITS or CASA image), or list of paths</p></li>
+<li><p><strong>nRandom</strong> – Number of iterations</p></li>
+<li><p><strong>maskradius</strong> – Radius of the mask (in pixels)</p></li>
+<li><p><strong>maskCenter</strong> – Center location of the mask (in pixels, [x, y]; default [0, 0]). NB: CENTER OF IMAGE IS DEFINED AS [0,0]</p></li>
+<li><p><strong>continuum</strong> – If set to True points will be taken at random on the any of the spectral channels. Otherwise all channels are probed independently.</p></li>
+<li><p><strong>chanToNoise</strong> – If set to a specific (int) value then noise will be extracted from the specified channel. NB: only works if continuum is set to True.</p></li>
+<li><p><strong>plotIt</strong> – show the (masked) first image</p></li>
+<li><p><strong>seed</strong> – seed for reproducible draws (None uses numpy’s global random state)</p></li>
+<li><p><strong>verbose</strong> – print what is done and a progress bar (default: LineStacker.verbose)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>float or numpy array</em> – the standard deviation of the drawn pixels (continuum=True), or
+one per channel.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.stack_estimator">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">stack_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nRandom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagenames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stampsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_chans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowerLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'central_pixel'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fEm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectralMethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lEm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'thread'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#stack_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.stack_estimator" title="Link to this definition">¶</a></dt>
+<dd><p>Performs stacks at random positions a set number of times. Allows to probe the relevance of stack through stacking random positions as a Monte Carlo process.
+The random positions keep each source’s redshift; positions whose stamp
+would fall outside the image are drawn again.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> – A list of LineStacker.Coord of all target coordinates.</p></li>
+<li><p><strong>nRandom</strong> – Number of iterations</p></li>
+<li><p><strong>imagenames</strong> – Name of imagenames to stack</p></li>
+<li><p><strong>stampsize</strong> – Size of the stamp to stack (because only the central pixel is extracted anyway, this should be kept to default to enhance efficiency)</p></li>
+<li><p><strong>method</strong> – Method for stacking, see LineStacker.image.stack</p></li>
+<li><p><strong>N_chans</strong> – Number of channels in the stack</p></li>
+<li><p><strong>lowerLimit</strong> – Lower spatial limit (distance from stacking position, radians) to randomize new stacking position.
+Default is 5 beams</p></li>
+<li><p><strong>upperLimit</strong> – Upper spatial limit (distance from stacking position, radians) to randomize new stacking position.
+Default is 10 beams</p></li>
+<li><p><strong>save</strong> – either ‘central_pixel’ or ‘all’. If ‘central_pixel’ only the spectrum of central pixel is saved.</p></li>
+<li><p><strong>spectralMethod</strong> – Method to select the central frequency of the stack. See LineStacker.image.stack.</p></li>
+<li><p><strong>seed</strong> – see the module description (‘thread’ is the default backend here: the cubes stay shared)</p></li>
+<li><p><strong>n_jobs</strong> – see the module description (‘thread’ is the default backend here: the cubes stay shared)</p></li>
+<li><p><strong>backend</strong> – see the module description (‘thread’ is the default backend here: the cubes stay shared)</p></li>
+<li><p><strong>verbose</strong> – print what is done and a progress bar (default: LineStacker.verbose)</p></li>
+<li><p><strong>**kwargs</strong> – weighting, maskradius, regridFromZ… passed to LineStacker.image.stack’s preparation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>list</em> – [standard deviation, mean, all random stacks].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.randomizeCoords">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">randomizeCoords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowerLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upperLimit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagenames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#randomizeCoords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.randomizeCoords" title="Link to this definition">¶</a></dt>
+<dd><p>New positions at a random distance (uniform between lowerLimit and upperLimit) and in a random direction from each coordinate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> – A list of LineStacker.Coord coordinates</p></li>
+<li><p><strong>lowerLimit</strong> – <p>Lower limit of the distance (radians) to the original position.</p>
+<p>Default is 5 beams</p>
+</p></li>
+<li><p><strong>upperLimit</strong> – <p>Upper limit of the distance (radians) to the original position.</p>
+<p>Default is 10 beams</p>
+</p></li>
+<li><p><strong>beam</strong> – beam size (radians), needed if lowerLimit or upperLimit are set to ‘default’</p></li>
+<li><p><strong>imagenames</strong> – needed for pixel coordinates (to convert distances to pixels)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.regridFromZ">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">regridFromZ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imagenames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stampsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_chans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fEm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writeImage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regridMethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scaleToMin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdul</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./regridedImages'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#regridFromZ"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.regridFromZ" title="Link to this definition">¶</a></dt>
+<dd><p>Cube regridding function correcting the observed linewidth change due to redshift.
+Spectral dimensions are rebinned to a new_size=old_size*zRatio where zRatio=(1+z)/(1+zRef)
+where z is the observed line redshift and zRef is either the smaller (<strong>scaleToMin</strong>) or bigger (<strong>scaleToMax</strong>) redshift among the studied lines.
+Spectra are resampled with a cubic spline through the valid channels
+(separately between blank channels, which are never used): new
+channels between a valid and a blank channel, or beyond the last
+channel, are NaN.</p>
+<p>LineStacker.image.stack(…, regridFromZ=True) corrects the line widths in memory instead, without writing
+cubes (with linear interpolation).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> – A list of LineStacker.Coord of all target coordinates.</p></li>
+<li><p><strong>imagenames</strong> – Name of images to extract flux from.</p></li>
+<li><p><strong>stampsize</strong> – size of target image in pixels</p></li>
+<li><p><strong>N_chans</strong> – unused, kept for compatibility</p></li>
+<li><p><strong>fEm</strong> – rest emission frequency of the line (frequency cubes only)</p></li>
+<li><p><strong>writeImage</strong> – boolean, if set to <strong>True</strong> regridded images will be written to disk (in <strong>outdir</strong>)</p></li>
+<li><p><strong>regridMethod</strong> – Method of regridding, can be set either to <strong>‘scaleToMin’</strong> or <strong>‘scaleToMax’</strong>.
+In the first case all spectra are regridded to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).</p></li>
+<li><p><strong>outdir</strong> – folder for the regridded cubes (default ./regridedImages; emptied first)</p></li>
+<li><p><strong>verbose</strong> – print where the regridded cubes are written, and a progress bar (default: LineStacker.verbose)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>tuple or list</em> – If writeImage is <strong>True</strong>: (imagenames, coords), the regridded cubes and their coordinates. Stack them as they are,
+with LineStacker.image.stack(coords, imagenames=imagenames, spectralMethod=’z’, fEm=fEm): a regridded cube’s
+spectral axis is labelled in the rest frame (its coordinate has z = 0, channels of rest-frame width), and sources
+already at the reference redshift keep their original cube and redshift.
+Regridded cubes are stamps of stampsize pixels around each source, with the sky coordinates of the original cube.
+If writeImage is <strong>False</strong>: the list of regridded stamps.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.analysisTools.regridFromZ1D">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.analysisTools.</span></span><span class="sig-name descname"><span class="pre">regridFromZ1D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spectra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regridMethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scaleToMin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/analysisTools.html#regridFromZ1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.analysisTools.regridFromZ1D" title="Link to this definition">¶</a></dt>
+<dd><p>1D regridding function correcting the observed linewidth change due to redshift.
+Spectra are rebinned to a new_size=old_size*zRatio where zRatio=(1+z)/(1+zRef)
+where z is the observed line redshift and zRef is either the smaller (<strong>scaleToMin</strong>) or bigger (<strong>scaleToMax</strong>) redshift among the studied lines.
+Fluxes are resampled with a cubic spline through the valid channels
+(separately between blank channels, which are never used): new
+channels between a valid and a blank channel, or beyond the last
+channel, are NaN. Spectral axes, per-channel weights and line
+centres (centerIndex) follow the new channels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spectra</strong> – List of spectra (LineStacker.OneD_Stacker.Spectrum objects).</p></li>
+<li><p><strong>regridMethod</strong> – Method of regridding, can be set either to <strong>‘scaleToMin’</strong> or <strong>‘scaleToMax’</strong>.
+In the first case all spectra are regridded to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).</p></li>
+<li><p><strong>verbose</strong> – print what is done and a progress bar (default: LineStacker.verbose)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>list of LineStacker.OneD_Stacker.Spectrum</em> – the regridded spectra (copies).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-LineStacker.tools">
+<span id="linestacker-tools"></span><h2>LineStacker.tools<a class="headerlink" href="#module-LineStacker.tools" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.ProgressBar">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.</span></span><span class="sig-name descname"><span class="pre">ProgressBar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools.html#ProgressBar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.ProgressBar" title="Link to this definition">¶</a></dt>
+<dd><p>Draws a progress bar (at most about 100 redraws).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – current step</p></li>
+<li><p><strong>total</strong> – total number of steps</p></li>
+<li><p><strong>verbose</strong> – draw the bar (default: LineStacker.verbose)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.resolve_n_jobs">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.</span></span><span class="sig-name descname"><span class="pre">resolve_n_jobs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools.html#resolve_n_jobs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.resolve_n_jobs" title="Link to this definition">¶</a></dt>
+<dd><p>Number of workers for an n_jobs argument (None/1 = serial, -1 = all cores).</p>
+</dd></dl>
+
+</section>
+<section id="module-LineStacker.tools.fit">
+<span id="linestacker-tools-fit"></span><h2>LineStacker.tools.fit<a class="headerlink" href="#module-LineStacker.tools.fit" title="Link to this heading">¶</a></h2>
+<p>Gaussian fitting of spectra (single, double, and symmetric double peaks).</p>
+<p>The fitting functions ignore non-finite samples (NaN channels) and raise
+<a class="reference internal" href="#LineStacker.tools.fit.FitError" title="LineStacker.tools.fit.FitError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FitError</span></code></a> (a RuntimeError) when a fit cannot be done or does not
+converge: too few valid samples, a constant spectrum, invalid initial
+values, or non-finite fitted parameters.</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="LineStacker.tools.fit.FitError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">LineStacker.tools.fit.</span></span><span class="sig-name descname"><span class="pre">FitError</span></span><a class="reference internal" href="_modules/LineStacker/tools/fit.html#FitError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.fit.FitError" title="Link to this definition">¶</a></dt>
+<dd><p>A fit could not be done or did not converge.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.fit.Gauss">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.fit.</span></span><span class="sig-name descname"><span class="pre">Gauss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dV</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emittedF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sPeak</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dF</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigmaNoise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools/fit.html#Gauss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.fit.Gauss" title="Link to this definition">¶</a></dt>
+<dd><p>Gaussian line on the axis f: peak sPeak at f0 and FWHM dF; with dF=0
+the FWHM is that of the velocity width dV (m/s) at the frequency
+emittedF, dF = dV emittedF / c. noise=True adds Gaussian noise of
+standard deviation sigmaNoise.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.fit.gaussFct">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.fit.</span></span><span class="sig-name descname"><span class="pre">gaussFct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools/fit.html#gaussFct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.fit.gaussFct" title="Link to this definition">¶</a></dt>
+<dd><p>Gaussian a exp(-(x-x0)**2 / (2 sigma**2)) + constant.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.fit.DoubleGauss">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.fit.</span></span><span class="sig-name descname"><span class="pre">DoubleGauss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f01</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f02</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools/fit.html#DoubleGauss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.fit.DoubleGauss" title="Link to this definition">¶</a></dt>
+<dd><p>Sum of two Gaussians (amplitudes amp1, amp2, centres f01, f02, widths sigma1, sigma2).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.fit.DoubleGaussPeak">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.fit.</span></span><span class="sig-name descname"><span class="pre">DoubleGaussPeak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools/fit.html#DoubleGaussPeak"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.fit.DoubleGaussPeak" title="Link to this definition">¶</a></dt>
+<dd><p>Two Gaussians of the same amplitude and width, dist apart, centred on
+the middle of the axis f.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.fit.GaussFit">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.fit.</span></span><span class="sig-name descname"><span class="pre">GaussFit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fctToFit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fullFreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">returnInfos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">returnError</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools/fit.html#GaussFit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.fit.GaussFit" title="Link to this definition">¶</a></dt>
+<dd><p>Simple Gaussian fitting function. Return order: fitting function, (fitting parameters), (error on fitting parameters).
+Non-finite samples are ignored; raises FitError (a RuntimeError) if the fit fails.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fctToFit</strong> – One dimensional array to be fitted</p></li>
+<li><p><strong>fullFreq</strong> – Spectral dimension array. <strong>Not required</strong></p></li>
+<li><p><strong>sigma</strong> – initial width for fitting, <strong>‘default’</strong> is 3 bins</p></li>
+<li><p><strong>returnInfos</strong> – If set to <strong>True</strong> function returns fitted parameters</p></li>
+<li><p><strong>returnError</strong> – If set to <strong>True</strong> function returns error on fitted parameters</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.fit.DoubleGaussFit">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.fit.</span></span><span class="sig-name descname"><span class="pre">DoubleGaussFit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fctToFit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fullFreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ampScale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">returnAllComp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">returnInfos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">returnError</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools/fit.html#DoubleGaussFit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.fit.DoubleGaussFit" title="Link to this definition">¶</a></dt>
+<dd><p>Double Gaussian (sum of two Gaussians) fitting function. Return order: fitting function, (first Gaussian, second Gaussian), (fitting parameters), (error on fitting parameters).
+Non-finite samples are ignored; raises FitError (a RuntimeError) if the fit fails.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fctToFit</strong> – One dimensional array to be fitted.</p></li>
+<li><p><strong>fullFreq</strong> – Spectral dimension array. <strong>Not required</strong></p></li>
+<li><p><strong>sigma1</strong> – Initial width of the first Gaussian component for fitting, <strong>‘default’</strong> is 3 bins.</p></li>
+<li><p><strong>sigma2</strong> – Initial width of the second Gaussian component for fitting, <strong>‘default’</strong> is 6 bins.</p></li>
+<li><p><strong>ampScale</strong> – Initial amp ratio (between the two Gaussian components) for fitting, <strong>default</strong> is 0.1.</p></li>
+<li><p><strong>returnAllComp</strong> – If set to <strong>True</strong> function returns both individual components.</p></li>
+<li><p><strong>returnInfos</strong> – If set to <strong>True</strong> function returns fitted parameters.</p></li>
+<li><p><strong>returnError</strong> – If set to <strong>True</strong> function returns error on fitted parameters.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.fit.DoublePeakFit">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.fit.</span></span><span class="sig-name descname"><span class="pre">DoublePeakFit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fctToFit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fullFreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">returnInfos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools/fit.html#DoublePeakFit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.fit.DoublePeakFit" title="Link to this definition">¶</a></dt>
+<dd><p>Fit of two Gaussians of the same amplitude and width placed
+symmetrically about the middle of the spectral axis (see
+DoubleGaussPeak). Returns the model (and the parameters amp, dist,
+sigma with returnInfos=True). Raises FitError if the fit fails.</p>
+</dd></dl>
+
+</section>
+<section id="module-LineStacker.tools.parallel">
+<span id="linestacker-tools-parallel"></span><h2>LineStacker.tools.parallel<a class="headerlink" href="#module-LineStacker.tools.parallel" title="Link to this heading">¶</a></h2>
+<p>Small helper to spread Monte-Carlo iterations (bootstraps, subsamples, random
+stacks) over several CPU cores.</p>
+<p>Every function in LineStacker that accepts <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> draws all its random
+numbers up front, in the calling process, and only distributes the
+deterministic work. Results are therefore identical whatever <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> or
+<code class="docutils literal notranslate"><span class="pre">backend</span></code> is, and reproducible with <code class="docutils literal notranslate"><span class="pre">seed</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">backend='process'</span></code> (default) runs workers in separate processes and is the
+right choice for Python-heavy work such as Gaussian fits. <code class="docutils literal notranslate"><span class="pre">backend='thread'</span></code>
+avoids starting processes and copying data; it helps when the work is mostly
+large numpy operations (e.g. median stacks of big cubes).</p>
+<p>When using processes from a script on macOS or Windows, protect the script’s
+entry point:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">'__main__'</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>otherwise each worker re-runs the script while starting.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.parallel.set_default_backend">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.parallel.</span></span><span class="sig-name descname"><span class="pre">set_default_backend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools/parallel.html#set_default_backend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.parallel.set_default_backend" title="Link to this definition">¶</a></dt>
+<dd><p>Set the backend used when a function is called with backend=None
+(‘process’ or ‘thread’).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.parallel.get_shared">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.parallel.</span></span><span class="sig-name descname"><span class="pre">get_shared</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools/parallel.html#get_shared"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.parallel.get_shared" title="Link to this definition">¶</a></dt>
+<dd><p>Access, from a worker function, an object passed through <code class="docutils literal notranslate"><span class="pre">shared</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="LineStacker.tools.parallel.map_chunks">
+<span class="sig-prename descclassname"><span class="pre">LineStacker.tools.parallel.</span></span><span class="sig-name descname"><span class="pre">map_chunks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tasks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LineStacker/tools/parallel.html#map_chunks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LineStacker.tools.parallel.map_chunks" title="Link to this definition">¶</a></dt>
+<dd><p>Apply <code class="docutils literal notranslate"><span class="pre">func</span></code> to every element of <code class="docutils literal notranslate"><span class="pre">tasks</span></code> and return the results in
+order. <code class="docutils literal notranslate"><span class="pre">func</span></code> must be a module-level function (so it can be sent to
+worker processes). Large inputs common to all tasks go in <code class="docutils literal notranslate"><span class="pre">shared</span></code>
+(a dict); workers read them with <a class="reference internal" href="#LineStacker.tools.parallel.get_shared" title="LineStacker.tools.parallel.get_shared"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_shared()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>func</strong> – function taking one task and returning its result</p></li>
+<li><p><strong>tasks</strong> – list of tasks (usually slices of iterations)</p></li>
+<li><p><strong>n_jobs</strong> – number of workers; 1 runs serially, -1 uses all cores</p></li>
+<li><p><strong>backend</strong> – ‘process’ or ‘thread’ (None uses the default, see set_default_backend)</p></li>
+<li><p><strong>shared</strong> – dict of read-only objects made available to func via get_shared</p></li>
+<li><p><strong>progress</strong> – show LineStacker’s progress bar</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

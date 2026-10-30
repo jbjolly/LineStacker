@@ -1,1 +1,12 @@
-/* This file intentionally left blank. */
+/* Small logo (LineStacker-icon.svg) in the sidebar on narrow screens, where
+   alabaster hides the large logo. */
+div.sphinxsidebar p.smallicon {
+    display: none;
+}
+
+@media screen and (max-width: 875px) {
+    div.sphinxsidebar p.smallicon {
+        display: block;
+        margin: 4px 0 8px 0;
+    }
+}

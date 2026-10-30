@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Analysis tools &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="_static/documentation_options.js?v=db988ed8"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Stacking spectra" href="spectra.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="index.html"><img src="_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="principle.html">How stacking works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="positions.html">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectra.html">Stacking spectra</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_generated/examples_notebook.html">LineStacker examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="spectra.html" title="previous chapter">Stacking spectra</a></li>
+      <li>Next: <a href="examples.html" title="next chapter">Examples</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="analysis-tools">
+<h1>Analysis tools<a class="headerlink" href="#analysis-tools" title="Link to this heading">¶</a></h1>
+<p><a class="reference internal" href="api.html#module-LineStacker.analysisTools" title="LineStacker.analysisTools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">LineStacker.analysisTools</span></code></a> tests what a stack shows and prepares
+cubes or spectra for stacking.</p>
+<section id="bootstrapping">
+<h2>Bootstrapping<a class="headerlink" href="#bootstrapping" title="Link to this heading">¶</a></h2>
+<p>Bootstrapping stacks random draws, with replacement, of the stacked sources.
+The spread of the results shows how much the stack depends on which sources
+it contains; a few bright sources dominating it give a skewed or
+multi-peaked distribution.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">LineStacker.analysisTools</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">A</span>
+
+<span class="n">boot</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">bootstraping_OneD</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">nRandom</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'median'</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="s1">'amp'</span><span class="p">)</span>
+<span class="n">boot</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">bootStraping_Cube</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">fEm</span><span class="o">=</span><span class="n">fEm</span><span class="p">,</span> <span class="n">stampsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">N_chans</span><span class="o">=</span><span class="mi">31</span><span class="p">,</span>
+                           <span class="n">nRandom</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="s1">'ampAndWidth'</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Both return a list of <code class="docutils literal notranslate"><span class="pre">nRandom</span> <span class="pre">+</span> <span class="pre">1</span></code> entries, the first one for the stack of
+all sources. <code class="docutils literal notranslate"><span class="pre">save</span></code> decides what is kept from each draw: <code class="docutils literal notranslate"><span class="pre">'all'</span></code> (the whole
+stack), <code class="docutils literal notranslate"><span class="pre">'amp'</span></code> (its maximum), <code class="docutils literal notranslate"><span class="pre">'ampAndWidth'</span></code> (amplitude and width of a
+Gaussian fit; fits that do not converge are stored as NaN), and for cubes
+<code class="docutils literal notranslate"><span class="pre">'outflow'</span></code> (the six parameters of a two-Gaussian fit). For cubes the line
+is the spectrum summed over the stamp.</p>
+</section>
+<section id="subsampling">
+<h2>Subsampling<a class="headerlink" href="#subsampling" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="api.html#LineStacker.analysisTools.subsample_OneD" title="LineStacker.analysisTools.subsample_OneD"><code class="xref py py-func docutils literal notranslate"><span class="pre">subsample_OneD()</span></code></a> stacks random subsets of
+the spectra and grades every stack; each spectrum collects the grades of the
+stacks it was part of. Spectra that make stacks better get higher totals.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">grades</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">subsample_OneD</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">nRandom</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">maxTest</span><span class="o">=</span><span class="n">A</span><span class="o">.</span><span class="n">maximizeSNR</span><span class="p">)</span>
+<span class="n">best</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">grades</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">grades</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The grade function is <a class="reference internal" href="api.html#LineStacker.analysisTools.maximizeSNR" title="LineStacker.analysisTools.maximizeSNR"><code class="xref py py-func docutils literal notranslate"><span class="pre">maximizeSNR()</span></code></a> by
+default (fitted amplitude over the standard deviation of the valid channels
+outside the line; 0 when the fit fails or fewer than 2 such channels are
+left),
+<a class="reference internal" href="api.html#LineStacker.analysisTools.maximizeAmp" title="LineStacker.analysisTools.maximizeAmp"><code class="xref py py-func docutils literal notranslate"><span class="pre">maximizeAmp()</span></code></a> (maximum),
+<a class="reference internal" href="api.html#LineStacker.analysisTools.maximizeOutflow" title="LineStacker.analysisTools.maximizeOutflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">maximizeOutflow()</span></code></a> (amplitude × width² of the
+fainter component of a two-Gaussian fit), or any function of a stacked
+spectrum.
+<code class="docutils literal notranslate"><span class="pre">minSize</span></code> and <code class="docutils literal notranslate"><span class="pre">maxSize</span></code> bound the sizes of the subsets.</p>
+</section>
+<section id="random-positions-and-noise">
+<h2>Random positions and noise<a class="headerlink" href="#random-positions-and-noise" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="api.html#LineStacker.analysisTools.stack_estimator" title="LineStacker.analysisTools.stack_estimator"><code class="xref py py-func docutils literal notranslate"><span class="pre">stack_estimator()</span></code></a> repeats a cube stack at
+random positions, between <code class="docutils literal notranslate"><span class="pre">lowerLimit</span></code> and <code class="docutils literal notranslate"><span class="pre">upperLimit</span></code> radians from each
+source (5 and 10 beams by default), keeping each source’s redshift. The
+distribution of these stacks is what noise alone gives:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">stacks</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">stack_estimator</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">fEm</span><span class="o">=</span><span class="n">fEm</span><span class="p">,</span> <span class="n">nRandom</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">N_chans</span><span class="o">=</span><span class="mi">31</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="api.html#LineStacker.analysisTools.noise_estimator" title="LineStacker.analysisTools.noise_estimator"><code class="xref py py-func docutils literal notranslate"><span class="pre">noise_estimator()</span></code></a> measures the noise of
+images or cubes from random pixels, optionally outside a mask, for the
+whole cube or channel by channel. Blank (NaN) pixels are never drawn; pixels
+that are exactly 0 are data. <a class="reference internal" href="api.html#LineStacker.randomCoords" title="LineStacker.randomCoords"><code class="xref py py-func docutils literal notranslate"><span class="pre">LineStacker.randomCoords()</span></code></a> draws
+random pixel positions anywhere in a set of images, and
+<a class="reference internal" href="api.html#LineStacker.randomizeCoords" title="LineStacker.randomizeCoords"><code class="xref py py-func docutils literal notranslate"><span class="pre">LineStacker.randomizeCoords()</span></code></a> moves positions randomly by one to a few
+beams.</p>
+</section>
+<section id="line-widths-and-redshifts">
+<h2>Line widths and redshifts<a class="headerlink" href="#line-widths-and-redshifts" title="Link to this heading">¶</a></h2>
+<p>Lines of the same rest-frame width are narrower at higher redshift, and
+lines of different widths blur a stack. LineStacker can bring them to a
+common width before stacking:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="api.html#LineStacker.analysisTools.regridFromZ1D" title="LineStacker.analysisTools.regridFromZ1D"><code class="xref py py-func docutils literal notranslate"><span class="pre">regridFromZ1D()</span></code></a> (spectra) and
+<code class="docutils literal notranslate"><span class="pre">LineStacker.image.stack(...,</span> <span class="pre">regridFromZ=True)</span></code> (cubes, in memory)
+resample every source to the same rest-frame channel width;
+<a class="reference internal" href="api.html#LineStacker.analysisTools.regridFromZ" title="LineStacker.analysisTools.regridFromZ"><code class="xref py py-func docutils literal notranslate"><span class="pre">regridFromZ()</span></code></a> writes the regridded cubes
+(stamps around each source) to disk, to stack as returned with
+<code class="docutils literal notranslate"><span class="pre">spectralMethod='z'</span></code>.</p></li>
+<li><p><a class="reference internal" href="api.html#LineStacker.analysisTools.rebin_OneD" title="LineStacker.analysisTools.rebin_OneD"><code class="xref py py-func docutils literal notranslate"><span class="pre">rebin_OneD()</span></code></a> and
+<a class="reference internal" href="api.html#LineStacker.analysisTools.rebin_CubesSpectra" title="LineStacker.analysisTools.rebin_CubesSpectra"><code class="xref py py-func docutils literal notranslate"><span class="pre">rebin_CubesSpectra()</span></code></a> rebin every source
+so that its line spans as many channels as the narrowest line, measured by
+Gaussian fits (or given as <code class="docutils literal notranslate"><span class="pre">widths</span></code>). This needs lines visible source by
+source.</p></li>
+</ul>
+<p>Rebinned and regridded spectra keep their line centres, spectral axes and
+per-channel weights in step with the new channels. Blank (NaN) channels are
+never used to make a value: <code class="docutils literal notranslate"><span class="pre">rebin_OneD</span></code> and <code class="docutils literal notranslate"><span class="pre">rebin_CubesSpectra</span></code>
+interpolate linearly, and a new channel interpolated from a blank channel is
+blank; <code class="docutils literal notranslate"><span class="pre">regridFromZ1D</span></code> and <code class="docutils literal notranslate"><span class="pre">regridFromZ</span></code> interpolate with a cubic spline through each
+stretch of valid channels separately, so only new channels between a valid
+and a blank channel are blank. New channels beyond the last channel of a
+source (when its channels are made narrower) are blank too.</p>
+</section>
+<section id="speed-parallelism-and-reproducibility">
+<h2>Speed, parallelism and reproducibility<a class="headerlink" href="#speed-parallelism-and-reproducibility" title="Link to this heading">¶</a></h2>
+<p>The Monte-Carlo tools (<code class="docutils literal notranslate"><span class="pre">bootstraping_OneD</span></code>, <code class="docutils literal notranslate"><span class="pre">bootStraping_Cube</span></code>,
+<code class="docutils literal notranslate"><span class="pre">subsample_OneD</span></code>, <code class="docutils literal notranslate"><span class="pre">stack_estimator</span></code>) take:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>: the number of CPU cores to use (<code class="docutils literal notranslate"><span class="pre">-1</span></code> for all);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">backend</span></code>: <code class="docutils literal notranslate"><span class="pre">'process'</span></code> or <code class="docutils literal notranslate"><span class="pre">'thread'</span></code>. A suitable one is chosen per task:
+threads for NumPy-bound work (mean and median stacks), processes for
+Python-bound work (Gaussian fits);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>: a seed for reproducible draws. With <code class="docutils literal notranslate"><span class="pre">seed=None</span></code> the draws come
+from NumPy’s global random state, so <code class="docutils literal notranslate"><span class="pre">np.random.seed()</span></code> also makes runs
+reproducible.</p></li>
+</ul>
+<p>All random draws are made before the work is split between workers, so the
+results do not depend on <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> or <code class="docutils literal notranslate"><span class="pre">backend</span></code>. Worker processes are
+started with <code class="docutils literal notranslate"><span class="pre">spawn</span></code>; scripts that use them on macOS or Windows need their
+code under <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">'__main__':</span></code>. Two process-backed jobs started at
+the same time from different threads run one after the other (each uses
+all its workers).</p>
+</section>
+<section id="fitting">
+<h2>Fitting<a class="headerlink" href="#fitting" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="api.html#module-LineStacker.tools.fit" title="LineStacker.tools.fit"><code class="xref py py-mod docutils literal notranslate"><span class="pre">LineStacker.tools.fit</span></code></a> has the Gaussian fits the tools use:
+<a class="reference internal" href="api.html#LineStacker.tools.fit.GaussFit" title="LineStacker.tools.fit.GaussFit"><code class="xref py py-func docutils literal notranslate"><span class="pre">GaussFit()</span></code></a>,
+<a class="reference internal" href="api.html#LineStacker.tools.fit.DoubleGaussFit" title="LineStacker.tools.fit.DoubleGaussFit"><code class="xref py py-func docutils literal notranslate"><span class="pre">DoubleGaussFit()</span></code></a> and
+<a class="reference internal" href="api.html#LineStacker.tools.fit.DoublePeakFit" title="LineStacker.tools.fit.DoublePeakFit"><code class="xref py py-func docutils literal notranslate"><span class="pre">DoublePeakFit()</span></code></a>. They ignore NaN channels and
+raise <a class="reference internal" href="api.html#LineStacker.tools.fit.FitError" title="LineStacker.tools.fit.FitError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FitError</span></code></a> (a <code class="docutils literal notranslate"><span class="pre">RuntimeError</span></code>) when a fit
+cannot be done or does not converge.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

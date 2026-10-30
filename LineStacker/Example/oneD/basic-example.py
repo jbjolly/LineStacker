@@ -10,14 +10,14 @@ import LineStacker.OneD_Stacker
 #lines can be idenfified in many ways however,
 #see LineStacker.OneD_Stacker.Stack for more information
 numberOfSpectra=100
-allImages=([0 for i in range(numberOfSpectra)])
+allSpectra=([0 for i in range(numberOfSpectra)])
 for i in range(numberOfSpectra):
     tempSpectra=np.loadtxt('data/spectra_'+str(i))
     tempCenter=np.loadtxt('data/central_velocity_'+str(i))
-    #initializing all spectra as Image class,
+    #initializing all spectra as Spectrum objects,
     #this is necessary to use OneD_Stacker.Stack
-    allImages[i]=LineStacker.OneD_Stacker.Image(spectrum=tempSpectra, centralVelocity=tempCenter)
-stacked=LineStacker.OneD_Stacker.Stack(allImages)
+    allSpectra[i]=LineStacker.OneD_Stacker.Spectrum(spectrum=tempSpectra, centralVelocity=tempCenter)
+stacked=LineStacker.OneD_Stacker.Stack(allSpectra)
 #plotting
 import matplotlib.pyplot as plt
 fig=plt.figure()
@@ -26,4 +26,4 @@ ax.plot(stacked[0])
 ax.set_xlabel('Bin number')
 ax.set_ylabel('Ampitude')
 ax.set_title('Stack of '+str(numberOfSpectra)+' spectra')
-fig.show()
+plt.show()

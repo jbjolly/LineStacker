@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LineStacker &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="../_static/documentation_options.js?v=db988ed8"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="../_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="../_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="../index.html"><img src="../_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../principle.html">How stacking works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../positions.html">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../spectra.html">Stacking spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../analysis.html">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_generated/examples_notebook.html">LineStacker examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changes.html">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for LineStacker</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">Stacking positions (:class:`Coord`, :func:`readCatalog`, :func:`makeCoords`,</span>
+<span class="sd">:func:`readCoords`), their conversion to pixels, random positions, and the</span>
+<span class="sd">package settings (:data:`verbose`, :data:`casa_logfile`). The stacking itself</span>
+<span class="sd">is in :mod:`LineStacker.image` (cubes) and :mod:`LineStacker.OneD_Stacker`</span>
+<span class="sd">(spectra); :mod:`LineStacker.analysisTools` tests stacks.</span>
+<span class="sd">"""</span>
+<span class="c1"># -*- coding: utf-8; -*-</span>
+<span class="c1"># LineStacker, Python module for stacking data cubes.</span>
+<span class="c1"># Copyright (C) 2019  Jean-Baptiste Jolly</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License</span>
+<span class="c1"># as published by the Free Software Foundation; either version 2</span>
+<span class="c1"># of the License, or (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program; if not, write to the Free Software</span>
+<span class="c1"># Foundation, Inc., 51 Franklin Street, Fifth Floor,</span>
+<span class="c1"># Boston, MA 02110-1301, USA.</span>
+
+<span class="c1">#LineStacker is based on Stacker by Lukas Lindroos,</span>
+<span class="c1">#Most of the main module (this one) is hence directly taken from Stacker</span>
+<span class="sd">"""</span>
+<span class="sd">    Library to stack interferometric data-cubes, or lines from 1D data.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s1">'Jean-Baptiste Jolly'</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s1">'Copyright 2019'</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s1">'GPL'</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">'2.0.0'</span>
+<span class="n">__maintainer__</span> <span class="o">=</span> <span class="s1">'Jean-Baptiste Jolly'</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">'jbjolly@mpe.mpg.de'</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_major_minor</span><span class="p">(</span><span class="n">version</span><span class="p">):</span>
+    <span class="n">nums</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">'\d+'</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">))[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_astropy_numpy_problem</span><span class="p">(</span><span class="n">numpy_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">astropy_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">astropy_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Message if the astropy that would be imported cannot work with this</span>
+<span class="sd">    NumPy, else None. astropy &lt; 7.2 uses np.in1d, which NumPy 2.4 removed;</span>
+<span class="sd">    this happens e.g. when CASA's bundled NumPy is mixed with an older astropy</span>
+<span class="sd">    from another environment. Checked without importing astropy."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">astropy_version</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_spec</span>
+            <span class="n">astropy_version</span> <span class="o">=</span> <span class="n">version</span><span class="p">(</span><span class="s1">'astropy'</span><span class="p">)</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="n">find_spec</span><span class="p">(</span><span class="s1">'astropy'</span><span class="p">)</span>
+            <span class="n">astropy_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">origin</span><span class="p">)</span> <span class="k">if</span> <span class="n">spec</span> <span class="ow">and</span> <span class="n">spec</span><span class="o">.</span><span class="n">origin</span> <span class="k">else</span> <span class="s1">'?'</span>
+        <span class="n">numpy_version</span> <span class="o">=</span> <span class="n">numpy_version</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">__version__</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>            <span class="c1"># astropy not installed: reported when needed</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">_major_minor</span><span class="p">(</span><span class="n">numpy_version</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_major_minor</span><span class="p">(</span><span class="n">astropy_version</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span><span class="s1">'astropy </span><span class="si">{0}</span><span class="s1"> (from </span><span class="si">{1}</span><span class="s1">) cannot be used with NumPy </span><span class="si">{2}</span><span class="s1">: astropy &lt; 7.2 needs '</span>
+            <span class="s1">'np.in1d, which NumPy 2.4 removed, so reading coordinates and cubes will fail with '</span>
+            <span class="s2">"</span><span class="se">\"</span><span class="s2">module 'numpy' has no attribute 'in1d'</span><span class="se">\"</span><span class="s2">. Install astropy &gt;= 7.2 into the Python "</span>
+            <span class="s1">'that runs LineStacker; for the CASA prompt (monolithic CASA): '</span>
+            <span class="s2">"PYTHONNOUSERSITE=1 &lt;casa&gt;/bin/pip3 install 'astropy&gt;=7.2'."</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">astropy_version</span><span class="p">,</span> <span class="n">astropy_path</span><span class="p">,</span> <span class="n">numpy_version</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_warn_astropy_numpy</span><span class="p">():</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">_astropy_numpy_problem</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+
+<span class="n">_warn_astropy_numpy</span><span class="p">()</span>
+
+
+<span class="c1">#: When True (default), LineStacker reports what it does, the files it writes</span>
+<span class="c1">#: (with their full path), what it reads, and progress bars. Set</span>
+<span class="c1">#: ``LineStacker.verbose = False`` to silence it; every function that prints</span>
+<span class="c1">#: also takes ``verbose=True/False`` to decide for one call. Warnings about</span>
+<span class="c1">#: possible problems are shown either way.</span>
+<span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1">#: Where CASA writes its log when LineStacker starts CASA itself (only to</span>
+<span class="c1">#: read or write CASA images; FITS cubes never start CASA):</span>
+<span class="c1">#:</span>
+<span class="c1">#: - ``'auto'`` (default): one file, ``&lt;temporary dir&gt;/linestacker-casa-&lt;user&gt;.log``,</span>
+<span class="c1">#:   instead of a new ``casa-&lt;date&gt;.log`` in the working directory at every</span>
+<span class="c1">#:   run; a ``logfile`` set in ``~/.casa/config.py`` is used instead.</span>
+<span class="c1">#: - a path: CASA's log goes there.</span>
+<span class="c1">#: - ``None``: no log file.</span>
+<span class="c1">#: - ``'casa'``: CASA's own default (``casa-&lt;date&gt;.log`` in the working directory).</span>
+<span class="c1">#:</span>
+<span class="c1">#: Set it before the first CASA image is read. Inside a CASA session, or once</span>
+<span class="c1">#: casatools/casatasks were imported, CASA's own settings apply.</span>
+<span class="n">casa_logfile</span> <span class="o">=</span> <span class="s1">'auto'</span>
+
+<span class="c1">#: Cubes are read once and kept in memory. When True (default) LineStacker</span>
+<span class="c1">#: checks, every time it uses a cached cube, that its file has not changed</span>
+<span class="c1">#: (about 0.1 ms per CASA image, a few microseconds per FITS file) and reads</span>
+<span class="c1">#: it again if it has. Set ``LineStacker.cache_check = False`` to trust the</span>
+<span class="c1">#: cache until ``LineStacker.image.clear_cache()``.</span>
+<span class="n">cache_check</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_verbose</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A function's verbose argument, defaulting to LineStacker.verbose."""</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">verbose</span><span class="p">)</span> <span class="k">if</span> <span class="n">flag</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">bool</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_info</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">flag</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">_verbose</span><span class="p">(</span><span class="n">flag</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'LineStacker: '</span> <span class="o">+</span> <span class="n">message</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="c1"># CASA writes sexagesimal coordinates with dots as deg/min/sec separators</span>
+<span class="c1"># (e.g. '-027.45.34.566' for declination, sometimes also '03.30.34.79' for RA).</span>
+<span class="c1"># Astropy's angle parser doesn't understand that form -- it expects colons</span>
+<span class="c1"># ('-027:45:34.566'), letter separators ('-027d45m34.566s'), or spaces. This</span>
+<span class="c1"># helper normalises CASA's dot form to colons; anything else passes through.</span>
+<span class="n">_CASA_SEXAGESIMAL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'^\s*([+-]?\d+)\.(\d+)\.(\d+(?:\.\d+)?)\s*$'</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_sexagesimal</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Convert CASA dot-separated sexagesimal ('DD.MM.SS.fff') to colon form</span>
+<span class="sd">    ('DD:MM:SS.fff'). Returns the input unchanged if it doesn't match the</span>
+<span class="sd">    CASA pattern (so plain degrees, 'HH:MM:SS', '00h42m30s', and space-</span>
+<span class="sd">    separated forms all pass through untouched)."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">s</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">_CASA_SEXAGESIMAL_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">'</span><span class="si">{0}</span><span class="s1">:</span><span class="si">{1}</span><span class="s1">:</span><span class="si">{2}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">s</span>
+
+
+<div class="viewcode-block" id="round_half_up">
+<a class="viewcode-back" href="../api.html#LineStacker.round_half_up">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">round_half_up</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Round like Python 2's round() did (halves away from zero). Python 3's</span>
+<span class="sd">    round() rounds halves to even, which would move some stack centres by one</span>
+<span class="sd">    channel compared with LineStacker &lt; 2.0."""</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="Coord">
+<a class="viewcode-back" href="../api.html#LineStacker.Coord">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Coord</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">        Describes a stacking position on an image.</span>
+
+<span class="sd">        Class used internally to represent coordinates. May describe a</span>
+<span class="sd">        physical coordinate or a pixel coordinate.</span>
+
+<span class="sd">        Init: Creates a coordinate. A pixel coordinate should always specify</span>
+<span class="sd">        to which image it belongs. Physical coordinates are astropy angles</span>
+<span class="sd">        (as produced by **LineStacker.readCoords**, **readCatalog** and</span>
+<span class="sd">        **makeCoords**) or plain numbers in radians, in the equatorial frame</span>
+<span class="sd">        given by **frame** (default ICRS).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        ra</span>
+<span class="sd">            x coordinate of stacking target (RA, or x pixel for pixel coordinates).</span>
+<span class="sd">            Also available as ``coord.x``.</span>
+<span class="sd">        dec</span>
+<span class="sd">            y coordinate of stacking target (Dec, or y pixel). Also ``coord.y``.</span>
+<span class="sd">        spec</span>
+<span class="sd">            spectral coordinate of stacking target (redshift, observed spectral</span>
+<span class="sd">            value or channel depending on spectralMethod). Also ``coord.z``.</span>
+<span class="sd">        weight</span>
+<span class="sd">            Weight of the source for mean stacking.</span>
+<span class="sd">            Default is 1.</span>
+<span class="sd">        image</span>
+<span class="sd">            Cube associated to the source, either its path or its index in the</span>
+<span class="sd">            list of images given to the stacking function.</span>
+<span class="sd">            Automatically set with **LineStacker.readCoords**.</span>
+<span class="sd">        type</span>
+<span class="sd">            Either 'physical' or 'pixel'</span>
+<span class="sd">        imagenumber</span>
+<span class="sd">            Index of the cube in the image list (set by readCoords to the index</span>
+<span class="sd">            of the coordinate file the source was read from).</span>
+<span class="sd">        frame</span>
+<span class="sd">            Equatorial frame of ra, dec: 'icrs' (default), 'fk5' (J2000), 'fk4'...</span>
+
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="s1">'continuum'</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'physical'</span><span class="p">,</span>
+                 <span class="n">imagenumber</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="s1">'icrs'</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ra</span> <span class="o">=</span> <span class="n">ra</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dec</span> <span class="o">=</span> <span class="n">dec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">spec</span> <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">z</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">weight</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imagenumber</span> <span class="o">=</span> <span class="n">imagenumber</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
+
+    <span class="c1"># Stacker-era attribute names, still used by older scripts.</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ra</span>
+
+    <span class="nd">@x</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ra</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dec</span>
+
+    <span class="nd">@y</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dec</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">z</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span>
+
+    <span class="nd">@z</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="Coord.copy">
+<a class="viewcode-back" href="../api.html#LineStacker.Coord.copy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Independent copy (weights arrays are copied too)."""</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">_copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">'</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dec</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">'Coord(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">, spec=</span><span class="si">{2}</span><span class="s1">, weight=</span><span class="si">{3}</span><span class="s1">, image=</span><span class="si">{4!r}</span><span class="s1">, type=</span><span class="si">{5!r}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="readCoordsNamesGUI">
+<a class="viewcode-back" href="../api.html#LineStacker.readCoordsNamesGUI">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">readCoordsNamesGUI</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">        Opens a file dialog (Tk) to select coordinate files; returns their paths.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">tkinter</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">filedialog</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">Tk</span><span class="p">()</span>
+    <span class="n">root</span><span class="o">.</span><span class="n">withdraw</span><span class="p">()</span>
+    <span class="n">filez</span> <span class="o">=</span> <span class="n">filedialog</span><span class="o">.</span><span class="n">askopenfilenames</span><span class="p">(</span><span class="n">initialdir</span><span class="o">=</span><span class="s2">"."</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">"Select coord files"</span><span class="p">,</span>
+                                        <span class="n">filetypes</span><span class="o">=</span><span class="p">((</span><span class="s2">"txt files"</span><span class="p">,</span> <span class="s2">"*.txt"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"all files"</span><span class="p">,</span> <span class="s2">"*.*"</span><span class="p">)))</span>
+    <span class="n">root</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">filez</span><span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_CoordFormatError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A coordinate file could not be parsed with the current delimiter."""</span>
+
+
+<div class="viewcode-block" id="readCoords">
+<a class="viewcode-back" href="../api.html#LineStacker.readCoords">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">readCoords</span><span class="p">(</span><span class="n">coordfiles</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">'deg'</span><span class="p">,</span> <span class="n">lineON</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">'default'</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="s1">'icrs'</span><span class="p">,</span> <span class="n">images</span><span class="o">=</span><span class="s1">'default'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'physical'</span><span class="p">,</span>
+               <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">        Reads coordinate files (one file per cube, the format of LineStacker</span>
+<span class="sd">        1.x) and returns a list of LineStacker.Coord.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        coordfiles:</span>
+<span class="sd">            List of path to coordinate files. Files in csv format. x and y should be in J2000. If using to stack line, redshift should be in the third column. A weight may be added in the last column to weight positions for mean stacking. If set to **None** stacking position is defined as the center of each cube.</span>
+<span class="sd">            Coordinates can either be in degrees (e.g. "10.625, 41.2"), or in hour angle + deg, as hms dms format (e.g. "'00h42m30s', '+41d12m00s'"), or as hour angle + deg without hms nor dms (e.g. "00 42 30, +41 12 00" or CASA's "00:42:30, +41.12.00"). Empty lines and lines starting with # are ignored.</span>
+<span class="sd">        unit:</span>
+<span class="sd">            Unit of input coordinates. Allows two values, **'deg'** or **'rad'**.</span>
+<span class="sd">        lineON</span>
+<span class="sd">            Either **True** or **False**, should be set to **True** if doing line stacking. Default is **True**.</span>
+<span class="sd">        delimiter:</span>
+<span class="sd">            Delimiter used to separate coordinates, 'default' tries comma, space and tab (in that order).</span>
+<span class="sd">        images</span>
+<span class="sd">            List of images to which each coordfile is assigned, if set to 'default', image names are same as coordfiles, with '.fits' instead of '_coord.txt'.</span>
+<span class="sd">            The stacking functions also accept coordinates whose image is not in their imagenames list: the n-th coordinate file is then matched to the n-th image.</span>
+<span class="sd">        type</span>
+<span class="sd">            Coordinate type, can be either 'physical' (default), or 'pixel'</span>
+<span class="sd">        verbose</span>
+<span class="sd">            report how many positions were read (default: LineStacker.verbose)</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">coordfiles</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_info</span><span class="p">(</span><span class="s1">'coordfile is None, stacking on the center'</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coordfiles</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">coordfiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">coordfiles</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">delimiter</span><span class="o">==</span><span class="s1">'default'</span><span class="p">:</span>
+        <span class="n">delimiters</span><span class="o">=</span><span class="p">[</span><span class="s1">','</span><span class="p">,</span><span class="s1">' '</span><span class="p">,</span><span class="s1">'</span><span class="se">\t</span><span class="s1">'</span><span class="p">]</span>
+        <span class="n">delimiterNames</span><span class="o">=</span><span class="p">[</span><span class="s1">'coma'</span><span class="p">,</span> <span class="s1">'space'</span><span class="p">,</span> <span class="s1">'tab'</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">delimiters</span><span class="o">=</span><span class="p">[</span><span class="n">delimiter</span><span class="p">]</span>
+        <span class="n">delimiterNames</span><span class="o">=</span><span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="n">delimiter</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">images</span><span class="o">==</span><span class="s1">'default'</span><span class="p">:</span>
+        <span class="n">images</span><span class="o">=</span><span class="p">[</span><span class="n">coordname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'_coord.txt'</span><span class="p">,</span> <span class="s1">'.fits'</span><span class="p">)</span> <span class="k">for</span> <span class="n">coordname</span> <span class="ow">in</span> <span class="n">coordfiles</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="n">images</span><span class="o">=</span><span class="p">[</span><span class="n">images</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">images</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordfiles</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'</span><span class="si">{0}</span><span class="s1"> coordinate files but only </span><span class="si">{1}</span><span class="s1"> images given'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coordfiles</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">images</span><span class="p">)))</span>
+
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">delim</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">delimiters</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">_readCoords</span><span class="p">(</span><span class="n">coordfiles</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">lineON</span><span class="o">=</span><span class="n">lineON</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delim</span><span class="p">,</span>
+                                 <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">,</span> <span class="n">images</span><span class="o">=</span><span class="n">images</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">_CoordFormatError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'</span><span class="si">{0}</span><span class="s1">: </span><span class="si">{1}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">delimiterNames</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">err</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="n">_info</span><span class="p">(</span><span class="s1">'read </span><span class="si">{0}</span><span class="s1"> position</span><span class="si">{1}</span><span class="s1"> from </span><span class="si">{2}</span><span class="s1"> coordinate file</span><span class="si">{3}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span> <span class="s1">'s'</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">''</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordfiles</span><span class="p">),</span> <span class="s1">'s'</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordfiles</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">''</span><span class="p">),</span>
+            <span class="n">verbose</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">coords</span>
+    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">"Could not read the coordinate files. If set to default delimiters can be comma, space, and tab. "</span>
+                    <span class="s2">"Otherwise feed own delimiter to this function.</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_angle_pair</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+    <span class="n">uni</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'deg'</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="s1">'rad'</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">rad</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">uni</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"unit must be 'deg' or 'rad'"</span><span class="p">)</span>
+    <span class="n">ra_str</span> <span class="o">=</span> <span class="n">_normalize_sexagesimal</span><span class="p">(</span><span class="n">ra</span><span class="p">)</span>
+    <span class="n">dec_str</span> <span class="o">=</span> <span class="n">_normalize_sexagesimal</span><span class="p">(</span><span class="n">dec</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">ra_str</span><span class="p">)</span><span class="o">*</span><span class="n">uni</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">dec_str</span><span class="p">)</span><span class="o">*</span><span class="n">uni</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">ra_str</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">dec_str</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">UnitsError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">ra_str</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">dec_str</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">hourangle</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">_CoordFormatError</span><span class="p">(</span><span class="s1">'Angles must be in a format recognized by astropy.coordinates, '</span>
+                                <span class="s1">'with ra in hourangle and dec in deg (</span><span class="si">{0}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_readCoords</span><span class="p">(</span><span class="n">coordfiles</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">'deg'</span><span class="p">,</span> <span class="n">lineON</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">','</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="s1">'icrs'</span><span class="p">,</span> <span class="n">images</span><span class="o">=</span><span class="s1">''</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'physical'</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">coordi</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coordfiles</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">coordi</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">lineno</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="n">field</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">row</span> <span class="k">if</span> <span class="n">field</span> <span class="o">!=</span> <span class="s1">''</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'#'</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">_CoordFormatError</span><span class="p">(</span><span class="s1">'</span><span class="si">{0}</span><span class="s1">, line </span><span class="si">{1}</span><span class="s1">: expected at least 2 columns, found </span><span class="si">{2}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coordi</span><span class="p">,</span> <span class="n">lineno</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)))</span>
+            <span class="n">lineMode</span> <span class="o">=</span> <span class="n">lineON</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">lineMode</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">lineMode</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">'</span><span class="si">{0}</span><span class="s1">, line </span><span class="si">{1}</span><span class="s1">: lineON=False but 4 columns found; reading it as x, y, z, w '</span>
+                              <span class="s1">'(line mode)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coordi</span><span class="p">,</span> <span class="n">lineno</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">lineMode</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                        <span class="n">weight</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                        <span class="n">weight</span> <span class="o">=</span> <span class="mf">1.</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">_CoordFormatError</span><span class="p">(</span><span class="s1">'</span><span class="si">{0}</span><span class="s1">, line </span><span class="si">{1}</span><span class="s1">: structure should be x, y, z (, w)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coordi</span><span class="p">,</span> <span class="n">lineno</span><span class="p">))</span>
+                    <span class="n">spec</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                        <span class="n">weight</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">weight</span> <span class="o">=</span> <span class="mf">1.</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">_CoordFormatError</span><span class="p">(</span><span class="s1">'</span><span class="si">{0}</span><span class="s1">, line </span><span class="si">{1}</span><span class="s1">: too many columns, structure should be x, y, w '</span>
+                                                <span class="s1">'(or x, y, spec, w and LineON set to True)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coordi</span><span class="p">,</span> <span class="n">lineno</span><span class="p">))</span>
+                    <span class="n">spec</span> <span class="o">=</span> <span class="s1">'continuum'</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">_CoordFormatError</span><span class="p">(</span><span class="s1">'</span><span class="si">{0}</span><span class="s1">, line </span><span class="si">{1}</span><span class="s1">: </span><span class="si">{2}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coordi</span><span class="p">,</span> <span class="n">lineno</span><span class="p">,</span> <span class="n">err</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'physical'</span><span class="p">:</span>
+                <span class="n">coord</span> <span class="o">=</span> <span class="n">_parse_angle_pair</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">unit</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Coord</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">coord</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">images</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                    <span class="n">imagenumber</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'physical'</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'pixel'</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">_CoordFormatError</span><span class="p">(</span><span class="s1">'</span><span class="si">{0}</span><span class="s1">, line </span><span class="si">{1}</span><span class="s1">: </span><span class="si">{2}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coordi</span><span class="p">,</span> <span class="n">lineno</span><span class="p">,</span> <span class="n">err</span><span class="p">))</span>
+                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Coord</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">images</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                    <span class="n">imagenumber</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'pixel'</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"type must be 'physical' or 'pixel'"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">coords</span>
+
+
+<span class="n">_HAS_UNIT_LETTER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'[hdms°</span><span class="se">\'</span><span class="s1">"]'</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+
+
+<span class="n">_SEXAGESIMAL</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'^([+-]?)(\d+)(?::|\s+)(\d+)(?::|\s+)(\d+(?:\.\d*)?)$'</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_per_source</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""One value per source: scalars (and strings) are repeated n times."""</span>
+    <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">))</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">values</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+    <span class="n">seq</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'</span><span class="si">{0}</span><span class="s1"> has </span><span class="si">{1}</span><span class="s1"> values but there are </span><span class="si">{2}</span><span class="s1"> sources'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">),</span> <span class="n">n</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">seq</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_equatorial</span><span class="p">(</span><span class="n">frame</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Name of an equatorial astropy frame (ra/dec), or ValueError."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">frame_transform_graph</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">frame</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="bp">cls</span> <span class="o">=</span> <span class="n">frame_transform_graph</span><span class="o">.</span><span class="n">lookup_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">if</span> <span class="n">name</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'unknown coordinate frame </span><span class="si">{0!r}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">frame</span><span class="p">))</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span><span class="o">.</span><span class="n">representation_component_names</span>
+    <span class="k">if</span> <span class="s1">'ra'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span> <span class="ow">or</span> <span class="s1">'dec'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"frame </span><span class="si">{0!r}</span><span class="s2"> has no RA/Dec: LineStacker coordinates are equatorial ('icrs', 'fk5' "</span>
+                         <span class="s2">"for J2000, 'fk4'...). Convert the positions, e.g. SkyCoord(...).icrs"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">name</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_angles_to_sky</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""SkyCoord (1D) from numbers in unit, astropy angles/quantities, or</span>
+<span class="sd">    sexagesimal strings (RA in hours; CASA's dotted declinations accepted)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+    <span class="n">uni</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'deg'</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="s1">'rad'</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">rad</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">uni</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"unit must be 'deg' or 'rad'"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">as_degrees</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">sexagesimal_unit</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="s1">'unit'</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">*</span> <span class="n">uni</span><span class="p">)</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="n">strings</span> <span class="o">=</span> <span class="p">[</span><span class="n">_normalize_sexagesimal</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">arr</span><span class="p">]</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="n">_SEXAGESIMAL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">strings</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">parts</span><span class="p">):</span>                    <span class="c1"># common case: 'DD:MM:SS.s' or 'DD MM SS.s'</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'-'</span> <span class="k">else</span> <span class="mf">1.</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">])</span>
+            <span class="n">dms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)),</span> <span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">)),</span> <span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">4</span><span class="p">))]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">dms</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">60</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">dms</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">60</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">sign</span> <span class="o">*</span> <span class="p">(</span><span class="n">dms</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">dms</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">60.</span> <span class="o">+</span> <span class="n">dms</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mf">3600.</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="p">(</span><span class="mf">15.</span> <span class="k">if</span> <span class="n">sexagesimal_unit</span> <span class="o">==</span> <span class="n">u</span><span class="o">.</span><span class="n">hourangle</span> <span class="k">else</span> <span class="mf">1.</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>       <span class="c1"># strings: each value read on its own</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">_normalize_sexagesimal</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="n">uni</span><span class="p">)</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">angle</span> <span class="o">=</span> <span class="n">Angle</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">if</span> <span class="n">_HAS_UNIT_LETTER</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">else</span> <span class="n">Angle</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">sexagesimal_unit</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'source </span><span class="si">{0}</span><span class="s1">: cannot read </span><span class="si">{1}</span><span class="s1"> </span><span class="si">{2!r}</span><span class="s1"> (</span><span class="si">{3}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">err</span><span class="p">))</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">angle</span><span class="o">.</span><span class="n">deg</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">Angle</span>
+    <span class="n">ra_deg</span> <span class="o">=</span> <span class="n">as_degrees</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">hourangle</span><span class="p">,</span> <span class="s1">'RA'</span><span class="p">)</span>
+    <span class="n">dec_deg</span> <span class="o">=</span> <span class="n">as_degrees</span><span class="p">(</span><span class="n">dec</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="s1">'Dec'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ra_deg</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dec_deg</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'ra has </span><span class="si">{0}</span><span class="s1"> values but dec has </span><span class="si">{1}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ra_deg</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">dec_deg</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">ra_deg</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">dec_deg</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="makeCoords">
+<a class="viewcode-back" href="../api.html#LineStacker.makeCoords">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">makeCoords</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">'deg'</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="s1">'icrs'</span><span class="p">,</span>
+               <span class="nb">type</span><span class="o">=</span><span class="s1">'physical'</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">        Builds stacking coordinates directly from Python values (lists, numpy</span>
+<span class="sd">        arrays, astropy quantities or a SkyCoord), e.g. in a notebook.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        ra, dec</span>
+<span class="sd">            Positions, one value per source. Numbers are in **unit** (or pixels</span>
+<span class="sd">            if type='pixel'); astropy Angles/Quantities carry their own unit;</span>
+<span class="sd">            strings are sexagesimal with RA in hours ('03:31:04.15',</span>
+<span class="sd">            '-27:40:59.87', or CASA's '-027.40.59.866'). A SkyCoord can be</span>
+<span class="sd">            given as ra, with dec=None.</span>
+<span class="sd">        z</span>
+<span class="sd">            Spectral value of each source: the redshift for spectralMethod='z'</span>
+<span class="sd">            (the default of LineStacker.image.stack), the observed</span>
+<span class="sd">            frequency/wavelength for 'obsSpec', the channel for 'channel'.</span>
+<span class="sd">            None for continuum stacking.</span>
+<span class="sd">        weight</span>
+<span class="sd">            Weight of each source for mean stacks (default 1).</span>
+<span class="sd">        image</span>
+<span class="sd">            Cube of each source (path to a FITS file or CASA image), or one</span>
+<span class="sd">            path for all sources. None when all sources lie in the single cube</span>
+<span class="sd">            given to the stacking function.</span>
+<span class="sd">        unit</span>
+<span class="sd">            'deg' (default) or 'rad', for plain numbers.</span>
+<span class="sd">        frame</span>
+<span class="sd">            Equatorial frame of the positions: 'icrs' (default), 'fk5' (J2000), 'fk4'...</span>
+<span class="sd">            A SkyCoord in any frame (e.g. Galactic) is converted to it.</span>
+<span class="sd">        type</span>
+<span class="sd">            'physical' (sky positions, default) or 'pixel'.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of LineStacker.Coord</span>
+<span class="sd">            to give to LineStacker.image.stack (imagenames can then be omitted</span>
+<span class="sd">            when every source names its cube).</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'physical'</span><span class="p">,</span> <span class="s1">'pixel'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"type must be 'physical' or 'pixel'"</span><span class="p">)</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">_equatorial</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">SkyCoord</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'dec is missing (or give a SkyCoord as ra)'</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'pixel'</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"a SkyCoord holds sky positions: use type='physical'"</span><span class="p">)</span>
+        <span class="n">sky</span> <span class="o">=</span> <span class="n">ra</span><span class="o">.</span><span class="n">transform_to</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="n">sky</span> <span class="o">=</span> <span class="n">sky</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,))</span> <span class="k">if</span> <span class="n">sky</span><span class="o">.</span><span class="n">isscalar</span> <span class="k">else</span> <span class="n">sky</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'physical'</span><span class="p">:</span>
+        <span class="n">sky</span> <span class="o">=</span> <span class="n">_angles_to_sky</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">dec</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ys</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'ra has </span><span class="si">{0}</span><span class="s1"> values but dec has </span><span class="si">{1}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">ys</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'physical'</span><span class="p">:</span>
+        <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">sky</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">sky</span><span class="o">.</span><span class="n">dec</span>          <span class="c1"># extract once: indexing a SkyCoord is slow</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sky</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
+    <span class="n">specs</span> <span class="o">=</span> <span class="n">_per_source</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">'z'</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">_per_source</span><span class="p">(</span><span class="mf">1.</span> <span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">weight</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">'weight'</span><span class="p">)</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="n">_per_source</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">'image'</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">specs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">specs</span><span class="p">[</span><span class="n">k</span><span class="p">])):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'source </span><span class="si">{0}</span><span class="s1">: z is </span><span class="si">{1}</span><span class="s1">; every source needs a finite spectral value '</span>
+                             <span class="s1">'(or z=None for continuum)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">specs</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span> <span class="ow">or</span> <span class="nb">float</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'source </span><span class="si">{0}</span><span class="s1">: weight is </span><span class="si">{1}</span><span class="s1">; weights must be finite and &gt;= 0'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">weights</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">images</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">images</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'source </span><span class="si">{0}</span><span class="s1">: its image (cube) name is empty'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="s1">'continuum'</span> <span class="k">if</span> <span class="n">specs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">specs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">images</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">if</span> <span class="n">images</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'physical'</span><span class="p">:</span>
+            <span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="n">xs</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">ys</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">xs</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">ys</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="c1"># imagenumber -1: the cube is matched by name only, never by order</span>
+        <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Coord</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span> <span class="n">image</span><span class="o">=</span><span class="n">img</span><span class="p">,</span> <span class="n">imagenumber</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                            <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">))</span>
+    <span class="n">_info</span><span class="p">(</span><span class="s1">'made </span><span class="si">{0}</span><span class="s1"> coordinate</span><span class="si">{1}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s1">'s'</span> <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">''</span><span class="p">),</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">coords</span></div>
+
+
+
+<span class="n">_CATALOG_ALIASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'ra'</span><span class="p">:</span> <span class="p">(</span><span class="s1">'ra'</span><span class="p">,</span> <span class="s1">'ra_deg'</span><span class="p">,</span> <span class="s1">'raj2000'</span><span class="p">,</span> <span class="s1">'ra_j2000'</span><span class="p">,</span> <span class="s1">'alpha'</span><span class="p">),</span>
+    <span class="s1">'dec'</span><span class="p">:</span> <span class="p">(</span><span class="s1">'dec'</span><span class="p">,</span> <span class="s1">'dec_deg'</span><span class="p">,</span> <span class="s1">'dej2000'</span><span class="p">,</span> <span class="s1">'decj2000'</span><span class="p">,</span> <span class="s1">'dec_j2000'</span><span class="p">,</span> <span class="s1">'delta'</span><span class="p">),</span>
+    <span class="s1">'z'</span><span class="p">:</span> <span class="p">(</span><span class="s1">'z'</span><span class="p">,</span> <span class="s1">'redshift'</span><span class="p">,</span> <span class="s1">'zspec'</span><span class="p">,</span> <span class="s1">'z_spec'</span><span class="p">,</span> <span class="s1">'spec'</span><span class="p">),</span>
+    <span class="s1">'weight'</span><span class="p">:</span> <span class="p">(</span><span class="s1">'weight'</span><span class="p">,</span> <span class="s1">'weights'</span><span class="p">),</span>
+    <span class="s1">'image'</span><span class="p">:</span> <span class="p">(</span><span class="s1">'image'</span><span class="p">,</span> <span class="s1">'imagename'</span><span class="p">,</span> <span class="s1">'cube'</span><span class="p">,</span> <span class="s1">'file'</span><span class="p">,</span> <span class="s1">'filename'</span><span class="p">,</span> <span class="s1">'path'</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_table</span><span class="p">(</span><span class="n">catalog</span><span class="p">,</span> <span class="nb">format</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""astropy Table and the folder of the catalogue file (None if not a file)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.table</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">catalog</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">catalog</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">catalog</span><span class="p">,</span> <span class="s1">'columns'</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">catalog</span><span class="p">,</span> <span class="s1">'to_dict'</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">catalog</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">Table</span><span class="o">.</span><span class="n">from_pandas</span><span class="p">(</span><span class="n">catalog</span><span class="p">),</span> <span class="kc">None</span>          <span class="c1"># pandas DataFrame</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">catalog</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Table</span><span class="p">(</span><span class="n">catalog</span><span class="p">),</span> <span class="kc">None</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">catalog</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">'catalogue not found: </span><span class="si">{0}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+    <span class="n">lower</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">binary</span> <span class="o">=</span> <span class="n">lower</span><span class="o">.</span><span class="n">endswith</span><span class="p">((</span><span class="s1">'.fits'</span><span class="p">,</span> <span class="s1">'.fit'</span><span class="p">,</span> <span class="s1">'.fts'</span><span class="p">,</span> <span class="s1">'.fits.gz'</span><span class="p">,</span> <span class="s1">'.vot'</span><span class="p">,</span> <span class="s1">'.votable'</span><span class="p">,</span> <span class="s1">'.xml'</span><span class="p">,</span> <span class="s1">'.hdf5'</span><span class="p">,</span> <span class="s1">'.h5'</span><span class="p">,</span>
+                             <span class="s1">'.parquet'</span><span class="p">))</span>
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">'ignore'</span><span class="p">)</span>              <span class="c1"># unit-parsing chatter of some writers</span>
+        <span class="k">if</span> <span class="nb">format</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">binary</span><span class="p">:</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>                 <span class="c1"># its own error is the useful one</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">first</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'ascii'</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">second</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'cannot read the catalogue </span><span class="si">{0}</span><span class="s1">: </span><span class="si">{1}</span><span class="s1"> (as a text table: </span><span class="si">{2}</span><span class="s1">). Give format=, '</span>
+                                     <span class="s2">"e.g. 'ascii.csv' or 'fits'."</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="nn">second</span>
+    <span class="k">return</span> <span class="n">table</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_find_column</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">wanted</span><span class="p">,</span> <span class="n">role</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Column of table for role ('ra', 'dec', ...): the name given, matched</span>
+<span class="sd">    case-insensitively, and, when the default name was kept, its aliases."""</span>
+    <span class="k">if</span> <span class="n">wanted</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">lower</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">colnames</span><span class="p">}</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">wanted</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">wanted</span> <span class="o">==</span> <span class="n">default</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_CATALOG_ALIASES</span><span class="p">[</span><span class="n">role</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">lower</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">lower</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="n">wanted</span> <span class="o">!=</span> <span class="n">default</span> <span class="ow">or</span> <span class="n">role</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'ra'</span><span class="p">,</span> <span class="s1">'dec'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'catalogue has no column </span><span class="si">{0!r}</span><span class="s1"> for </span><span class="si">{1}</span><span class="s1"> (columns: </span><span class="si">{2}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">wanted</span><span class="p">,</span> <span class="n">role</span><span class="p">,</span> <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">colnames</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_column_values</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">role</span><span class="p">):</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmaskarray</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'catalogue column </span><span class="si">{0!r}</span><span class="s1"> (</span><span class="si">{1}</span><span class="s1">) has missing values in rows </span><span class="si">{2}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">role</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">)[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">10</span><span class="p">])))</span>
+    <span class="k">if</span> <span class="n">col</span><span class="o">.</span><span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">role</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'ra'</span><span class="p">,</span> <span class="s1">'dec'</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">col</span><span class="o">.</span><span class="n">quantity</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="s1">'SU'</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="s1">'image'</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">missing</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">v</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">''</span><span class="p">,</span> <span class="s1">'nan'</span><span class="p">,</span> <span class="s1">'none'</span><span class="p">,</span> <span class="s1">'--'</span><span class="p">)</span>
+        <span class="n">empty</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="n">missing</span><span class="p">(</span><span class="n">v</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">'SUO'</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'catalogue column </span><span class="si">{0!r}</span><span class="s1"> (image) is empty in rows </span><span class="si">{1}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">empty</span><span class="p">[:</span><span class="mi">10</span><span class="p">]))</span>
+    <span class="k">elif</span> <span class="n">role</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'z'</span><span class="p">,</span> <span class="s1">'weight'</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'catalogue column </span><span class="si">{0!r}</span><span class="s1"> (</span><span class="si">{1}</span><span class="s1">) is not numeric'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">role</span><span class="p">))</span>
+        <span class="n">bad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">values</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">bad</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'catalogue column </span><span class="si">{0!r}</span><span class="s1"> (</span><span class="si">{1}</span><span class="s1">) has non-finite values in rows </span><span class="si">{2}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span> <span class="n">role</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">bad</span><span class="p">[:</span><span class="mi">10</span><span class="p">])))</span>
+        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="s1">'weight'</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">values</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'catalogue column </span><span class="si">{0!r}</span><span class="s1"> has negative weights in rows </span><span class="si">{1}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">values</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">10</span><span class="p">])))</span>
+    <span class="k">return</span> <span class="n">data</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_cube</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">imagedir</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">imagedir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">imagedir</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">base</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">candidate</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">candidate</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="readCatalog">
+<a class="viewcode-back" href="../api.html#LineStacker.readCatalog">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">readCatalog</span><span class="p">(</span><span class="n">catalog</span><span class="p">,</span> <span class="n">ra</span><span class="o">=</span><span class="s1">'ra'</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="s1">'dec'</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="s1">'z'</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="s1">'weight'</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="s1">'image'</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">'deg'</span><span class="p">,</span>
+                <span class="n">frame</span><span class="o">=</span><span class="s1">'icrs'</span><span class="p">,</span> <span class="n">imagedir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">        Reads the stacking positions of all sources from one catalogue table,</span>
+<span class="sd">        one row per source. The cube of each source is given in the table</span>
+<span class="sd">        (image column); it is never guessed.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        catalog</span>
+<span class="sd">            Path to a table file: CSV (with a header line), ECSV, FITS table,</span>
+<span class="sd">            VOTable or any format astropy.table reads (see **format**). Also</span>
+<span class="sd">            accepted: an astropy Table, a pandas DataFrame or a dict of columns.</span>
+<span class="sd">        ra, dec</span>
+<span class="sd">            Column names of the positions (default 'ra', 'dec'; also found:</span>
+<span class="sd">            RAJ2000/DEJ2000, ra_deg/dec_deg...). Numbers are in **unit** unless</span>
+<span class="sd">            the column has a unit (FITS, ECSV, VOTable); strings are</span>
+<span class="sd">            sexagesimal with RA in hours (CASA's '-027.40.59.866' accepted).</span>
+<span class="sd">        z</span>
+<span class="sd">            Column of the spectral value (default 'z', also 'redshift'): the</span>
+<span class="sd">            redshift, or the observed frequency/wavelength or channel for</span>
+<span class="sd">            spectralMethod 'obsSpec'/'channel'. If the catalogue has no such</span>
+<span class="sd">            column (or z=None) the positions are for continuum stacking.</span>
+<span class="sd">        weight</span>
+<span class="sd">            Column of the weights (optional, default 1).</span>
+<span class="sd">        image</span>
+<span class="sd">            Column naming the cube of each source (FITS file or CASA image;</span>
+<span class="sd">            default 'image', also 'cube', 'file'). Relative paths are looked</span>
+<span class="sd">            up next to the catalogue first, then from the working directory.</span>
+<span class="sd">            Without this column, give the stacking function a single cube.</span>
+<span class="sd">        unit</span>
+<span class="sd">            'deg' (default) or 'rad', for unit-less numeric positions.</span>
+<span class="sd">        imagedir</span>
+<span class="sd">            Folder to which relative cube names are relative (overrides the</span>
+<span class="sd">            rule above).</span>
+<span class="sd">        format</span>
+<span class="sd">            astropy table format, e.g. 'ascii.csv', 'ascii.commented_header'</span>
+<span class="sd">            (default: guessed from the file).</span>
+<span class="sd">        verbose</span>
+<span class="sd">            report what was read (default: LineStacker.verbose)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of LineStacker.Coord</span>
+<span class="sd">            for LineStacker.image.stack and the analysis tools; imagenames can</span>
+<span class="sd">            be omitted there when the catalogue has an image column.</span>
+<span class="sd">    """</span>
+    <span class="n">table</span><span class="p">,</span> <span class="n">base</span> <span class="o">=</span> <span class="n">_read_table</span><span class="p">(</span><span class="n">catalog</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'the catalogue is empty'</span><span class="p">)</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">role</span><span class="p">,</span> <span class="n">wanted</span><span class="p">,</span> <span class="n">default</span> <span class="ow">in</span> <span class="p">((</span><span class="s1">'ra'</span><span class="p">,</span> <span class="n">ra</span><span class="p">,</span> <span class="s1">'ra'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'dec'</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="s1">'dec'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'z'</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="s1">'z'</span><span class="p">),</span>
+                                  <span class="p">(</span><span class="s1">'weight'</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="s1">'weight'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'image'</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="s1">'image'</span><span class="p">)):</span>
+        <span class="n">cols</span><span class="p">[</span><span class="n">role</span><span class="p">]</span> <span class="o">=</span> <span class="n">_find_column</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">wanted</span><span class="p">,</span> <span class="n">role</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="p">{</span><span class="n">role</span><span class="p">:</span> <span class="n">_column_values</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">role</span><span class="p">)</span> <span class="k">for</span> <span class="n">role</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">cols</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+    <span class="n">images</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="s1">'image'</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="p">[</span><span class="n">_resolve_cube</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">imagedir</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">[</span><span class="s1">'image'</span><span class="p">]]</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">makeCoords</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s1">'ra'</span><span class="p">],</span> <span class="n">values</span><span class="p">[</span><span class="s1">'dec'</span><span class="p">],</span> <span class="n">z</span><span class="o">=</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'z'</span><span class="p">),</span> <span class="n">weight</span><span class="o">=</span><span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'weight'</span><span class="p">),</span>
+                        <span class="n">image</span><span class="o">=</span><span class="n">images</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">catalog</span><span class="p">))</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">catalog</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">))</span> <span class="k">else</span> <span class="s1">'the table'</span>
+    <span class="n">ncubes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">images</span><span class="p">))</span> <span class="k">if</span> <span class="n">images</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="n">_info</span><span class="p">(</span><span class="s1">'read </span><span class="si">{0}</span><span class="s1"> position</span><span class="si">{1}{2}</span><span class="s1"> from </span><span class="si">{3}{4}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span> <span class="s1">'s'</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">''</span><span class="p">,</span>
+        <span class="s1">' in </span><span class="si">{0}</span><span class="s1"> cube</span><span class="si">{1}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ncubes</span><span class="p">,</span> <span class="s1">'s'</span> <span class="k">if</span> <span class="n">ncubes</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">''</span><span class="p">)</span> <span class="k">if</span> <span class="n">images</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">''</span><span class="p">,</span>
+        <span class="n">source</span><span class="p">,</span> <span class="s1">''</span> <span class="k">if</span> <span class="s1">'z'</span> <span class="ow">in</span> <span class="n">values</span> <span class="k">else</span> <span class="s1">' (no </span><span class="si">{0!r}</span><span class="s1"> column: continuum positions)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z</span> <span class="ow">or</span> <span class="s1">'z'</span><span class="p">)),</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">coords</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_cube_list</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">imagenames</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The cubes to use: imagenames as given, or else the cubes named by the</span>
+<span class="sd">    coordinates (readCatalog image column, makeCoords image=...)."""</span>
+    <span class="k">if</span> <span class="n">imagenames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">imagenames</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">imagenames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">imagenames</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">imagenames</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">imagenames</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'imagenames is empty: give the list of cubes to stack'</span><span class="p">)</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'imagenames was not given and the coordinate </span><span class="si">{0!r}</span><span class="s1"> does not name its cube. '</span>
+                             <span class="s1">'Give imagenames, or the cube of each source (image column of readCatalog, '</span>
+                             <span class="s1">'image= of makeCoords).'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">image</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">names</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_image_index</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">imagenames</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Index in imagenames of the cube a coordinate belongs to."""</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">image</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">img</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">imagenames</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">imagenames</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">imagenames</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">img</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">imagenames</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="o">==</span> <span class="n">norm</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">k</span>
+    <span class="k">elif</span> <span class="n">img</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">imagenames</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>                       <span class="c1"># positions without a cube, single cube given</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">imagenumber</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">imagenames</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The cube </span><span class="si">{0!r}</span><span class="s1"> of coordinate </span><span class="si">{1!r}</span><span class="s1"> is not in imagenames </span><span class="si">{2}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">img</span><span class="p">,</span> <span class="n">coord</span><span class="p">,</span> <span class="n">imagenames</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">imagenames</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">5</span> <span class="k">else</span> <span class="n">imagenames</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">'...'</span><span class="p">]))</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Cannot tell which image coordinate </span><span class="si">{0!r}</span><span class="s1"> belongs to: its image </span><span class="si">{1!r}</span><span class="s1"> is not '</span>
+                     <span class="s1">'in imagenames and its imagenumber (</span><span class="si">{2}</span><span class="s1">) is out of range'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_to_skycoord</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""SkyCoord array (in the frame of the first coordinate) from physical</span>
+<span class="sd">    Coords given as astropy angles or radians; coordinates in other frames</span>
+<span class="sd">    are converted."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">val</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">'unit'</span><span class="p">)</span> <span class="k">else</span> <span class="n">a</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">rad</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">_equatorial</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">frame</span> <span class="ow">or</span> <span class="s1">'icrs'</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">]</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">frames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ra</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">([</span><span class="n">val</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">ra</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">])</span>
+    <span class="n">dec</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">([</span><span class="n">val</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">dec</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">f</span> <span class="o">==</span> <span class="n">target</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">dec</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">target</span><span class="p">)</span>
+    <span class="n">out_ra</span><span class="p">,</span> <span class="n">out_dec</span> <span class="o">=</span> <span class="n">ra</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">dec</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="n">target</span><span class="p">}:</span>
+        <span class="n">sel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">g</span> <span class="o">==</span> <span class="n">f</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">])</span>
+        <span class="n">conv</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">ra</span><span class="p">[</span><span class="n">sel</span><span class="p">],</span> <span class="n">dec</span><span class="o">=</span><span class="n">dec</span><span class="p">[</span><span class="n">sel</span><span class="p">],</span> <span class="n">frame</span><span class="o">=</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">transform_to</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="n">out_ra</span><span class="p">[</span><span class="n">sel</span><span class="p">],</span> <span class="n">out_dec</span><span class="p">[</span><span class="n">sel</span><span class="p">]</span> <span class="o">=</span> <span class="n">conv</span><span class="o">.</span><span class="n">ra</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">),</span> <span class="n">conv</span><span class="o">.</span><span class="n">dec</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">out_ra</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">out_dec</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">target</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="getPixelCoords">
+<a class="viewcode-back" href="../api.html#LineStacker.getPixelCoords">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">getPixelCoords</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">imagenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hdul</span><span class="o">=</span><span class="s1">'auto'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">        Creates pixel coordinate list from a physical coordinate</span>
+<span class="sd">        list and a list of images.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        coords</span>
+<span class="sd">            A list of LineStacker.Coord coordinates.</span>
+<span class="sd">        imagenames</span>
+<span class="sd">            A list of images' paths (FITS files or CASA images). Optional when</span>
+<span class="sd">            every coordinate names its cube (readCatalog, makeCoords).</span>
+<span class="sd">        hdul</span>
+<span class="sd">            index of the FITS HDU holding the cube; 'auto' (default) uses the</span>
+<span class="sd">            first HDU containing an image (HDU 0 for ALMA/CASA FITS, 1 for MUSE).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of LineStacker.Coord</span>
+<span class="sd">            new coordinates of type 'pixel'; the original coordinates are not</span>
+<span class="sd">            modified. Each new coordinate's ``index`` is the position of the</span>
+<span class="sd">            original in ``coords``.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">LineStacker</span><span class="w"> </span><span class="kn">import</span> <span class="n">_io</span>
+    <span class="n">imagenames</span> <span class="o">=</span> <span class="n">_cube_list</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">imagenames</span><span class="p">)</span>
+    <span class="n">pixcoords</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">coord</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">_image_index</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">imagenames</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">coord</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">'pixel'</span><span class="p">:</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">imagenumber</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">imagenames</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="n">n</span>
+            <span class="n">pixcoords</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">new</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">groups</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">members</span> <span class="ow">in</span> <span class="n">groups</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">_io</span><span class="o">.</span><span class="n">read_info</span><span class="p">(</span><span class="n">imagenames</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">hdul</span><span class="p">)</span>
+        <span class="n">sky</span> <span class="o">=</span> <span class="n">_to_skycoord</span><span class="p">([</span><span class="n">coords</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">members</span><span class="p">])</span>
+        <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">world_to_pixel</span><span class="p">(</span><span class="n">sky</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">members</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">ys</span><span class="p">)):</span>
+            <span class="n">old</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="n">old</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">dec</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">imagenumber</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="s1">'pixel'</span><span class="p">,</span> <span class="n">imagenames</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span> <span class="n">n</span>
+            <span class="n">pixcoords</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">new</span>
+    <span class="k">return</span> <span class="n">pixcoords</span></div>
+
+
+
+<div class="viewcode-block" id="randomCoords">
+<a class="viewcode-back" href="../api.html#LineStacker.randomCoords">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">randomCoords</span><span class="p">(</span><span class="n">imagenames</span><span class="p">,</span> <span class="n">ncoords</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">hdul</span><span class="o">=</span><span class="s1">'auto'</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">        Random positions anywhere in a set of images: pixel coordinates whose</span>
+<span class="sd">        spec is a random channel of their cube, to be stacked with</span>
+<span class="sd">        spectralMethod='channel'.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        imagenames</span>
+<span class="sd">            A list of images paths (or one path).</span>
+<span class="sd">        ncoords</span>
+<span class="sd">            Number of random coordinates. Default is 10.</span>
+<span class="sd">        margin</span>
+<span class="sd">            Minimal distance (pixels) to the image edges, e.g. half the stampsize.</span>
+<span class="sd">        rng</span>
+<span class="sd">            numpy Generator or seed, for reproducible draws.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">LineStacker</span><span class="w"> </span><span class="kn">import</span> <span class="n">_io</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">imagenames</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
+        <span class="n">imagenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">imagenames</span><span class="p">]</span>
+    <span class="n">imagenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">imagenames</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">imagenames</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'randomCoords needs at least one image'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ncoords</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">ncoords</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ncoords</span> <span class="ow">or</span> <span class="n">ncoords</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'ncoords must be an integer &gt;= 0 (got </span><span class="si">{0!r}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ncoords</span><span class="p">))</span>
+    <span class="n">ncoords</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ncoords</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">margin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'margin must be &gt;= 0 (got </span><span class="si">{0}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">margin</span><span class="p">))</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">rng</span><span class="p">)</span>
+    <span class="n">infos</span> <span class="o">=</span> <span class="p">[</span><span class="n">_io</span><span class="o">.</span><span class="n">read_info</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">hdul</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">imagenames</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">inf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">imagenames</span><span class="p">,</span> <span class="n">infos</span><span class="p">):</span>
+        <span class="k">if</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">margin</span> <span class="o">&gt;</span> <span class="nb">min</span><span class="p">(</span><span class="n">inf</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="n">inf</span><span class="o">.</span><span class="n">ny</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'margin </span><span class="si">{0}</span><span class="s1"> leaves no room in </span><span class="si">{1}</span><span class="s1"> (</span><span class="si">{2}</span><span class="s1">x</span><span class="si">{3}</span><span class="s1"> pixels): it must be at most </span><span class="si">{4}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">margin</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inf</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="n">inf</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">inf</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="n">inf</span><span class="o">.</span><span class="n">ny</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">))</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncoords</span><span class="p">):</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">imagenames</span><span class="p">)))</span>
+        <span class="n">inf</span> <span class="o">=</span> <span class="n">infos</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">margin</span><span class="p">,</span> <span class="n">inf</span><span class="o">.</span><span class="n">nx</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">margin</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">margin</span><span class="p">,</span> <span class="n">inf</span><span class="o">.</span><span class="n">ny</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">margin</span><span class="p">)</span>
+        <span class="n">chan</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="n">inf</span><span class="o">.</span><span class="n">nchan</span><span class="p">))</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Coord</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="n">chan</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">imagenames</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">imagenumber</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'pixel'</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_image_list</span><span class="p">(</span><span class="n">imagenames</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""imagenames as a list of paths (one path is a list of one)."""</span>
+    <span class="k">if</span> <span class="n">imagenames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">imagenames</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">imagenames</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">fspath</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">imagenames</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="randomizeCoords">
+<a class="viewcode-back" href="../api.html#LineStacker.randomizeCoords">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">randomizeCoords</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">beam</span><span class="p">,</span> <span class="n">maxBeamRange</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">imagenames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hdul</span><span class="o">=</span><span class="s1">'auto'</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxTries</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">        New positions at a random distance between beam and maxBeamRange*beam</span>
+<span class="sd">        from each of the original coordinates (random direction).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        coords</span>
+<span class="sd">            list of original coordinates (LineStacker.Coord instances)</span>
+<span class="sd">        beam</span>
+<span class="sd">            beam size is radians,</span>
+<span class="sd">            new random coordinates will be at a minimum distance beam</span>
+<span class="sd">            from the original coordinates.</span>
+<span class="sd">        maxBeamRange</span>
+<span class="sd">            maximum distance from original coordinates</span>
+<span class="sd">            at which new coordinates can be located, in units of beams.</span>
+<span class="sd">            Default is 5.</span>
+<span class="sd">        imagenames</span>
+<span class="sd">            images the coordinates refer to; when given, new positions are</span>
+<span class="sd">            kept inside their image.</span>
+<span class="sd">        rng</span>
+<span class="sd">            numpy Generator or seed, for reproducible draws.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">LineStacker</span><span class="w"> </span><span class="kn">import</span> <span class="n">_io</span>
+    <span class="n">imagenames</span> <span class="o">=</span> <span class="n">_image_list</span><span class="p">(</span><span class="n">imagenames</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">beam</span><span class="p">)</span> <span class="ow">or</span> <span class="n">beam</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'beam must be &gt; 0 (radians), got </span><span class="si">{0}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">beam</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">maxBeamRange</span><span class="p">)</span> <span class="ow">and</span> <span class="n">maxBeamRange</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'maxBeamRange must be finite and &gt;= 1 (in beams), got </span><span class="si">{0}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">maxBeamRange</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">maxTries</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">maxTries</span><span class="p">)</span> <span class="o">!=</span> <span class="n">maxTries</span> <span class="ow">or</span> <span class="n">maxTries</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'maxTries must be an integer &gt;= 1 (got </span><span class="si">{0!r}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">maxTries</span><span class="p">))</span>
+    <span class="n">maxTries</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">maxTries</span><span class="p">)</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">rng</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">:</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">imagenames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">_io</span><span class="o">.</span><span class="n">read_info</span><span class="p">(</span><span class="n">imagenames</span><span class="p">[</span><span class="n">_image_index</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">imagenames</span><span class="p">)],</span> <span class="n">hdul</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxTries</span><span class="p">):</span>
+            <span class="n">sep</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">beam</span><span class="p">,</span> <span class="n">maxBeamRange</span> <span class="o">*</span> <span class="n">beam</span><span class="p">)</span>
+            <span class="n">pa</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">coord</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">'pixel'</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">info</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'imagenames is needed to randomize pixel coordinates'</span><span class="p">)</span>
+                <span class="n">step</span> <span class="o">=</span> <span class="n">sep</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">pixscale_deg</span><span class="p">)</span>
+                <span class="n">new</span><span class="o">.</span><span class="n">ra</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">ra</span> <span class="o">+</span> <span class="n">step</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">pa</span><span class="p">)</span>
+                <span class="n">new</span><span class="o">.</span><span class="n">dec</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">dec</span> <span class="o">+</span> <span class="n">step</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">pa</span><span class="p">)</span>
+                <span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">dec</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+                <span class="n">sky</span> <span class="o">=</span> <span class="n">_to_skycoord</span><span class="p">([</span><span class="n">coord</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">directional_offset_by</span><span class="p">(</span><span class="n">pa</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">sep</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">rad</span><span class="p">)</span>
+                <span class="n">new</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">new</span><span class="o">.</span><span class="n">dec</span> <span class="o">=</span> <span class="n">sky</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">sky</span><span class="o">.</span><span class="n">dec</span>
+                <span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">world_to_pixel</span><span class="p">(</span><span class="n">sky</span><span class="p">)</span> <span class="k">if</span> <span class="n">info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">info</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">px</span> <span class="o">&lt;=</span> <span class="n">info</span><span class="o">.</span><span class="n">nx</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">py</span> <span class="o">&lt;=</span> <span class="n">info</span><span class="o">.</span><span class="n">ny</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">'Cannot find random position, change search region'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

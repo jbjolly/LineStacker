@@ -1,59 +1,48 @@
-import numpy as np
-import sys
+def _bar(fraction, final=False):
+    g = 10 if final else int(fraction * 10)
+    done = ("\033[0;36;46m" + " " + '\x1b[0m') * g
+    todo = '' if final else ' ' * (10 - g)
+    s = '|{0}|'.format(done + todo)
+    s += "\033[1;33m" + ' LOADING ' + '\x1b[0m'
+    if final:
+        s += '\033[1;31m' + ' 100%' + '\x1b[0m' + '\n\n'
+    else:
+        s += "\033[0;32m" + str(int(fraction * 100)) + '% ' + '\x1b[0m'
+    return '\r' + s
 
-def ProgressBar(n, total):
+
+def ProgressBar(n, total, verbose=None):
     """
-        show progress of a process
+        Draws a progress bar (at most about 100 redraws).
+
         Parameters
-        ---------
+        ----------
         n
             current step
         total
             total number of steps
+        verbose
+            draw the bar (default: LineStacker.verbose)
     """
-    if total>100:
-        g=int(10*n/total)
-        if n in np.arange(0,total, int(total/100.)) and n!=total-1:
-            #done = ("\033[1;36m"+'#'+'\x1b[0m')*(g)
-            #todo = '-'*(10-g)
-            done=("\033[0;36;46m"+" "+'\x1b[0m')*g
-            todo = ' '*(10-g)
-            s = '|{0}|'.format(done+todo)
-            s+="\033[1;33m"+' LOADING '+'\x1b[0m'
-            s+="\033[0;32m"+str(int((float(n)/total)*100))+'% '+'\x1b[0m'
-            s = '\r'+s
-            print s,
-            sys.stdout.flush()
-            #return
-        if n==total-1:
-            g=10
-            done=("\033[0;36;46m"+" "+'\x1b[0m')*g
-            #todo = '-'*(10-g)
-            s = '|{0}|'.format(done)
-            s+="\033[1;33m"+' LOADING '+'\x1b[0m'
-            s+='\033[1;31m'+ ' 100%' +'\x1b[0m'+ '\n\n'
-            s = '\r'+s
-            print s,
-            sys.stdout.flush()
-    else:
-        if n==total-1:
-            g=10
-            done=("\033[0;36;46m"+" "+'\x1b[0m')*g
-            #todo = '-'*(10-g)
-            s = '|{0}|'.format(done)
-            s+="\033[1;33m"+' LOADING '+'\x1b[0m'
-            s+='\033[1;31m'+ ' 100%' +'\x1b[0m'+ '\n\n'
-            s = '\r'+s
-            print s,
-            sys.stdout.flush()
-        else:
-            ratio=float(n)/total
-            g=int(ratio*10)
-            done=("\033[0;36;46m"+" "+'\x1b[0m')*g
-            todo = ' '*(10-g)
-            s = '|{0}|'.format(done+todo)
-            s+="\033[1;33m"+' LOADING '+'\x1b[0m'
-            s+="\033[0;32m"+str(int((float(n)/total)*100))+'% '+'\x1b[0m'
-            s = '\r'+s
-            print s,
-            sys.stdout.flush()
+    import LineStacker
+    if total <= 0 or not LineStacker._verbose(verbose):
+        return
+    if n == total - 1:
+        print(_bar(1., final=True), end="", flush=True)
+        return
+    # Redraw at most ~100 times, whatever the number of steps.
+    step = max(1, total // 100)
+    if n % step == 0:
+        print(_bar(float(n) / total), end="", flush=True)
+
+
+def resolve_n_jobs(n_jobs):
+    """Number of workers for an n_jobs argument (None/1 = serial, -1 = all cores)."""
+    import os
+    if n_jobs is None:
+        return 1
+    n = int(n_jobs)
+    ncpu = os.cpu_count() or 1
+    if n < 0:
+        n = max(1, ncpu + 1 + n)
+    return max(1, n)

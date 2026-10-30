@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>LineStacker examples &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="../_static/documentation_options.js?v=db988ed8"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="../_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API reference" href="../api.html" />
+    <link rel="prev" title="Examples" href="../examples.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="../_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="../index.html"><img src="../_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../principle.html">How stacking works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../positions.html">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../spectra.html">Stacking spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../analysis.html">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">LineStacker examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changes.html">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../examples.html" title="previous chapter">Examples</a></li>
+      <li>Next: <a href="../api.html" title="next chapter">API reference</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="linestacker-examples">
+<h1>LineStacker examples<a class="headerlink" href="#linestacker-examples" title="Link to this heading">¶</a></h1>
+<p>All LineStacker examples in one notebook, run on the example data shipped with
+LineStacker (<code class="docutils literal notranslate"><span class="pre">Example/oneD</span></code> and <code class="docutils literal notranslate"><span class="pre">Example/cube</span></code>):</p>
+<ol class="arabic simple">
+<li><p><strong>One-dimensional stacking</strong>: a basic stack of 100 spectra, then a median
+stack with bootstrapping and subsampling.</p></li>
+<li><p><strong>Cube stacking</strong>: the basic stack, the same stack from a catalogue and
+from Python arrays, then the extended example (line fits, spectral
+rebinning, bootstrapping).</p></li>
+<li><p><strong>Continuum stacking</strong> with the same function, and random-position stacks.</p></li>
+</ol>
+<p>Run it from the <code class="docutils literal notranslate"><span class="pre">Example</span></code> folder. The example cubes are CASA images, so the
+cube sections need CASA’s Python packages (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">casatools</span></code>);
+FITS cubes would need no CASA. Everything the notebook writes goes to
+<code class="docutils literal notranslate"><span class="pre">notebook_outputs/</span></code>.</p>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="c1"># Use the LineStacker of this repository (two folders up) if it is there,</span>
+<span class="c1"># rather than another installed version.</span>
+<span class="n">REPO</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s1">'..'</span><span class="p">,</span> <span class="s1">'..'</span><span class="p">))</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">REPO</span><span class="p">,</span> <span class="s1">'LineStacker'</span><span class="p">,</span> <span class="s1">'__init__.py'</span><span class="p">)):</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">REPO</span><span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">LineStacker</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">LineStacker.OneD_Stacker</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">LineStacker.image</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">LineStacker.analysisTools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">LineStacker.tools.fit</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fitTools</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'LineStacker'</span><span class="p">,</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="s1">'from'</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">LineStacker</span><span class="o">.</span><span class="vm">__file__</span><span class="p">))</span>
+
+<span class="n">EXAMPLE</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>                         <span class="c1"># this notebook's folder</span>
+<span class="n">OUT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">EXAMPLE</span><span class="p">,</span> <span class="s1">'notebook_outputs'</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">OUT</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">N_JOBS</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>                                   <span class="c1"># Monte-Carlo tools: use all CPU cores</span>
+<span class="n">FEM</span> <span class="o">=</span> <span class="mf">1897420620253.1646</span>                      <span class="c1"># [CII] 158 um rest frequency (Hz)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">'figure.dpi'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">80</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>LineStacker 2.0.0 from LineStacker
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="one-dimensional-stacking">
+<h2>1. One-dimensional stacking<a class="headerlink" href="#one-dimensional-stacking" title="Link to this heading">¶</a></h2>
+<section id="basic-stack">
+<h3>1.1 Basic stack<a class="headerlink" href="#basic-stack" title="Link to this heading">¶</a></h3>
+<p>100 spectra (<code class="docutils literal notranslate"><span class="pre">oneD/data/spectra_&lt;i&gt;</span></code>), each with its line centre given as a
+velocity (<code class="docutils literal notranslate"><span class="pre">central_velocity_&lt;i&gt;</span></code>). Every spectrum becomes a
+<code class="docutils literal notranslate"><span class="pre">LineStacker.OneD_Stacker.Spectrum</span></code>; <code class="docutils literal notranslate"><span class="pre">Stack</span></code> aligns them on their line centre.
+<code class="docutils literal notranslate"><span class="pre">Stack</span></code> returns the stacked spectrum and the number of spectra contributing to
+each channel.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">EXAMPLE</span><span class="p">,</span> <span class="s1">'oneD'</span><span class="p">,</span> <span class="s1">'data'</span><span class="p">)</span>
+<span class="n">spectra</span> <span class="o">=</span> <span class="p">[</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">OneD_Stacker</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">spectrum</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">'spectra_</span><span class="si">%d</span><span class="s1">'</span> <span class="o">%</span> <span class="n">i</span><span class="p">)),</span>
+                                             <span class="n">centralVelocity</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">'central_velocity_</span><span class="si">%d</span><span class="s1">'</span> <span class="o">%</span> <span class="n">i</span><span class="p">)))</span>
+           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)]</span>
+<span class="n">stacked</span><span class="p">,</span> <span class="n">n_per_channel</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">OneD_Stacker</span><span class="o">.</span><span class="n">Stack</span><span class="p">(</span><span class="n">spectra</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stacked</span><span class="p">)),</span> <span class="n">stacked</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s1">'mid'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'k'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Bin number'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Amplitude'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Mean stack of </span><span class="si">%d</span><span class="s1"> spectra'</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">spectra</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/815e3b6cdbe5f02cd6c52a594416b9a3cac20104329e69975ec92f12f1b74786.png" src="../_images/815e3b6cdbe5f02cd6c52a594416b9a3cac20104329e69975ec92f12f1b74786.png" />
+</div>
+</div>
+</section>
+<section id="median-stack-bootstrapping-and-subsampling">
+<h3>1.2 Median stack, bootstrapping and subsampling<a class="headerlink" href="#median-stack-bootstrapping-and-subsampling" title="Link to this heading">¶</a></h3>
+<p>50 spectra (<code class="docutils literal notranslate"><span class="pre">oneD/dataExtended</span></code>): 40 have a line of amplitude 1 and 10
+(numbers 40 to 49) a line of amplitude 10. Naming the spectra makes the
+subsampling results readable.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">EXAMPLE</span><span class="p">,</span> <span class="s1">'oneD'</span><span class="p">,</span> <span class="s1">'dataExtended'</span><span class="p">)</span>
+<span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'spectrum_</span><span class="si">%d</span><span class="s1">'</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">50</span><span class="p">)]</span>
+<span class="n">spectra</span> <span class="o">=</span> <span class="p">[</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">OneD_Stacker</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">spectrum</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">'spectra_</span><span class="si">%d</span><span class="s1">'</span> <span class="o">%</span> <span class="n">i</span><span class="p">)),</span>
+                                             <span class="n">centralVelocity</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">'central_velocity_</span><span class="si">%d</span><span class="s1">'</span> <span class="o">%</span> <span class="n">i</span><span class="p">)),</span>
+                                             <span class="n">name</span><span class="o">=</span><span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">50</span><span class="p">)]</span>
+<span class="n">stacked</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">OneD_Stacker</span><span class="o">.</span><span class="n">Stack</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'median'</span><span class="p">)</span>
+<span class="n">stackAmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">stacked</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'amplitude of the median stack: </span><span class="si">%.3f</span><span class="s1">'</span> <span class="o">%</span> <span class="n">stackAmp</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>amplitude of the median stack: 1.774
+</pre></div>
+</div>
+</div>
+</div>
+<p><strong>Bootstrapping</strong>: stack spectra drawn with replacement many times, here
+saving the amplitude of each stack. The original example uses
+<code class="docutils literal notranslate"><span class="pre">nRandom=100000</span></code>; 10 000 is enough to see the distribution and runs in seconds.
+<code class="docutils literal notranslate"><span class="pre">seed</span></code> makes the draws reproducible, and the result does not depend on <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bootstrapped</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">analysisTools</span><span class="o">.</span><span class="n">bootstraping_OneD</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="s1">'amp'</span><span class="p">,</span> <span class="n">nRandom</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                                                           <span class="n">method</span><span class="o">=</span><span class="s1">'median'</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">N_JOBS</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">bootstrapped</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'0.6'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">stackAmp</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'red'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'stack of all spectra'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'stack amplitude'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'count'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Bootstrapping analysis'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>LineStacker: bootstrapping 50 spectra, 10000 iterations
+|<span class=" -Color -Color-Cyan -Color-Cyan-BGCyan">          </span>|<span class=" -Color -Color-Bold -Color-Bold-Yellow"> LOADING </span><span class=" -Color -Color-Bold -Color-Bold-Red"> 100%</span>
+</pre></div>
+</div>
+<img alt="../_images/8106f241f1e638da7912bb15faba53c47c4f76d48b7625d778c50513731343cc.png" src="../_images/8106f241f1e638da7912bb15faba53c47c4f76d48b7625d778c50513731343cc.png" />
+</div>
+</div>
+<p>The distribution has several peaks: some draws contain more of the bright
+spectra than others. <strong>Subsampling</strong> finds which spectra are responsible: random
+subsets are stacked and graded (by default <code class="docutils literal notranslate"><span class="pre">maximizeSNR</span></code>, the signal to noise of
+a Gaussian fit), and every spectrum collects the grades of the subsets it was in.
+The bright spectra come out on top already with 10 000 iterations.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">grades</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">analysisTools</span><span class="o">.</span><span class="n">subsample_OneD</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">nRandom</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'median'</span><span class="p">,</span>
+                                                  <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">N_JOBS</span><span class="p">)</span>
+<span class="n">meanGrade</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">grades</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)),</span> <span class="p">[</span><span class="n">grades</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">-</span> <span class="n">meanGrade</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">],</span>
+       <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="s1">'0.6'</span><span class="p">]</span> <span class="o">*</span> <span class="mi">40</span> <span class="o">+</span> <span class="p">[</span><span class="s1">'tab:red'</span><span class="p">]</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="s1">'vertical'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'grade - average grade'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Subsampling analysis (bright-line spectra in red)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>LineStacker: subsampling 50 spectra, 10000 iterations
+|<span class=" -Color -Color-Cyan -Color-Cyan-BGCyan">          </span>|<span class=" -Color -Color-Bold -Color-Bold-Yellow"> LOADING </span><span class=" -Color -Color-Bold -Color-Bold-Red"> 100%</span>
+</pre></div>
+</div>
+<img alt="../_images/a1b19561db292e3a2b6027a032d9534f1735bf33e6c046b150b7cb11eda079eb.png" src="../_images/a1b19561db292e3a2b6027a032d9534f1735bf33e6c046b150b7cb11eda079eb.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="cube-stacking">
+<h2>2. Cube stacking<a class="headerlink" href="#cube-stacking" title="Link to this heading">¶</a></h2>
+<section id="basic-stack-from-coordinate-files">
+<h3>2.1 Basic stack from coordinate files<a class="headerlink" href="#basic-stack-from-coordinate-files" title="Link to this heading">¶</a></h3>
+<p>The classic input: one coordinate file per cube (<code class="docutils literal notranslate"><span class="pre">&lt;cube&gt;_coord.txt</span></code>, one line
+<code class="docutils literal notranslate"><span class="pre">RA,</span> <span class="pre">Dec,</span> <span class="pre">z</span></code> per source), here 30 cubes of the [CII] line. Instead of the file
+dialog (<code class="docutils literal notranslate"><span class="pre">LineStacker.readCoordsNamesGUI()</span></code>) the files are listed with <code class="docutils literal notranslate"><span class="pre">glob</span></code>.
+The redshift gives the line centre, so the rest frequency <code class="docutils literal notranslate"><span class="pre">fEm</span></code> is needed.
+LineStacker prints where it wrote the stacked cube (<code class="docutils literal notranslate"><span class="pre">LineStacker.verbose</span></code>).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">coordNames</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">EXAMPLE</span><span class="p">,</span> <span class="s1">'cube'</span><span class="p">,</span> <span class="s1">'data'</span><span class="p">,</span> <span class="s1">'*_coord.txt'</span><span class="p">)))</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">readCoords</span><span class="p">(</span><span class="n">coordNames</span><span class="p">)</span>
+<span class="n">imagenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="s1">'_coord.txt'</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'.image'</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coordNames</span><span class="p">]</span>
+
+<span class="n">stacked</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">imagenames</span><span class="o">=</span><span class="n">imagenames</span><span class="p">,</span> <span class="n">fEm</span><span class="o">=</span><span class="n">FEM</span><span class="p">,</span> <span class="n">stampsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">N_chans</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+                                  <span class="n">outfile</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT</span><span class="p">,</span> <span class="s1">'stackResult.fits'</span><span class="p">))</span>
+<span class="n">centralValue</span><span class="p">,</span> <span class="n">centralSpectrum</span><span class="p">,</span> <span class="n">stackCube</span><span class="p">,</span> <span class="n">missing</span> <span class="o">=</span> <span class="n">stacked</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>LineStacker: read 30 positions from 30 coordinate files
+LineStacker: mean line stack of 30 sources (16x16 pixels, 16 channels) written to LineStacker/Example/notebook_outputs/stackResult.fits
+</pre></div>
+</div>
+</div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">stack</span></code> returns the central pixel at the central channel, the spectrum of the
+central pixel, the stacked cube (axes x, y, Stokes, channel) and how many
+sources miss each channel (sources whose cube does not cover it).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">line</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>                                    <span class="c1"># channels around the line</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mf">3.8</span><span class="p">))</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="p">),</span> <span class="n">centralSpectrum</span> <span class="o">*</span> <span class="mf">1e3</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s1">'mid'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'k'</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'channel'</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'mJy/beam'</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Central pixel of the stack'</span><span class="p">)</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">stackCube</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">line</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="mf">1e3</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">'lower'</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">'mJy/beam (sum of channels 6-10)'</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Line map of the stack'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/e9a61af870a96b6e72626fa5115b229189b1c2428076bfa5f940d83da941c1da.png" src="../_images/e9a61af870a96b6e72626fa5115b229189b1c2428076bfa5f940d83da941c1da.png" />
+</div>
+</div>
+</section>
+<section id="the-same-stack-from-a-catalogue">
+<h3>2.2 The same stack from a catalogue<a class="headerlink" href="#the-same-stack-from-a-catalogue" title="Link to this heading">¶</a></h3>
+<p>One table for the whole sample, one row per source, with the cube of each
+source named in an <code class="docutils literal notranslate"><span class="pre">image</span></code> column. <code class="docutils literal notranslate"><span class="pre">readCatalog</span></code> reads CSV, ECSV, FITS tables,
+VOTable (anything <code class="docutils literal notranslate"><span class="pre">astropy.table</span></code> reads), an astropy <code class="docutils literal notranslate"><span class="pre">Table</span></code> or a pandas
+<code class="docutils literal notranslate"><span class="pre">DataFrame</span></code>. Positions can be in degrees or sexagesimal (RA in hours,
+CASA’s <code class="docutils literal notranslate"><span class="pre">-027.40.59.866</span></code> included). Relative cube names are looked up next to
+the catalogue first.</p>
+<p>Here the catalogue is written from the coordinate files above, with cube
+names relative to the catalogue; normally it comes from your own catalogue
+(TOPCAT, a database query…).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">catalog</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT</span><span class="p">,</span> <span class="s1">'basic_catalog.csv'</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">catalog</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">'ra,dec,z,image</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">:</span>
+        <span class="n">cube</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="s1">'.fits'</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'.image'</span>
+        <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">'</span><span class="si">%.8f</span><span class="s1">,</span><span class="si">%.8f</span><span class="s1">,</span><span class="si">%.10f</span><span class="s1">,</span><span class="si">%s</span><span class="se">\n</span><span class="s1">'</span> <span class="o">%</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">ra</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">dec</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">OUT</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">catalog</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()[:</span><span class="mi">4</span><span class="p">])</span> <span class="o">+</span> <span class="s1">'...'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>ra,dec,z,image
+52.76729167,-27.68329611,7.2657160664,../cube/data/basicExampleCube_10071.image
+52.81320833,-27.57057417,7.2219053565,../cube/data/basicExampleCube_14115.image
+52.64495833,-27.75960167,7.2261167585,../cube/data/basicExampleCube_16612.image
+...
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">coordsCat</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">readCatalog</span><span class="p">(</span><span class="n">catalog</span><span class="p">)</span>
+<span class="n">stackedCat</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">coordsCat</span><span class="p">,</span> <span class="n">fEm</span><span class="o">=</span><span class="n">FEM</span><span class="p">,</span> <span class="n">stampsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">N_chans</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># no imagenames needed</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'same stack as from the coordinate files:'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">stackedCat</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">stackCube</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>LineStacker: read 30 positions in 30 cubes from basic_catalog.csv
+LineStacker: mean line stack of 30 sources (16x16 pixels, 16 channels) done (outfile=None: not written to disk)
+same stack as from the coordinate files: True
+</pre></div>
+</div>
+</div>
+</div>
+<p>Columns can have other names: <code class="docutils literal notranslate"><span class="pre">readCatalog(cat,</span> <span class="pre">ra='RAJ2000',</span> <span class="pre">dec='DEJ2000',</span> <span class="pre">z='zspec',</span> <span class="pre">image='cube')</span></code>
+(common names such as <code class="docutils literal notranslate"><span class="pre">RAJ2000</span></code>, <code class="docutils literal notranslate"><span class="pre">redshift</span></code>, <code class="docutils literal notranslate"><span class="pre">cube</span></code> are found automatically). An
+optional <code class="docutils literal notranslate"><span class="pre">weight</span></code> column gives weights for mean stacks. Without a <code class="docutils literal notranslate"><span class="pre">z</span></code> column the
+positions are for continuum stacking. Without an <code class="docutils literal notranslate"><span class="pre">image</span></code> column, all sources
+must lie in the single cube given as <code class="docutils literal notranslate"><span class="pre">imagenames</span></code>; LineStacker never guesses
+which cube a source belongs to.</p>
+</section>
+<section id="the-same-stack-from-python-arrays">
+<h3>2.3 The same stack from Python arrays<a class="headerlink" href="#the-same-stack-from-python-arrays" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">makeCoords</span></code> builds the coordinates from lists, numpy arrays, astropy
+quantities or a <code class="docutils literal notranslate"><span class="pre">SkyCoord</span></code>; <code class="docutils literal notranslate"><span class="pre">image</span></code> can be one cube for all sources or one per
+source.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ra</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">ra</span><span class="o">.</span><span class="n">deg</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">])</span>        <span class="c1"># e.g. columns of your own catalogue</span>
+<span class="n">dec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">dec</span><span class="o">.</span><span class="n">deg</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">])</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">z</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">])</span>
+
+<span class="n">coordsArr</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">makeCoords</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">z</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">imagenames</span><span class="p">)</span>
+<span class="n">stackedArr</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">coordsArr</span><span class="p">,</span> <span class="n">fEm</span><span class="o">=</span><span class="n">FEM</span><span class="p">,</span> <span class="n">stampsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">N_chans</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'same stack:'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">stackedArr</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">stackCube</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>LineStacker: made 30 coordinates
+LineStacker: mean line stack of 30 sources (16x16 pixels, 16 channels) done (outfile=None: not written to disk)
+same stack: True
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="extended-example-line-profiles-rebinning-and-bootstrapping">
+<h3>2.4 Extended example: line profiles, rebinning and bootstrapping<a class="headerlink" href="#extended-example-line-profiles-rebinning-and-bootstrapping" title="Link to this heading">¶</a></h3>
+<p>50 cubes (<code class="docutils literal notranslate"><span class="pre">cube/dataExtended</span></code>) whose lines have different widths. First the
+stack, and the spectrum of each cube (central 5x5 pixels, read with
+<code class="docutils literal notranslate"><span class="pre">LineStacker.image.readCube</span></code>, which reads FITS files and CASA images alike).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">coordNames</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">EXAMPLE</span><span class="p">,</span> <span class="s1">'cube'</span><span class="p">,</span> <span class="s1">'dataExtended'</span><span class="p">,</span> <span class="s1">'*_coord.txt'</span><span class="p">)))</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">readCoords</span><span class="p">(</span><span class="n">coordNames</span><span class="p">)</span>
+<span class="n">imagenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="s1">'_coord.txt'</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'.image'</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coordNames</span><span class="p">]</span>
+<span class="n">stacked</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">imagenames</span><span class="o">=</span><span class="n">imagenames</span><span class="p">,</span> <span class="n">fEm</span><span class="o">=</span><span class="n">FEM</span><span class="p">,</span> <span class="n">N_chans</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">stampsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+                                  <span class="n">outfile</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT</span><span class="p">,</span> <span class="s1">'stackResult_extended.fits'</span><span class="p">))</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">imagenames</span><span class="p">):</span>
+    <span class="n">pix</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">readCube</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">pix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span> <span class="n">pix</span><span class="p">[</span><span class="n">c</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span><span class="n">c</span> <span class="o">+</span> <span class="mi">3</span><span class="p">,</span> <span class="n">c</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span><span class="n">c</span> <span class="o">+</span> <span class="mi">3</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span> <span class="n">where</span><span class="o">=</span><span class="s1">'mid'</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'Spectra of the 50 cubes (central 5x5 pixels)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>LineStacker: read 50 positions from 50 coordinate files
+LineStacker: mean line stack of 50 sources (16x16 pixels, 16 channels) written to LineStacker/Example/notebook_outputs/stackResult_extended.fits
+</pre></div>
+</div>
+<img alt="../_images/f79261bce11a1e5c735fe138020b9fa1b9e93728b214dc261fbbb832fbddb4db.png" src="../_images/f79261bce11a1e5c735fe138020b9fa1b9e93728b214dc261fbbb832fbddb4db.png" />
+</div>
+</div>
+<p>The spectrum of the stack, summed over the stamp, fitted with one and with two
+Gaussians. The narrow core plus broad wings come from stacking lines of
+different widths.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimizeWarning</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_fits</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+        <span class="c1"># a double Gaussian is degenerate for a single-component line</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">'ignore'</span><span class="p">,</span> <span class="n">OptimizeWarning</span><span class="p">)</span>
+        <span class="n">single</span> <span class="o">=</span> <span class="n">fitTools</span><span class="o">.</span><span class="n">GaussFit</span><span class="p">(</span><span class="n">fctToFit</span><span class="o">=</span><span class="n">spectrum</span><span class="p">)</span>
+        <span class="n">double</span> <span class="o">=</span> <span class="n">fitTools</span><span class="o">.</span><span class="n">DoubleGaussFit</span><span class="p">(</span><span class="n">fctToFit</span><span class="o">=</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">returnAllComp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">3.8</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="s1">'k'</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s1">'mid'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'stack'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">single</span><span class="p">,</span> <span class="s1">'g'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'single Gaussian'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">double</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">'r--'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'double Gaussian, all'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">double</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">'m'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'double Gaussian, 1st component'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">double</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s1">'c'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'double Gaussian, 2nd component'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">integrated</span> <span class="o">=</span> <span class="n">stacked</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">plot_fits</span><span class="p">(</span><span class="n">integrated</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">integrated</span><span class="p">)),</span> <span class="s1">'Stack of 50 cubes'</span><span class="p">,</span> <span class="s1">'channel'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/0a84a3dc9392efbfe0801092dbcd4b7a1247ea1463e14456d6409c815feb8e61.png" src="../_images/0a84a3dc9392efbfe0801092dbcd4b7a1247ea1463e14456d6409c815feb8e61.png" />
+</div>
+</div>
+<p><strong>Spectral rebinning</strong>: each cube is resampled so that all lines get the width
+of the narrowest one (the widths come from Gaussian fits of each cube’s
+spectrum). The rebinned cubes are written to <code class="docutils literal notranslate"><span class="pre">notebook_outputs/rebinned</span></code>, then
+stacked; the stacked line is now a single Gaussian. The velocity axis comes
+from the header of the stacked cube.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rebinned</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">analysisTools</span><span class="o">.</span><span class="n">rebin_CubesSpectra</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">imagenames</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT</span><span class="p">,</span> <span class="s1">'rebinned'</span><span class="p">))</span>
+<span class="n">outfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT</span><span class="p">,</span> <span class="s1">'stackResult_rebinned.fits'</span><span class="p">)</span>
+<span class="n">rebinnedStack</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">imagenames</span><span class="o">=</span><span class="n">rebinned</span><span class="p">,</span> <span class="n">fEm</span><span class="o">=</span><span class="n">FEM</span><span class="p">,</span> <span class="n">N_chans</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">stampsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+                                        <span class="n">outfile</span><span class="o">=</span><span class="n">outfile</span><span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fits</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">getheader</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+<span class="n">channels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s1">'NAXIS3'</span><span class="p">])</span>
+<span class="n">freq</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">'CRVAL3'</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">channels</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">h</span><span class="p">[</span><span class="s1">'CRPIX3'</span><span class="p">])</span> <span class="o">*</span> <span class="n">h</span><span class="p">[</span><span class="s1">'CDELT3'</span><span class="p">]</span>
+<span class="n">velocity</span> <span class="o">=</span> <span class="mf">299792.458</span> <span class="o">*</span> <span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s1">'RESTFRQ'</span><span class="p">]</span> <span class="o">-</span> <span class="n">freq</span><span class="p">)</span> <span class="o">/</span> <span class="n">h</span><span class="p">[</span><span class="s1">'RESTFRQ'</span><span class="p">]</span>      <span class="c1"># radio convention, km/s</span>
+<span class="n">plot_fits</span><span class="p">(</span><span class="n">rebinnedStack</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span> <span class="n">velocity</span><span class="p">,</span> <span class="s1">'Stack of the rebinned cubes'</span><span class="p">,</span> <span class="s1">'velocity (km/s)'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>LineStacker: rebinning 50 cubes to the narrowest line width
+|<span class=" -Color -Color-Cyan -Color-Cyan-BGCyan">          </span>|<span class=" -Color -Color-Bold -Color-Bold-Yellow"> LOADING </span><span class=" -Color -Color-Bold -Color-Bold-Red"> 100%</span>
+
+LineStacker: 50 rebinned cubes written: in LineStacker/Example/notebook_outputs/rebinned (extendedExampleCube_10619_SpectralRebinned.image ... extendedExampleCube_97379_SpectralRebinned.image)
+LineStacker: mean line stack of 50 sources (16x16 pixels, 16 channels) written to LineStacker/Example/notebook_outputs/stackResult_rebinned.fits
+</pre></div>
+</div>
+<img alt="../_images/cabfeecbaf2484ef1d2cb3b9096c2aa41687037918610adbe4c129ed10529361.png" src="../_images/cabfeecbaf2484ef1d2cb3b9096c2aa41687037918610adbe4c129ed10529361.png" />
+</div>
+</div>
+<p><strong>Bootstrapping the cube stack</strong>, saving the amplitude and width of a Gaussian
+fit of each bootstrapped stack (fits are spread over all cores).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">boot</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">analysisTools</span><span class="o">.</span><span class="n">bootStraping_Cube</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">imagenames</span><span class="o">=</span><span class="n">imagenames</span><span class="p">,</span> <span class="n">fEm</span><span class="o">=</span><span class="n">FEM</span><span class="p">,</span> <span class="n">N_chans</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+                                                   <span class="n">stampsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">nRandom</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="s1">'ampAndWidth'</span><span class="p">,</span>
+                                                   <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">N_JOBS</span><span class="p">)</span>
+<span class="n">amp</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">boot</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'0.6'</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">boot</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">'red'</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'line amplitude (stamp sum)'</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">width</span><span class="p">),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'0.6'</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">boot</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span> <span class="n">color</span><span class="o">=</span><span class="s1">'red'</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'line width (channels)'</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'Bootstrapped line parameters (red: stack of all cubes)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'amplitude </span><span class="si">%.4f</span><span class="s1"> +- </span><span class="si">%.4f</span><span class="s1">, width </span><span class="si">%.2f</span><span class="s1"> +- </span><span class="si">%.2f</span><span class="s1"> channels'</span> <span class="o">%</span> <span class="p">(</span><span class="n">boot</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">amp</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">boot</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">width</span><span class="p">))))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>LineStacker: bootstrapping 50 sources, 2000 iterations
+|<span class=" -Color -Color-Cyan -Color-Cyan-BGCyan">          </span>|<span class=" -Color -Color-Bold -Color-Bold-Yellow"> LOADING </span><span class=" -Color -Color-Bold -Color-Bold-Red"> 100%</span>
+amplitude 1.4317 +- 0.0407, width 2.32 +- 0.26 channels
+</pre></div>
+</div>
+<img alt="../_images/c22bae9efd6a87ba9c2c0497dfea45d7efb0c6dbd330601bf28876fdfeb83d12.png" src="../_images/c22bae9efd6a87ba9c2c0497dfea45d7efb0c6dbd330601bf28876fdfeb83d12.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="continuum-stacking">
+<h2>3. Continuum stacking<a class="headerlink" href="#continuum-stacking" title="Link to this heading">¶</a></h2>
+<p>The same <code class="docutils literal notranslate"><span class="pre">stack</span></code> function, with <code class="docutils literal notranslate"><span class="pre">continuum=True</span></code>. The example cubes have a
+spectral axis, so LineStacker warns and stacks the images summed over channels
+(<code class="docutils literal notranslate"><span class="pre">collapse='sum'</span></code>, the default; <code class="docutils literal notranslate"><span class="pre">'mean'</span></code> and <code class="docutils literal notranslate"><span class="pre">'median'</span></code> are possible), made in
+memory. Images without a spectral axis are stacked as continuum automatically,
+without warning.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">coordNames</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">EXAMPLE</span><span class="p">,</span> <span class="s1">'cube'</span><span class="p">,</span> <span class="s1">'data'</span><span class="p">,</span> <span class="s1">'*_coord.txt'</span><span class="p">)))</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">readCoords</span><span class="p">(</span><span class="n">coordNames</span><span class="p">)</span>
+<span class="n">imagenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">removesuffix</span><span class="p">(</span><span class="s1">'_coord.txt'</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'.image'</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coordNames</span><span class="p">]</span>
+
+<span class="n">continuum</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">imagenames</span><span class="o">=</span><span class="n">imagenames</span><span class="p">,</span> <span class="n">stampsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">continuum</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                    <span class="n">outfile</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OUT</span><span class="p">,</span> <span class="s1">'continuumStack.fits'</span><span class="p">))</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">3.8</span><span class="p">))</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">continuum</span><span class="p">[</span><span class="mi">2</span><span class="p">][:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">'lower'</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Jy/beam x channels'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Continuum stack'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>LineStacker: read 30 positions from 30 coordinate files
+LineStacker: mean continuum stack of 30 sources (16x16 pixels) written to LineStacker/Example/notebook_outputs/continuumStack.fits
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;cell&gt;:5: UserWarning: continuum stacking (continuum=True): collapsing 30 cube(s) with a spectral axis (sum over channels) in memory
+  continuum = LineStacker.image.stack(coords, imagenames=imagenames, stampsize=16, continuum=True,
+</pre></div>
+</div>
+<img alt="../_images/935bb2b3ad9ab24254609b09b9a309e00e0b5087863d109625f12b3d71bb8f58.png" src="../_images/935bb2b3ad9ab24254609b09b9a309e00e0b5087863d109625f12b3d71bb8f58.png" />
+</div>
+</div>
+<p><strong>Stacks at random positions</strong> tell how significant the stacked value is: each
+source is moved to a random position (here 4 to 9 microradians, about 0.8” to
+1.9”, away; the example cubes are only 6” wide) and the stack is repeated.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">random</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">analysisTools</span><span class="o">.</span><span class="n">stack_estimator</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">imagenames</span><span class="o">=</span><span class="n">imagenames</span><span class="p">,</span> <span class="n">continuum</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nRandom</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
+                                                   <span class="n">lowerLimit</span><span class="o">=</span><span class="mf">4e-6</span><span class="p">,</span> <span class="n">upperLimit</span><span class="o">=</span><span class="mf">9e-6</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">N_JOBS</span><span class="p">)</span>
+<span class="n">std</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">dist</span> <span class="o">=</span> <span class="n">random</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">dist</span><span class="p">),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'0.6'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'random positions'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">continuum</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">'red'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'stack at the sources'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'stacked central pixel'</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'stack </span><span class="si">%.3g</span><span class="s1">, random positions </span><span class="si">%.3g</span><span class="s1"> +- </span><span class="si">%.3g</span><span class="s1">'</span> <span class="o">%</span> <span class="p">(</span><span class="n">continuum</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>LineStacker: stacking 2000 sets of random positions around 30 sources
+|<span class=" -Color -Color-Cyan -Color-Cyan-BGCyan">  </span>        |<span class=" -Color -Color-Bold -Color-Bold-Yellow"> LOADING </span><span class=" -Color -Color-Green">25% </span>
+|<span class=" -Color -Color-Cyan -Color-Cyan-BGCyan">          </span>|<span class=" -Color -Color-Bold -Color-Bold-Yellow"> LOADING </span><span class=" -Color -Color-Bold -Color-Bold-Red"> 100%</span>
+stack 0.00103, random positions -0.000582 +- 0.000201
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;cell&gt;:1: UserWarning: continuum stacking (continuum=True): collapsing 30 cube(s) with a spectral axis (sum over channels) in memory
+  random = LineStacker.analysisTools.stack_estimator(coords, imagenames=imagenames, continuum=True, nRandom=2000,
+</pre></div>
+</div>
+<img alt="../_images/224dd3ec12e62eee2016a1d412e4cb3aebb43ff2913e9309e8642b7fa8a46f49.png" src="../_images/224dd3ec12e62eee2016a1d412e4cb3aebb43ff2913e9309e8642b7fa8a46f49.png" />
+</div>
+</div>
+<p>The random positions give negative values on average: they fall in the
+negative sidelobes of the dirty beam around each source, as the example cubes
+are small. On real data, use limits of several beams (the default,
+5 to 10 beams).</p>
+</section>
+<section id="good-to-know">
+<h2>4. Good to know<a class="headerlink" href="#good-to-know" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LineStacker.verbose</span> <span class="pre">=</span> <span class="pre">False</span></code> silences LineStacker’s messages and progress
+bars; any function also takes <code class="docutils literal notranslate"><span class="pre">verbose=True/False</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outfile</span></code> names ending in <code class="docutils literal notranslate"><span class="pre">.fits</span></code> are written as FITS, other names (e.g.
+<code class="docutils literal notranslate"><span class="pre">stackResult.image</span></code>) as CASA images.</p></li>
+<li><p>The Monte-Carlo tools take <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> (cores, -1 for all) and <code class="docutils literal notranslate"><span class="pre">seed</span></code>; results
+do not depend on <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>.</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

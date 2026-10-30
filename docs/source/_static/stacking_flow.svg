@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 640" width="760" height="640" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3b4a6b"/>
+    </marker>
+    <style>
+      .box { fill: #f4f6fb; stroke: #3b4a6b; stroke-width: 1.2; }
+      .key { fill: #e9eef9; stroke: #3b4a6b; stroke-width: 1.6; }
+      .side { fill: #ffffff; stroke: #8a94ab; stroke-width: 1; stroke-dasharray: 4 3; }
+      .title { font-size: 14px; font-weight: 600; fill: #1d2333; }
+      .fn { font-size: 11.5px; font-family: 'SFMono-Regular', Menlo, Consolas, monospace; fill: #44306b; }
+      .txt { font-size: 12px; fill: #333b4d; }
+      .line { stroke: #3b4a6b; stroke-width: 1.3; fill: none; }
+      .dash { stroke: #8a94ab; stroke-width: 1.1; fill: none; stroke-dasharray: 4 3; }
+    </style>
+  </defs>
+
+  <!-- main column -->
+  <rect class="box" x="20" y="14" width="420" height="66" rx="7"/>
+  <text class="title" x="34" y="36">1. Positions</text>
+  <text class="fn" x="34" y="54">readCatalog · makeCoords · readCoords</text>
+  <text class="txt" x="34" y="71">RA, Dec, z (or observed value, channel), weight, cube</text>
+
+  <rect class="box" x="20" y="102" width="420" height="58" rx="7"/>
+  <text class="title" x="34" y="124">2. Pixel position in its cube</text>
+  <text class="txt" x="34" y="144">sky to pixel with the cube's WCS (FITS or CASA image)</text>
+
+  <rect class="box" x="20" y="182" width="420" height="74" rx="7"/>
+  <text class="title" x="34" y="204">3. Line centre</text>
+  <text class="txt" x="34" y="223">channel of the line: z with fEm / lEm, observed value or channel</text>
+  <text class="txt" x="34" y="242">nearest channel, or resampled to rest-frame channels (regridFromZ)</text>
+
+  <rect class="box" x="20" y="278" width="420" height="74" rx="7"/>
+  <text class="title" x="34" y="300">4. Stamps</text>
+  <text class="txt" x="34" y="319">stampsize × stampsize pixels × N_chans channels per source,</text>
+  <text class="txt" x="34" y="338">on the cube's own grid; channels outside a cube are left out</text>
+
+  <rect class="box" x="20" y="374" width="420" height="58" rx="7"/>
+  <text class="title" x="34" y="396">5. Weights (mean stacks)</text>
+  <text class="txt" x="34" y="416">coordinate weights × sigma2, sigma2F, sigma, 1/A or pb</text>
+
+  <rect class="box" x="20" y="454" width="420" height="58" rx="7"/>
+  <text class="title" x="34" y="476">6. Combine</text>
+  <text class="txt" x="34" y="496">weighted mean or median, per pixel and per channel</text>
+
+  <rect class="key" x="20" y="534" width="420" height="74" rx="7"/>
+  <text class="title" x="34" y="556">7. Stacked cube</text>
+  <text class="fn" x="34" y="575">LineStacker.image.stack</text>
+  <text class="txt" x="34" y="594">FITS or CASA image, centred on (0, 0), rest-frame spectral axis</text>
+
+  <path class="line" d="M230,80 V100" marker-end="url(#arrow)"/>
+  <path class="line" d="M230,160 V180" marker-end="url(#arrow)"/>
+  <path class="line" d="M230,256 V276" marker-end="url(#arrow)"/>
+  <path class="line" d="M230,352 V372" marker-end="url(#arrow)"/>
+  <path class="line" d="M230,432 V452" marker-end="url(#arrow)"/>
+  <path class="line" d="M230,512 V532" marker-end="url(#arrow)"/>
+
+  <!-- side boxes -->
+  <rect class="side" x="478" y="182" width="262" height="74" rx="7"/>
+  <text class="title" x="492" y="204">Continuum</text>
+  <text class="txt" x="492" y="223">continuum=True or 2D images: each</text>
+  <text class="txt" x="492" y="242">cube is collapsed (sum) in memory</text>
+  <path class="dash" d="M478,219 H442" marker-end="url(#arrow)"/>
+
+  <rect class="side" x="478" y="374" width="262" height="138" rx="7"/>
+  <text class="title" x="492" y="396">Analysis tools</text>
+  <text class="fn" x="492" y="416">bootStraping_Cube</text>
+  <text class="fn" x="492" y="434">stack_estimator</text>
+  <text class="txt" x="492" y="452">resample the sources, or stack at</text>
+  <text class="txt" x="492" y="469">random positions, from the same</text>
+  <text class="txt" x="492" y="486">stamps; noise_estimator, rebinning</text>
+  <text class="txt" x="492" y="503">and regridding of the cubes</text>
+  <path class="dash" d="M442,315 H460 V443 H476" marker-end="url(#arrow)"/>
+
+  <rect class="side" x="478" y="534" width="262" height="74" rx="7"/>
+  <text class="title" x="492" y="556">1D spectra</text>
+  <text class="fn" x="492" y="575">OneD_Stacker.Spectrum, Stack</text>
+  <text class="txt" x="492" y="594">steps 3, 5 and 6 on spectra</text>
+</svg>

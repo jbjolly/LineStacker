@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>LineStacker 2.0: Python 3 / CASA 6 port &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="_static/documentation_options.js?v=db988ed8"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="API reference" href="api.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="index.html"><img src="_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="principle.html">How stacking works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="positions.html">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectra.html">Stacking spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_generated/examples_notebook.html">LineStacker examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="api.html" title="previous chapter">API reference</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="linestacker-2-0-python-3-casa-6-port">
+<h1>LineStacker 2.0: Python 3 / CASA 6 port<a class="headerlink" href="#linestacker-2-0-python-3-casa-6-port" title="Link to this heading">¶</a></h1>
+<p>Tested with Python 3.13 (requires &gt;= 3.9), NumPy 2.5, SciPy 1.18, astropy 8.0 and CASA 6.7.6
+(casatools from PyPI), on the example data in <code class="docutils literal notranslate"><span class="pre">LineStacker/Example</span></code>
+and on the synthetic test suite in <code class="docutils literal notranslate"><span class="pre">tests/</span></code> (183 tests; the 12 that need casatools
+are skipped without it).</p>
+<section id="installing">
+<h2>Installing<a class="headerlink" href="#installing" title="Link to this heading">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install -e .[casa]        # with CASA 6 for CASA images
+pip install -e .              # FITS cubes only
+python -m pytest tests        # optional: run the tests
+</pre></div>
+</div>
+<p>To use LineStacker from the CASA prompt (monolithic CASA tarball), install
+its dependencies with CASA’s own pip, so they match CASA’s NumPy:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>PYTHONNOUSERSITE=1 ~/casa-6.7.6-14-py3.12.el9/bin/pip3 install 'astropy&gt;=7.2'
+</pre></div>
+</div>
+<p>Mixing CASA with packages from another environment (e.g. a venv on
+PYTHONPATH) breaks when versions disagree: CASA 6.7.6 bundles NumPy &gt;= 2.4,
+which astropy &lt; 7.2 cannot use (<code class="docutils literal notranslate"><span class="pre">module</span> <span class="pre">'numpy'</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">attribute</span> <span class="pre">'in1d'</span></code>).
+<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">LineStacker</span></code> warns when it detects this combination.</p>
+<p>CASA is only imported to read or write CASA images (FITS-only use never
+starts CASA). When LineStacker starts it, CASA’s log goes to one file,
+<code class="docutils literal notranslate"><span class="pre">&lt;temporary</span> <span class="pre">dir&gt;/linestacker-casa-&lt;user&gt;.log</span></code> (appended to), and CASA’s
+messages go there instead of the terminal, so no <code class="docutils literal notranslate"><span class="pre">casa-&lt;date&gt;.log</span></code> piles up
+in the working directory. <code class="docutils literal notranslate"><span class="pre">LineStacker.casa_logfile</span></code> changes this (a path,
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for no log, <code class="docutils literal notranslate"><span class="pre">'casa'</span></code> for CASA’s default); a <code class="docutils literal notranslate"><span class="pre">logfile</span></code> set in
+<code class="docutils literal notranslate"><span class="pre">~/.casa/config.py</span></code> is used, and inside a CASA session (or after importing
+casatools/casatasks yourself) CASA’s own settings apply. CASA 5 (Python 2)
+is no longer supported.</p>
+</section>
+<section id="one-stacking-module-linestacker-image">
+<h2>One stacking module: <code class="docutils literal notranslate"><span class="pre">LineStacker.image</span></code><a class="headerlink" href="#one-stacking-module-linestacker-image" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">line_image</span></code> and the old continuum module <code class="docutils literal notranslate"><span class="pre">image</span></code> are merged into a single
+<code class="docutils literal notranslate"><span class="pre">LineStacker.image</span></code>, which does what <code class="docutils literal notranslate"><span class="pre">line_image</span></code> did, plus continuum
+stacking with the same functions:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LineStacker.image.stack(coords, imagenames=names, fEm=fEm)      # line stack
+LineStacker.image.stack(coords, imagenames=names, continuum=True)
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Images without a spectral axis (or with one channel) are stacked as
+continuum automatically, without warning.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">continuum=True</span></code> on cubes with a spectral axis issues a warning and stacks
+a collapsed version of each cube, made in memory (<code class="docutils literal notranslate"><span class="pre">collapse='sum'</span></code>
+default, or <code class="docutils literal notranslate"><span class="pre">'mean'</span></code>, <code class="docutils literal notranslate"><span class="pre">'median'</span></code>; blanked channels are ignored). The
+output header records it in <code class="docutils literal notranslate"><span class="pre">COLLAPSE</span></code>. Only the
+collapsed arrays are kept, not the full cubes.</p></li>
+<li><p>Coordinates without a spectral value (<code class="docutils literal notranslate"><span class="pre">readCoords(...,</span> <span class="pre">lineON=False)</span></code>)
+also select continuum stacking (same warning if cubes get collapsed).</p></li>
+<li><p>Line stacking with an image that has no spectral axis raises an error
+pointing to <code class="docutils literal notranslate"><span class="pre">continuum=True</span></code>.</p></li>
+<li><p>Continuum stacks return the same list as line stacks (the “spectrum” has
+one channel); FITS output is 2D when the inputs had no spectral axis.</p></li>
+<li><p>From the old continuum module: weightings <code class="docutils literal notranslate"><span class="pre">'sigma'</span></code> (1/σ, mask of two
+beams by default) and <code class="docutils literal notranslate"><span class="pre">'pb'</span></code> (squared primary-beam response) are available
+to all stacks; <code class="docutils literal notranslate"><span class="pre">getFlux</span></code> is kept. <code class="docutils literal notranslate"><span class="pre">primarybeam=</span></code> now takes the
+primary-beam image of each cube (FITS or CASA, e.g. tclean’s <code class="docutils literal notranslate"><span class="pre">.pb</span></code>; one
+path, a list in the order of <code class="docutils literal notranslate"><span class="pre">imagenames</span></code>, or a dict <code class="docutils literal notranslate"><span class="pre">{cube:</span> <span class="pre">pb}</span></code>), read at
+each source’s position and line channel, or a function <code class="docutils literal notranslate"><span class="pre">f(dx,</span> <span class="pre">dy,</span> <span class="pre">nu)</span></code>
+such as <code class="docutils literal notranslate"><span class="pre">LineStacker.image.GaussianPrimaryBeam(dish=12.)</span></code> (FWHM 1.13 λ/D,
+as LineStacker.uv). The <code class="docutils literal notranslate"><span class="pre">LineStacker.pb</span></code> models are gone (see below).
+Its <code class="docutils literal notranslate"><span class="pre">noise</span></code> and <code class="docutils literal notranslate"><span class="pre">boot_straping</span></code> are covered by
+<code class="docutils literal notranslate"><span class="pre">analysisTools.stack_estimator</span></code> and <code class="docutils literal notranslate"><span class="pre">bootStraping_Cube</span></code>, which accept
+<code class="docutils literal notranslate"><span class="pre">continuum=True</span></code>. Dropped: <code class="docutils literal notranslate"><span class="pre">psfmode='star'</span></code>, <code class="docutils literal notranslate"><span class="pre">calculate_peak_fluxes</span></code> and
+<code class="docutils literal notranslate"><span class="pre">calculate_flux_weights</span></code> (<code class="docutils literal notranslate"><span class="pre">.flux</span></code> images).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">LineStacker.line_image</span></code> no longer works: use <code class="docutils literal notranslate"><span class="pre">LineStacker.image</span></code>
+(same <code class="docutils literal notranslate"><span class="pre">stack</span></code> arguments).</p></li>
+</ul>
+</section>
+<section id="what-the-stacked-cube-contains">
+<h2>What the stacked cube contains<a class="headerlink" href="#what-the-stacked-cube-contains" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Stamps are cut on each cube’s own pixel grid, centred on the source;
+cubes are not reprojected. The output keeps the first cube’s pixel size
+and orientation (a rotated grid is written with a PC matrix).</p></li>
+<li><p>All cubes must have the same kind of spectral axis (FREQ, WAVE, AWAV,
+VRAD…); stacking frequency with wavelength cubes, or using a non-linear
+axis (<code class="docutils literal notranslate"><span class="pre">WAVE-LOG</span></code>, <code class="docutils literal notranslate"><span class="pre">FREQ-TAB</span></code>…) in a line stack (any <code class="docutils literal notranslate"><span class="pre">spectralMethod</span></code>), is
+an error. Units are converted to the first cube’s (Hz and GHz cubes stack
+together); <code class="docutils literal notranslate"><span class="pre">fEm</span></code>, <code class="docutils literal notranslate"><span class="pre">lEm</span></code> and observed values are in that unit. Different
+<code class="docutils literal notranslate"><span class="pre">SPECSYS</span></code> frames, or <code class="docutils literal notranslate"><span class="pre">SPECSYS</span></code> missing in some cubes, give a warning:
+LineStacker does not convert frames.</p></li>
+<li><p>Pixel units (<code class="docutils literal notranslate"><span class="pre">BUNIT</span></code>) are compared: scaled units are converted to the
+first cube’s (mJy/beam to Jy/beam), recognised but physically different
+units (K and Jy/beam, Jy/pixel and Jy/beam) are an error, and cubes
+without <code class="docutils literal notranslate"><span class="pre">BUNIT</span></code>, or with units astropy cannot read, give a warning and
+are stacked without conversion.</p></li>
+<li><p>Cubes on a different grid from the first one (pixel size, orientation,
+projection, celestial frame, distortions) give a warning; stamps are not
+reprojected.</p></li>
+<li><p>BMAJ, BMIN are the mean of the input beams and BPA their axial mean (179°
+and 1° give 0°), an approximation of the stack’s beam.</p></li>
+<li><p>Weights must be finite and &gt;= 0 (a negative or NaN weight is an error).
+Every weighting multiplies the coordinates’ own weights.</p></li>
+</ul>
+</section>
+<section id="d-stacking-image-is-now-spectrum">
+<h2>1D stacking: <code class="docutils literal notranslate"><span class="pre">Image</span></code> is now <code class="docutils literal notranslate"><span class="pre">Spectrum</span></code><a class="headerlink" href="#d-stacking-image-is-now-spectrum" title="Link to this heading">¶</a></h2>
+<p>The object holding one spectrum to stack is <code class="docutils literal notranslate"><span class="pre">LineStacker.OneD_Stacker.Spectrum</span></code>
+(was <code class="docutils literal notranslate"><span class="pre">Image</span></code>), with the same arguments and attributes. The 1D functions take
+<code class="docutils literal notranslate"><span class="pre">spectra</span></code> instead of <code class="docutils literal notranslate"><span class="pre">Images</span></code>/<code class="docutils literal notranslate"><span class="pre">images</span></code>: <code class="docutils literal notranslate"><span class="pre">Stack(spectra,</span> <span class="pre">...)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">bootstraping_OneD(spectra,</span> <span class="pre">...)</span></code>, <code class="docutils literal notranslate"><span class="pre">subsample_OneD(spectra,</span> <span class="pre">...)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">rebin_OneD(spectra)</span></code>, <code class="docutils literal notranslate"><span class="pre">regridFromZ1D(spectra,</span> <span class="pre">...)</span></code>. Positional calls are
+unchanged; calls passing <code class="docutils literal notranslate"><span class="pre">Images=</span></code> by keyword need updating.</p>
+<p>Velocities are in km/s. A spectrum with velocities and a redshift
+(<code class="docutils literal notranslate"><span class="pre">Spectrum(spectrum=...,</span> <span class="pre">z=z,</span> <span class="pre">fEmLine=f0)</span></code>) has velocities relative to the
+rest frequency <code class="docutils literal notranslate"><span class="pre">f0</span></code> (as a CASA spectrum with <code class="docutils literal notranslate"><span class="pre">restfreq=f0</span></code>); its line is at
+v = c z/(1+z) in the radio convention (default, as CASA and LineStacker.uv),
+c z with <code class="docutils literal notranslate"><span class="pre">velConvention='optical'</span></code>, or the relativistic velocity with
+<code class="docutils literal notranslate"><span class="pre">'relativistic'</span></code>. <code class="docutils literal notranslate"><span class="pre">velocity_to_frequency</span></code> and <code class="docutils literal notranslate"><span class="pre">frequency_to_velocity</span></code> do the
+conversions.</p>
+</section>
+<section id="stacking-positions-catalogue-arrays-or-coordinate-files">
+<h2>Stacking positions: catalogue, arrays or coordinate files<a class="headerlink" href="#stacking-positions-catalogue-arrays-or-coordinate-files" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LineStacker.readCatalog(catalog)</span></code>: one table for the whole sample, one row
+per source: <code class="docutils literal notranslate"><span class="pre">ra</span></code>, <code class="docutils literal notranslate"><span class="pre">dec</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code> (optional; without it the positions are for
+continuum stacking), <code class="docutils literal notranslate"><span class="pre">weight</span></code> (optional) and <code class="docutils literal notranslate"><span class="pre">image</span></code>, the cube of each
+source. Reads CSV, ECSV, FITS tables, VOTable (any astropy table format),
+an astropy <code class="docutils literal notranslate"><span class="pre">Table</span></code>, a pandas <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> or a dict. Column names are
+matched case-insensitively, common alternatives are recognised (<code class="docutils literal notranslate"><span class="pre">RAJ2000</span></code>,
+<code class="docutils literal notranslate"><span class="pre">DEJ2000</span></code>, <code class="docutils literal notranslate"><span class="pre">redshift</span></code>, <code class="docutils literal notranslate"><span class="pre">cube</span></code>, …), and any name can be given
+(<code class="docutils literal notranslate"><span class="pre">readCatalog(cat,</span> <span class="pre">ra='alpha',</span> <span class="pre">z='zspec',</span> <span class="pre">image='file')</span></code>). Positions in
+degrees (or <code class="docutils literal notranslate"><span class="pre">unit='rad'</span></code>), with units from the table, or sexagesimal (RA in
+hours, CASA’s dotted declinations accepted); each value is read on its own,
+so a column mixing forms is read correctly. Relative cube names are looked
+up next to the catalogue, then from the working directory (<code class="docutils literal notranslate"><span class="pre">imagedir=</span></code>
+overrides).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LineStacker.makeCoords(ra,</span> <span class="pre">dec,</span> <span class="pre">z=...,</span> <span class="pre">weight=...,</span> <span class="pre">image=...)</span></code>: the same
+from lists, numpy arrays, astropy quantities or a <code class="docutils literal notranslate"><span class="pre">SkyCoord</span></code> (notebooks).</p></li>
+<li><p>The cube of a source is never guessed: it comes from the catalogue/<code class="docutils literal notranslate"><span class="pre">image=</span></code>,
+or, when no cube is named, from a single cube given as <code class="docutils literal notranslate"><span class="pre">imagenames</span></code>. A cube
+missing from <code class="docutils literal notranslate"><span class="pre">imagenames</span></code> is an error. <code class="docutils literal notranslate"><span class="pre">imagenames</span></code> can be omitted when every
+source names its cube.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">readCoords</span></code> (one file per cube) works as before.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LineStacker.image.readCube(name)</span></code> reads a FITS file or CASA image as a numpy
+array (x, y, stokes, channel), for plots and checks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rebin_CubesSpectra(...,</span> <span class="pre">outdir=)</span></code> writes the rebinned cubes to a folder.</p></li>
+</ul>
+</section>
+<section id="examples-notebook">
+<h2>Examples notebook<a class="headerlink" href="#examples-notebook" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">LineStacker/Example/LineStacker_examples.ipynb</span></code> runs every example (1D
+stacking, bootstrapping and subsampling; cube stacking from coordinate files,
+a catalogue and arrays; line fits, rebinning and bootstrapping; continuum
+stacking and random positions) on the example data in about 30 s, writing to
+<code class="docutils literal notranslate"><span class="pre">Example/notebook_outputs/</span></code>. It is saved with its outputs (figures).</p>
+</section>
+<section id="messages-verbose">
+<h2>Messages: <code class="docutils literal notranslate"><span class="pre">verbose</span></code><a class="headerlink" href="#messages-verbose" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">LineStacker.verbose</span></code> (default <code class="docutils literal notranslate"><span class="pre">True</span></code>) makes LineStacker report what it does:
+positions read, the full path of every file written (stacked cube, weights,
+sub-cubes, rebinned or regridded cubes) and progress bars. Each function that
+prints takes <code class="docutils literal notranslate"><span class="pre">verbose=True/False</span></code> to override it for one call. With verbose
+off LineStacker prints nothing; problems (zero-noise stamps, collapsed cubes,
+failed fits…) are Python warnings and show either way.</p>
+</section>
+<section id="what-works-now-that-did-not">
+<h2>What works now that did not<a class="headerlink" href="#what-works-now-that-did-not" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>CASA images as input.</strong> <code class="docutils literal notranslate"><span class="pre">line_image</span></code> had been rewritten to read FITS only,
+so the shipped examples (CASA <code class="docutils literal notranslate"><span class="pre">.image</span></code> cubes) failed with
+<code class="docutils literal notranslate"><span class="pre">IsADirectoryError</span></code>. All modules now share one reader
+(<code class="docutils literal notranslate"><span class="pre">LineStacker/_io.py</span></code>) that takes FITS files or CASA images (exported
+through casatools; both kinds can be mixed in one stack), in any axis order (RA/Dec swapped, Stokes before or after
+the spectral axis, no Stokes, 2D images), with <code class="docutils literal notranslate"><span class="pre">CDELT</span></code> or <code class="docutils literal notranslate"><span class="pre">CD</span></code> matrices and
+frequency or wavelength (<code class="docutils literal notranslate"><span class="pre">FREQ</span></code>, <code class="docutils literal notranslate"><span class="pre">WAVE</span></code>, <code class="docutils literal notranslate"><span class="pre">AWAV</span></code>) axes. Cubes are read once
+and cached (<code class="docutils literal notranslate"><span class="pre">LineStacker._io.clear_cache()</span></code> frees them).</p></li>
+<li><p><strong>CASA 6 tools.</strong> The shim imported <code class="docutils literal notranslate"><span class="pre">casalog</span></code> from <code class="docutils literal notranslate"><span class="pre">casatools</span></code>, which CASA 6
+does not export, so it failed on every real CASA 6 installation; its CASA 5
+fallback imported itself. Both fixed and checked against casatools 6.7.6.</p></li>
+<li><p><strong>Output cubes.</strong> <code class="docutils literal notranslate"><span class="pre">outfile='x.fits'</span></code> writes FITS, any other name (e.g.
+<code class="docutils literal notranslate"><span class="pre">stackResult.image</span></code>) a CASA image with axes RA, Dec, Stokes, Frequency as
+before. The header is rebuilt cleanly instead of averaging every keyword of
+every input header.</p></li>
+<li><p><strong>NumPy 2.</strong> <code class="docutils literal notranslate"><span class="pre">np.NaN</span></code>, <code class="docutils literal notranslate"><span class="pre">np.float</span></code>, <code class="docutils literal notranslate"><span class="pre">np.cast</span></code>, <code class="docutils literal notranslate"><span class="pre">np.rank</span></code>, list indexing and
+int-array in-place float maths were removed or broke <code class="docutils literal notranslate"><span class="pre">OneD_Stacker.Stack</span></code>,
+<code class="docutils literal notranslate"><span class="pre">congrid</span></code>, <code class="docutils literal notranslate"><span class="pre">regridFromZ1D</span></code>, <code class="docutils literal notranslate"><span class="pre">rebin_OneD</span></code> and spline regridding. Comparing a
+weights array with <code class="docutils literal notranslate"><span class="pre">'1/A'</span></code> raised “truth value is ambiguous”.</p></li>
+<li><p><strong>Modules that used the removed Stacker <code class="docutils literal notranslate"><span class="pre">CoordList</span></code> model</strong>
+(<code class="docutils literal notranslate"><span class="pre">image</span></code> (continuum stacking), <code class="docutils literal notranslate"><span class="pre">bootStraping_Cube</span></code>, <code class="docutils literal notranslate"><span class="pre">stack_estimator</span></code>,
+<code class="docutils literal notranslate"><span class="pre">rebin_CubesSpectra</span></code>, cube <code class="docutils literal notranslate"><span class="pre">regridFromZ</span></code>, and <code class="docutils literal notranslate"><span class="pre">randomCoords</span></code> /
+<code class="docutils literal notranslate"><span class="pre">randomizeCoords</span></code>, which only printed ‘TODO’) are ported to <code class="docutils literal notranslate"><span class="pre">Coord(ra,</span> <span class="pre">dec,</span> <span class="pre">spec)</span></code>. <code class="docutils literal notranslate"><span class="pre">Coord</span></code> also answers
+to <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code> for older scripts.</p></li>
+<li><p><strong>regridFromZ</strong> in <code class="docutils literal notranslate"><span class="pre">line_image.stack</span></code> was silently ignored; it now resamples
+each source to a common rest-frame channel (linear interpolation, fractional
+line centres), for frequency and wavelength cubes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">readCoords</span></code>: CASA <code class="docutils literal notranslate"><span class="pre">-027.40.59.866</span></code> declinations, blank/comment lines,
+delimiter fallback (comma, space, tab), <code class="docutils literal notranslate"><span class="pre">type='pixel'</span></code> (was ignored).
+Coordinate files are matched to <code class="docutils literal notranslate"><span class="pre">imagenames</span></code> by name, or else by file order.</p></li>
+<li><p><strong>Gaussian fits</strong> (<code class="docutils literal notranslate"><span class="pre">LineStacker.tools.fit</span></code>) ignore NaN channels and raise
+<code class="docutils literal notranslate"><span class="pre">FitError</span></code> (a <code class="docutils literal notranslate"><span class="pre">RuntimeError</span></code>) for too few points, constant data or a fit
+that does not converge; the bootstraps and grades turn those into NaN or 0.
+<code class="docutils literal notranslate"><span class="pre">DoubleGaussPeak</span></code> is centred on the middle of its axis (it assumed an axis
+starting at 0).</p></li>
+<li><p><strong>Input checks</strong> with clear messages: empty spectrum or image lists,
+negative or non-integer <code class="docutils literal notranslate"><span class="pre">nRandom</span></code>, <code class="docutils literal notranslate"><span class="pre">minSize</span></code>/<code class="docutils literal notranslate"><span class="pre">maxSize</span></code> of <code class="docutils literal notranslate"><span class="pre">subsample_OneD</span></code>,
+<code class="docutils literal notranslate"><span class="pre">regridMethod</span></code>, rebinning widths, <code class="docutils literal notranslate"><span class="pre">randomCoords</span></code> margins, empty cube names
+and non-finite <code class="docutils literal notranslate"><span class="pre">z</span></code>/weights in catalogues, equatorial frames only
+(<code class="docutils literal notranslate"><span class="pre">makeCoords(SkyCoord)</span></code> converts e.g. Galactic positions). Coordinates in
+different frames (ICRS, FK5…) are each converted.</p></li>
+<li><p><strong>Cached cubes</strong> are read again when their file changes (for CASA images,
+any file of the image directory); the stale copy is dropped.</p></li>
+<li><p>Smaller crashes: <code class="docutils literal notranslate"><span class="pre">KeyError:</span> <span class="pre">'freqlen'</span></code> when a line was near the upper edge
+of a cube, <code class="docutils literal notranslate"><span class="pre">coord.z</span></code> in obsSpec mode, <code class="docutils literal notranslate"><span class="pre">returnWeights</span></code>, <code class="docutils literal notranslate"><span class="pre">plotIt</span></code>,
+<code class="docutils literal notranslate"><span class="pre">stampsize=1</span></code> in <code class="docutils literal notranslate"><span class="pre">stack_estimator</span></code>, non-square images in <code class="docutils literal notranslate"><span class="pre">noise_estimator</span></code>,
+float slice indices in <code class="docutils literal notranslate"><span class="pre">rebin_CubesSpectra</span></code>, <code class="docutils literal notranslate"><span class="pre">freqBin</span></code> never rescaled when
+rebinning 1D spectra, <code class="docutils literal notranslate"><span class="pre">LineStacker.tools.GaussFit</span></code> typo in the 1D bootstrap.</p></li>
+</ul>
+</section>
+<section id="changes-in-results-please-check-against-your-expectations">
+<h2>Changes in results (please check against your expectations)<a class="headerlink" href="#changes-in-results-please-check-against-your-expectations" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Stack centre moves by one channel</strong> for FITS input. The FITS rewrite used
+the 1-based <code class="docutils literal notranslate"><span class="pre">CRPIX3</span></code> where the CASA code used CASA’s 0-based reference pixel.
+The new code agrees with CASA’s own <code class="docutils literal notranslate"><span class="pre">topixel</span></code>.</p></li>
+<li><p>Line centres are rounded half away from zero, as Python 2’s <code class="docutils literal notranslate"><span class="pre">round()</span></code> did
+(Python 3 rounds halves to even).</p></li>
+<li><p>Median stacks ignore channels that fall outside a source’s cube instead of
+counting them as zeros. Mean stacks already gave those channels zero weight.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bootStraping_Cube</span></code> ‘amp’/’ampAndWidth’/’outflow’ now use the spectrum
+summed over the stamp, as documented. The code summed axes (1,2,3), i.e. a
+spatial profile.</p></li>
+<li><p>Weights are computed on copies: the user’s <code class="docutils literal notranslate"><span class="pre">Coord</span></code> objects are not
+modified, and <code class="docutils literal notranslate"><span class="pre">weighting='sigma2'</span></code> no longer compounds when the same
+coordinates are stacked twice.</p></li>
+<li><p>Cubes whose spectral axis runs the other way (positive vs negative CDELT3)
+are flipped to match the first cube instead of being stacked mirrored.</p></li>
+<li><p>Channels whose total weight is zero give NaN (blank) instead of
+ZeroDivisionError; sigma2F channels with zero noise get weight 0 instead
+of infinity.</p></li>
+<li><p>Gaussian fits that do not converge are stored as <code class="docutils literal notranslate"><span class="pre">[nan,</span> <span class="pre">nan]</span></code> (with a
+warning) instead of aborting a whole bootstrap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hdul</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">'auto'</span></code> (first HDU with an image: 0 for ALMA/CASA FITS,
+1 for MUSE). An explicit <code class="docutils literal notranslate"><span class="pre">hdul=1</span></code> still works.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">noise_estimator(maskCenter=[x,</span> <span class="pre">y])</span></code> uses x along RA and y along Dec as
+documented; it no longer blocks on <code class="docutils literal notranslate"><span class="pre">plt.show()</span></code> (<code class="docutils literal notranslate"><span class="pre">plotIt=False</span></code> disables
+the plot).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maximizeSNR</span></code> (the default grade of <code class="docutils literal notranslate"><span class="pre">subsample_OneD</span></code>) returns 0 when the
+Gaussian fit converges on a line centred outside the spectrum (it can lock
+onto a stack edge). Its noise was then computed from a negative slice
+index, i.e. a few channels at the end, giving grades of ~1000 instead of
+~4 that dominated the summed grades: the subsampling example no longer
+singled out the bright spectra. With the fix it does again (with 10 000
+iterations already). The fit’s sigma is also used as an absolute value.</p></li>
+<li><p>Random draws are vectorised, so a given <code class="docutils literal notranslate"><span class="pre">np.random.seed</span></code> gives different
+(statistically equivalent) samples than LineStacker 1.x. All Monte-Carlo
+tools also take <code class="docutils literal notranslate"><span class="pre">seed=</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weighting='sigma2F'</span></code> multiplies the coordinates’ weights by 1/σ² (it
+replaced them, so catalogue weights were lost), and σ of each channel
+uses only the valid pixels outside the mask (masked and blank pixels
+were counted as zeros, which lowered σ). Unchanged for unit weights,
+no mask and no blank pixels, as in the examples.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weighting='1/A'</span></code> gives weight 0 (with a warning) to sources whose
+amplitude is not positive, instead of a negative or infinite weight.</p></li>
+<li><p>Weighted 1D stacks: channels where a spectrum’s flux is NaN no longer
+count in the sum of weights (they pulled the mean towards 0).</p></li>
+<li><p>Spectra given as amplitudes only, with an odd number of channels, lost
+their last channel in ‘full’ stacks (Python 3 rounding of the default
+velocity axis).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Spectrum(z=...,</span> <span class="pre">fEmLine=...)</span></code> with velocities is centred on the line
+(<code class="docutils literal notranslate"><span class="pre">velToFreq</span></code> returned <code class="docutils literal notranslate"><span class="pre">fObs</span> <span class="pre">v/(v+c)</span></code>, not a frequency).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">regridFromZ</span></code> (writing cubes): regridded cubes have a rest-frame spectral
+axis (CDELT3 was the observed width, so the stack’s CDELT3 was wrong) and
+keep the sky coordinates of the original cube (CRVAL was set to 0, 0).
+Its result is stacked as returned, with <code class="docutils literal notranslate"><span class="pre">spectralMethod='z'</span></code> and <code class="docutils literal notranslate"><span class="pre">fEm</span></code>.</p></li>
+<li><p>Beam position angles are averaged as axes (BPA changes only when the
+input angles straddle ±90°).</p></li>
+<li><p>Cubes in compatible but different intensity units (mJy/beam, Jy/beam)
+are converted to the first cube’s unit before stacking (they were
+averaged as raw numbers).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">regridFromZ</span></code>: the coordinates returned for regridded cubes are the
+sources’ own (fractional) pixels in the stamps, not the integer stamp
+centre, so their sky positions are exact.</p></li>
+<li><p>1D stacks leave out infinite fluxes, as they do NaN (one infinite
+channel made the stack infinite).</p></li>
+<li><p><strong>Blank pixels stay NaN</strong> (they were set to 0, as in LineStacker 1.x).
+Stacks leave them out pixel by pixel; stacked pixels without valid data,
+and stack channels that no source covers, are NaN instead of 0; pixels
+that are exactly 0 now count as data in the noise-based weightings and
+<code class="docutils literal notranslate"><span class="pre">noise_estimator</span></code>; collapsed images keep NaN where every channel is
+blank. <code class="docutils literal notranslate"><span class="pre">readCube</span></code> returns NaN for blank pixels. A blank channel blanks
+only the stack channels interpolated from it (a stack channel that falls
+exactly on a valid channel keeps its value). Rebinning and regridding
+never use blank channels: with linear interpolation (<code class="docutils literal notranslate"><span class="pre">rebin_OneD</span></code>,
+<code class="docutils literal notranslate"><span class="pre">rebin_CubesSpectra</span></code>) a new channel interpolated from a blank one is
+NaN; the cubic spline of <code class="docutils literal notranslate"><span class="pre">regridFromZ1D</span></code> and <code class="docutils literal notranslate"><span class="pre">regridFromZ</span></code> runs through
+each stretch of valid channels separately, so only new channels between
+a valid and a blank channel are NaN. Blanks thus stay local instead of
+spreading over the whole spectrum. The <code class="docutils literal notranslate"><span class="pre">maximizeSNR</span></code> grade measures the
+noise on valid channels only. 1D stacks also give NaN, instead of 0,
+for channels without data (no spectrum covers them, or only blank
+fluxes or zero weights), as cube stacks do.</p></li>
+<li><p><strong>Regridding to a common rest-frame channel width</strong> (<code class="docutils literal notranslate"><span class="pre">regridFromZ1D</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Stack(regridFromZ=True)</span></code>, <code class="docutils literal notranslate"><span class="pre">regridFromZ</span></code>) samples old channel
+j (1+z_ref)/(1+z) for new channel j, so every source gets exactly the
+reference channel width (the number of channels was rounded and the
+width followed it, up to half a channel over the spectrum). New channels
+beyond the last old channel are NaN; the spline used to give 0 there,
+and a velocity of 0 at the end of the axis. Spectral axes are
+interpolated linearly (the spline bent them near the ends), and the
+channel widths, line centres (rounded, they were truncated), per-channel
+weights and <code class="docutils literal notranslate"><span class="pre">spectrum</span></code> arrays follow the new channels. Regridded cubes
+label their spectral axis with the exact, fractional, channel of the line
+(it was rounded to a whole channel).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rebin_OneD</span></code> moves the line centre (<code class="docutils literal notranslate"><span class="pre">centerIndex</span></code>) with the rebinned
+channels (it kept the old channel, so line-centre stacks of rebinned
+spectra were misaligned unless <code class="docutils literal notranslate"><span class="pre">fit=True</span></code>), and compares line widths in
+channels (fitted widths in km/s mixed spectra with different channel
+widths).</p></li>
+<li><p>The spectral axis of a 1D <code class="docutils literal notranslate"><span class="pre">Spectrum</span></code> must be evenly spaced (within 5% of
+a channel, so rounded values from text files are fine): every channel is
+located with one channel width, which is now the mean spacing (it was
+the first spacing, which rounding of the values could make off by a few
+percent). <code class="docutils literal notranslate"><span class="pre">weights='sigma2'</span></code> with <code class="docutils literal notranslate"><span class="pre">fit=True</span></code> left the line in the noise
+estimate of spectra with decreasing axes. A line centre outside its
+spectrum is now an error when stacking (it made very long stacks).</p></li>
+</ol>
+<p>On the example data (no blank pixels) all stacks, with every weighting,
+line and continuum, are bit-identical to the first 2.0 port; items 13-26
+change results only for data that hit those cases (the examples do not
+regrid spectra by redshift).</p>
+</section>
+<section id="speed-and-parallelism">
+<h2>Speed and parallelism<a class="headerlink" href="#speed-and-parallelism" title="Link to this heading">¶</a></h2>
+<p>The 1D stacker, the bootstraps and the random-position estimator were
+vectorised; this matters more than extra cores. Times on the example data,
+2-core sandbox (expect better scaling with more cores):</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>task</p></th>
+<th class="head"><p>LineStacker 1.x</p></th>
+<th class="head"><p>2.0 serial</p></th>
+<th class="head"><p>2.0, 2 cores</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1D median bootstrap, 50 spectra, 10 000 draws</p></td>
+<td><p>263 s</p></td>
+<td><p>1.6 s</p></td>
+<td><p>0.9 s (threads)</p></td>
+</tr>
+<tr class="row-odd"><td><p>1D mean bootstrap, 100 000 draws</p></td>
+<td><p>~45 min (est.)</p></td>
+<td><p>0.8 s</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>1D bootstrap with Gaussian fits, 20 000 draws</p></td>
+<td><p></p></td>
+<td><p>18.0 s</p></td>
+<td><p>10.9 s (processes)</p></td>
+</tr>
+<tr class="row-odd"><td><p>1D subsample (maximizeSNR), 10 000 draws</p></td>
+<td><p>~190 s (est.)</p></td>
+<td><p>13.7 s</p></td>
+<td><p>8.2 s (processes)</p></td>
+</tr>
+<tr class="row-even"><td><p>cube stack, 50 CASA cubes (first / cached)</p></td>
+<td><p></p></td>
+<td><p>2.4 s / 0.09 s</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>continuum stack of the same cubes (collapsed in memory)</p></td>
+<td><p></p></td>
+<td><p>1.6 s / 0.16 s</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>cube mean bootstrap, 10 000 draws</p></td>
+<td><p>broken</p></td>
+<td><p>0.2 s</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>cube median bootstrap, 1 000 draws</p></td>
+<td><p>broken</p></td>
+<td><p>8.5 s</p></td>
+<td><p>4.3 s (threads)</p></td>
+</tr>
+<tr class="row-even"><td><p>cube bootstrap with fits, 20 000 draws</p></td>
+<td><p>broken</p></td>
+<td><p>11.7 s</p></td>
+<td><p>6.9 s (processes)</p></td>
+</tr>
+<tr class="row-odd"><td><p>stack_estimator, 2 000 random stacks</p></td>
+<td><p>broken</p></td>
+<td><p>0.2 s</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">bootstraping_OneD</span></code>, <code class="docutils literal notranslate"><span class="pre">bootStraping_Cube</span></code>, <code class="docutils literal notranslate"><span class="pre">subsample_OneD</span></code> and
+<code class="docutils literal notranslate"><span class="pre">stack_estimator</span></code> take <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> (-1 = all cores), <code class="docutils literal notranslate"><span class="pre">backend</span></code>
+(<code class="docutils literal notranslate"><span class="pre">'process'</span></code> or <code class="docutils literal notranslate"><span class="pre">'thread'</span></code>; a sensible one is chosen per task) and <code class="docutils literal notranslate"><span class="pre">seed</span></code>.
+Random numbers are drawn before the work is split, so results are identical
+for any <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>. Worker processes start with <code class="docutils literal notranslate"><span class="pre">spawn</span></code> (safe with CASA and on
+macOS), which costs ~0.7 s, so processes pay off for runs longer than a few
+seconds. On macOS/Windows, scripts using processes need an
+<code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">'__main__':</span></code> guard (see the examples).</p>
+</section>
+<section id="removed">
+<h2>Removed<a class="headerlink" href="#removed" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LineStacker.modsub</span></code> and <code class="docutils literal notranslate"><span class="pre">LineStacker.pb</span></code>: the uv-domain code of Stacker
+(it needed the C++ <code class="docutils literal notranslate"><span class="pre">libstacker</span></code>). uv-domain stacking is
+<code class="docutils literal notranslate"><span class="pre">LineStacker.uv</span></code> (2.1); primary-beam weighting of image stacks takes
+primary-beam images or a function (see above).</p></li>
+<li><p>The vendored <code class="docutils literal notranslate"><span class="pre">interval</span></code> package (unused).</p></li>
+<li><p>CASA 5 support (<code class="docutils literal notranslate"><span class="pre">taskinit</span></code>): CASA 5 runs Python 2.</p></li>
+<li><p>Helpers working on the module state of the last stack:
+<code class="docutils literal notranslate"><span class="pre">image.calculate_sigma2_weights</span></code>, <code class="docutils literal notranslate"><span class="pre">calculate_sigma2_weights_spectral</span></code>,
+<code class="docutils literal notranslate"><span class="pre">calculate_amp_weights</span></code>, <code class="docutils literal notranslate"><span class="pre">myVeryOwnWeightedAverage</span></code> and the module
+variables (<code class="docutils literal notranslate"><span class="pre">image.data</span></code>, <code class="docutils literal notranslate"><span class="pre">skymap</span></code>, <code class="docutils literal notranslate"><span class="pre">unusedFrequencies</span></code>…), which kept
+every cube of the last stack in memory; use <code class="docutils literal notranslate"><span class="pre">weighting=</span></code> and the values
+<code class="docutils literal notranslate"><span class="pre">stack</span></code> returns. Also <code class="docutils literal notranslate"><span class="pre">analysisTools.randomizeSample</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Coord.setWeightToX</span></code>/<code class="docutils literal notranslate"><span class="pre">setZeroWeightLeft</span></code>/<code class="docutils literal notranslate"><span class="pre">setZeroWeightRight</span></code> (unused).</p></li>
+<li><p>The documentation inside the package (<code class="docutils literal notranslate"><span class="pre">LineStacker/docs</span></code>): it is built
+from <code class="docutils literal notranslate"><span class="pre">docs/source</span></code> into <code class="docutils literal notranslate"><span class="pre">docs/</span></code> (the github.io site).</p></li>
+</ul>
+</section>
+<section id="review-fixes-october-2026">
+<h2>Review fixes (October 2026)<a class="headerlink" href="#review-fixes-october-2026" title="Link to this heading">¶</a></h2>
+<p>A code review of the 2.0 port led to: the weighting fixes (items 13-15
+above), the spectral-unit and axis checks, grid warnings and rotated output
+WCS, primary-beam offsets on rotated grids (the cross terms of the pixel
+matrix were ignored), the velocity conversion, <code class="docutils literal notranslate"><span class="pre">regridFromZ</span></code>’s cube labels,
+NaN-aware fits, input validation, cache invalidation of modified CASA
+images, closing every CASA tool, and per-call isolation of the inputs of
+parallel jobs (two jobs in different threads could see each other’s data).
+Each fix has a test in <code class="docutils literal notranslate"><span class="pre">tests/test_weights_wcs.py</span></code> or
+<code class="docutils literal notranslate"><span class="pre">tests/test_validation.py</span></code>.</p>
+<p>A second review led to: non-linear spectral axes refused in every line
+mode (the stack’s header could not describe them), intensity-unit checks
+and conversion, projection/frame/distortion checks, fractional pixels from
+<code class="docutils literal notranslate"><span class="pre">regridFromZ</span></code>, infinite fluxes and one-channel spectra in 1D, <code class="docutils literal notranslate"><span class="pre">FitError</span></code>
+for every fit failure (<code class="docutils literal notranslate"><span class="pre">DoublePeakFit</span></code> on short inputs, default widths from
+valid channels only), the same “at least 2 valid pixels” rule for <code class="docutils literal notranslate"><span class="pre">'sigma'</span></code>
+and <code class="docutils literal notranslate"><span class="pre">'sigma2'</span></code> as for <code class="docutils literal notranslate"><span class="pre">'sigma2F'</span></code>, integer subsample sizes, one image path
+and limit checks in both <code class="docutils literal notranslate"><span class="pre">randomizeCoords</span></code>, <code class="docutils literal notranslate"><span class="pre">congrid(minusone=True)</span></code> with a
+target size of 1, <code class="docutils literal notranslate"><span class="pre">None</span></code>/NaN cube names in catalogues, primary-beam cubes on
+another spectral axis (an error), <code class="docutils literal notranslate"><span class="pre">LineStacker.cache_check</span></code> to trust the
+cube cache, a lock around the thread variables set for worker processes,
+and subprocess tests of CASA’s log settings. Tests:
+<code class="docutils literal notranslate"><span class="pre">tests/test_review2.py</span></code>.</p>
+<p>A third round: blank pixels stay NaN (see “Changes in results”, 23), SIP
+and lookup-table distortions are compared term by term, the Gaussian
+primary beam uses spherical sky offsets, <code class="docutils literal notranslate"><span class="pre">randomCoords(ncoords)</span></code> and
+<code class="docutils literal notranslate"><span class="pre">randomizeCoords(maxTries)</span></code> must be integers, <code class="docutils literal notranslate"><span class="pre">noise_estimator</span></code> and
+<code class="docutils literal notranslate"><span class="pre">stack_estimator</span></code> need <code class="docutils literal notranslate"><span class="pre">nRandom</span> <span class="pre">&gt;=</span> <span class="pre">1</span></code>, default fit widths use the median
+channel spacing, and spectral axes of spectra must be finite and steadily
+increasing or decreasing.</p>
+<p>A fourth round finished the NaN handling: exact channels next to a blank
+one are no longer blanked (<code class="docutils literal notranslate"><span class="pre">NaN</span> <span class="pre">*</span> <span class="pre">0</span></code> is NaN) when stamps are cut,
+rebinning and regridding share one NaN-aware resampling (blank channels
+used by an interpolation blank its result, and nothing else),
+<code class="docutils literal notranslate"><span class="pre">rebin_CubesSpectra(regionSize=...)</span></code> keeps channels blank in the whole
+region as NaN for its width fits, <code class="docutils literal notranslate"><span class="pre">maximizeSNR</span></code> ignores blank channels in
+its noise (and gives 0 with fewer than 2 valid ones), spectra with a
+one-element velocity or frequency axis raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>, and distortion
+signatures with different terms compare as different. <code class="docutils literal notranslate"><span class="pre">regridFromZ</span></code> with
+blanks now also works when it upsamples (it raised an error). Tests:
+<code class="docutils literal notranslate"><span class="pre">tests/test_review4.py</span></code>.</p>
+<p>A fifth round and a release review: splines that never use blank channels
+(the blank mask approximated the spline’s reach, which its prefilter
+extends over the whole spectrum), evenly spaced 1D axes, <code class="docutils literal notranslate"><span class="pre">sigma2</span></code>
+weights of fitted spectra with decreasing axes, NaN for 1D channels without
+data, and the resampling fixes of items 24-25 (axes, centres, widths and
+weights of rebinned and regridded spectra; exact channel widths and line
+labels of regridded cubes). Also: line centres outside a spectrum,
+<code class="docutils literal notranslate"><span class="pre">center='zero_vel'</span></code> without velocities, Gaussian-fit centring of frequency
+spectra (it used the velocities), AIPS <code class="docutils literal notranslate"><span class="pre">FELO</span></code> axes treated as non-linear,
+<code class="docutils literal notranslate"><span class="pre">rebin_CubesSpectra(regionSize=...)</span></code> regions outside the cube (and of the
+size asked for: an odd size gave one pixel less, the region is now placed as
+the stacker places stamps), a warning and weight 0 for blank primary-beam
+responses (beyond the primary-beam cutoff, also for single-plane primary-beam
+images, which gave a silent 0), dimension checks in the NaN-aware resampling, NaN-safe
+<code class="docutils literal notranslate"><span class="pre">maximizeAmp</span></code> and 1D bootstrap amplitudes, and the missing docstrings of
+<code class="docutils literal notranslate"><span class="pre">congrid</span></code>, <code class="docutils literal notranslate"><span class="pre">maximizeAmp</span></code> and <code class="docutils literal notranslate"><span class="pre">maximizeOutflow</span></code>. Tests: <code class="docutils literal notranslate"><span class="pre">tests/test_review5.py</span></code>.</p>
+<p>The version stays 2.0.0 until the first 2.0 release; if a 2.0.0 was already
+distributed, release this as 2.0.1.</p>
+</section>
+<section id="example-scripts">
+<h2>Example scripts<a class="headerlink" href="#example-scripts" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">LineStacker/Example/*/*.py</span></code> are ported (the originals were Python 2 and used
+<code class="docutils literal notranslate"><span class="pre">taskinit</span></code>); <code class="docutils literal notranslate"><span class="pre">cube/continuum_example.py</span></code> is new. They read cubes with
+<code class="docutils literal notranslate"><span class="pre">LineStacker.image.readCube</span></code> (no casatools calls of their own). The cube scripts accept the data folder as an argument instead of
+the file dialog: <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">basic_example.py</span> <span class="pre">data</span></code>. They use
+<code class="docutils literal notranslate"><span class="pre">str.removesuffix('_coord.txt')</span></code>; the old <code class="docutils literal notranslate"><span class="pre">strip('_coords.txt')</span></code> removed
+characters, not a suffix, and only worked by luck with the example names.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

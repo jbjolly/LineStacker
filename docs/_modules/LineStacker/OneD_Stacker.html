@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LineStacker.OneD_Stacker &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="../../_static/documentation_options.js?v=db988ed8"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="../../_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="../../_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="../../index.html"><img src="../../_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../principle.html">How stacking works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../positions.html">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../spectra.html">Stacking spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../analysis.html">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_generated/examples_notebook.html">LineStacker examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../LineStacker.html">LineStacker</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for LineStacker.OneD_Stacker</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">Stacking of 1D spectra: each spectrum is a :class:`Spectrum`, which knows</span>
+<span class="sd">where its line is; :func:`Stack` aligns the spectra on their lines and</span>
+<span class="sd">averages them channel by channel. Velocities are in km/s.</span>
+<span class="sd">"""</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">LineStacker</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">LineStacker.tools.fit</span>
+
+<span class="c1">#: speed of light in km/s: velocities of spectra are in km/s</span>
+<span class="n">c</span> <span class="o">=</span> <span class="mf">299792.458</span>
+
+<span class="n">VELOCITY_CONVENTIONS</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'radio'</span><span class="p">,</span> <span class="s1">'optical'</span><span class="p">,</span> <span class="s1">'relativistic'</span><span class="p">)</span>
+
+<span class="c1">#: Largest distance (in channels) of a spectral value from an evenly spaced</span>
+<span class="c1">#: axis that Spectrum accepts.</span>
+<span class="n">MAX_AXIS_DEVIATION</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+
+<div class="viewcode-block" id="Spectrum">
+<a class="viewcode-back" href="../../api.html#LineStacker.OneD_Stacker.Spectrum">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Spectrum</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""</span>
+
+<span class="sd">        One spectrum to stack: its fluxes, optionally its spectral values, and</span>
+<span class="sd">        where its line is.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        spectrum</span>
+<span class="sd">            Spectrum should be of the shape [N,2] or [2,N],</span>
+<span class="sd">            where N is the number of spectral bins.</span>
+<span class="sd">            The second dimension being the flux</span>
+<span class="sd">            and the first the spectral values, which must be evenly spaced</span>
+<span class="sd">            (increasing or decreasing; within 5% of a channel).</span>
+<span class="sd">        amp</span>
+<span class="sd">            Instead of defining spectrum one can define only the amplitude (flux).</span>
+<span class="sd">        velocities</span>
+<span class="sd">            In the case where amp is defined</span>
+<span class="sd">            it is still possible to define the velocities</span>
+<span class="sd">        frequencies</span>
+<span class="sd">            In the case where amp is defined</span>
+<span class="sd">            it is still possible to define the frequencies</span>
+<span class="sd">        z</span>
+<span class="sd">            Redshift, one of the possible way to define central frequency.</span>
+<span class="sd">            If using redshift **fEmLine** (emission frequency of the line) should be defined.</span>
+<span class="sd">            In addition the spectrum should consist of BOTH amplitudes and spectral information (frequencies or velocities), and not amplitude alone.</span>
+<span class="sd">            Velocities are then in km/s relative to the rest frequency fEmLine (as e.g. a CASA spectrum with restfreq=fEmLine), in the convention</span>
+<span class="sd">            **velConvention**: the line is at v = c z/(1+z) (radio), c z (optical) or c((1+z)**2-1)/((1+z)**2+1) (relativistic).</span>
+<span class="sd">        fEmLine</span>
+<span class="sd">            Emission frequency of the line, needed if redshift argument is used.</span>
+<span class="sd">        centerIndex</span>
+<span class="sd">            channel index of the line center, another possible way to define line center.</span>
+<span class="sd">        centralFrequency</span>
+<span class="sd">            (observed) Frequency of the line center, another possible way to define line center.</span>
+<span class="sd">        centralVelocity</span>
+<span class="sd">            Observed velocity of the line center, another possible way to define line center.</span>
+<span class="sd">        weights</span>
+<span class="sd">            The weighting scheme to use.\n</span>
+<span class="sd">            Can be set to **'1/A'** or **'sigma2'**.</span>
+<span class="sd">            If **sigma2** is used std of the entire spectra is used UNLESS, **fit** is set to **True**, in which case the central part around the line is excluded from std calculation (central here means one FWHM on each side of the center of the line).\n</span>
+<span class="sd">            Alternatively user input can be used, float or list (or array)</span>
+<span class="sd">        name</span>
+<span class="sd">            name of the spectrum, can allow easier identification</span>
+<span class="sd">        fit</span>
+<span class="sd">            If fit is set to **True**, the spectrum will be fitted with a gaussian to try and identify the line center (as well as amplitude if weight is set to 1/A)</span>
+<span class="sd">        velOrFreq</span>
+<span class="sd">            Defining if spectral dimension is velocity or frequency.</span>
+<span class="sd">        velConvention</span>
+<span class="sd">            Velocity convention of the velocities (km/s), used with z: **'radio'** (default, as CASA and LineStacker.uv),</span>
+<span class="sd">            **'optical'** or **'relativistic'**.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>   <span class="bp">self</span><span class="p">,</span>
+                    <span class="n">spectrum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">amp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">velocities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">frequencies</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">fEmLine</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">centerIndex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">centralVelocity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">centralFrequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">weights</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s1">''</span><span class="p">,</span>
+                    <span class="n">fit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">velOrFreq</span><span class="o">=</span><span class="s1">'vel'</span><span class="p">,</span>
+                    <span class="n">velConvention</span><span class="o">=</span><span class="s1">'radio'</span><span class="p">):</span>
+
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([]</span> <span class="k">if</span> <span class="n">spectrum</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">amp</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">amp</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">amp</span>
+        <span class="n">velocities</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">velocities</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">velocities</span>
+        <span class="n">frequencies</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">frequencies</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">frequencies</span>
+        <span class="k">if</span> <span class="n">velOrFreq</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'vel'</span><span class="p">,</span> <span class="s1">'freq'</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"velOrFreq must be 'vel' or 'freq'"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">velConvention</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VELOCITY_CONVENTIONS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'velConvention must be one of </span><span class="si">{0}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">VELOCITY_CONVENTIONS</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">velConvention</span> <span class="o">=</span> <span class="n">velConvention</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">velOrFreq</span><span class="o">=</span><span class="n">velOrFreq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">=</span><span class="n">z</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fEmLine</span><span class="o">=</span><span class="n">fEmLine</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="o">=</span><span class="n">fit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="n">centerIndex</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centralVelocity</span><span class="o">=</span><span class="n">centralVelocity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centralFrequency</span><span class="o">=</span><span class="n">centralFrequency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="o">=</span><span class="n">spectrum</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="o">=</span><span class="n">velocities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="o">=</span><span class="n">frequencies</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_split</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">arr</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">arr</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">'spectrum does not have the good shape, should be a 2 dimensional array [velocities, amplitudes]'</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1">#if amplitude is not defined its extracted from the spectrum</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">amp</span> <span class="o">=</span> <span class="n">_split</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'spectrum </span><span class="si">{0!r}</span><span class="s1"> has </span><span class="si">{1}</span><span class="s1"> channel(s): a Spectrum needs at least 2'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velOrFreq</span><span class="o">==</span><span class="s1">'vel'</span><span class="p">:</span> <span class="c1">#velocity mode</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span><span class="c1">#if the velocities are not defined they are extracted from the spectrum</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="n">_split</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>   <span class="c1">#if the spectrum is not defined either (so if only the amplitude are),</span>
+                        <span class="c1">#the velocities are defined as a range centered on zero, of size=len(amp) and binsize=1</span>
+                    <span class="c1"># (half up, as Python 2's round: odd lengths keep all channels)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">round_half_up</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">velOrFreq</span><span class="o">==</span><span class="s1">'freq'</span><span class="p">:</span> <span class="c1">#frequency mode</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1">#if the frequencies are not defined they are extracted from the spectrum</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span> <span class="o">=</span> <span class="n">_split</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span> <span class="c1">#if the spectrum is not defined either (so if only the amplitude are),</span>
+                        <span class="c1">#the frequencies are defined as a range sarting from 0, of size=len(amp) and binsize=1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">))</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velOrFreq</span> <span class="o">==</span> <span class="s1">'vel'</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span>
+        <span class="n">what</span> <span class="o">=</span> <span class="s1">'velocities'</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velOrFreq</span> <span class="o">==</span> <span class="s1">'vel'</span> <span class="k">else</span> <span class="s1">'frequencies'</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'spectrum </span><span class="si">{0!r}</span><span class="s1">: </span><span class="si">{1}</span><span class="s1"> fluxes but </span><span class="si">{2}</span><span class="s1"> </span><span class="si">{3}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">axis</span><span class="p">),</span> <span class="n">what</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'spectrum </span><span class="si">{0!r}</span><span class="s1">: its </span><span class="si">{1}</span><span class="s1"> must be numbers'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">axis</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'spectrum </span><span class="si">{0!r}</span><span class="s1">: needs at least 2 </span><span class="si">{1}</span><span class="s1"> (got </span><span class="si">{2}</span><span class="s1">)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="p">,</span> <span class="n">axis</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">axis</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'spectrum </span><span class="si">{0!r}</span><span class="s1">: its </span><span class="si">{1}</span><span class="s1"> must all be finite'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="p">))</span>
+        <span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">steps</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">steps</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'spectrum </span><span class="si">{0!r}</span><span class="s1">: its </span><span class="si">{1}</span><span class="s1"> must increase or decrease steadily (no repeated '</span>
+                             <span class="s1">'values)'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="p">))</span>
+        <span class="c1"># channels are located with one channel width: the axis must be evenly</span>
+        <span class="c1"># spaced (rounding of the values in text files is tolerated)</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="n">axis</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">axis</span> <span class="o">-</span> <span class="p">(</span><span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">step</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">axis</span><span class="p">))))</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">offset</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">MAX_AXIS_DEVIATION</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">offset</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'spectrum </span><span class="si">{0!r}</span><span class="s1">: its </span><span class="si">{1}</span><span class="s1"> must be evenly spaced (channel </span><span class="si">{2}</span><span class="s1"> is </span><span class="si">{3:.2g}</span><span class="s1"> channel '</span>
+                             <span class="s1">'away from an even grid); resample the spectrum to an even grid first'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">what</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">offset</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velOrFreq</span> <span class="o">==</span> <span class="s1">'vel'</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="n">axis</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velBin</span> <span class="o">=</span> <span class="n">step</span>                       <span class="c1"># velocity channel width</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span> <span class="o">=</span> <span class="n">axis</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">freqBin</span> <span class="o">=</span> <span class="n">step</span>                      <span class="c1"># frequency channel width</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="c1">#use z and rest emission frequency to find stack center</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fEmLine</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">fEmLine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">'No emission frequency for spectrum '</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s1">', you need an emission frequency (fEmLine) when using z'</span><span class="p">)</span>
+            <span class="n">fObsLine</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fEmLine</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">velOrFreq</span><span class="o">==</span><span class="s1">'vel'</span><span class="p">:</span>
+                <span class="c1"># velocities (km/s) relative to the rest frequency fEmLine</span>
+                <span class="n">vLine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freqToVel</span><span class="p">(</span><span class="n">fObsLine</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fEmLine</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">centerIndex</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">round_half_up</span><span class="p">((</span><span class="n">vLine</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">velBin</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velToFreq</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="mf">0.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fEmLine</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">freqBin</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">round_half_up</span><span class="p">((</span><span class="n">fObsLine</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">freqBin</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">centralVelocity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">round_half_up</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">centralVelocity</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">velBin</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">centralFrequency</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">round_half_up</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">centralFrequency</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">freqBin</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fit</span><span class="p">:</span><span class="c1">#if fit is on, line parameters are estimated using gaussian fitting</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fitAgain</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">weights</span><span class="o">==</span><span class="s1">'1/A'</span><span class="p">:</span> <span class="c1">#weights set to 1 over amplitude</span>
+            <span class="k">if</span> <span class="n">fit</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span> <span class="c1">#/!\ if not fitted the amplitude is defined as maximum value /!\</span>
+                <span class="n">lineAmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">))</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lineAmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussfit</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">lineAmp</span><span class="p">)</span> <span class="ow">or</span> <span class="n">lineAmp</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"spectrum </span><span class="si">{0!r}</span><span class="s2">: weights='1/A' but the line amplitude is </span><span class="si">{1}</span><span class="s2">; weight set to 0"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">lineAmp</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">lineAmp</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">weights</span><span class="o">==</span><span class="s1">'sigma2'</span><span class="p">:</span> <span class="c1">#weights set to 1 over sigma**2</span>
+            <span class="k">if</span> <span class="n">fit</span><span class="p">:</span>
+                <span class="c1"># lineWidth &gt; 0; the channel width is negative for decreasing axes</span>
+                <span class="k">if</span> <span class="n">velOrFreq</span><span class="o">==</span><span class="s1">'vel'</span><span class="p">:</span>
+                    <span class="n">lineWidthInBins</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lineWidth</span><span class="o">/</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">velBin</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">lineWidthInBins</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lineWidth</span><span class="o">/</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freqBin</span><span class="p">)</span>
+                <span class="n">leftLimSpectra</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">-</span><span class="n">lineWidthInBins</span><span class="o">*</span><span class="mf">2.35</span><span class="p">)</span>
+                <span class="n">rightLimSpectra</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">+</span><span class="n">lineWidthInBins</span><span class="o">*</span><span class="mf">2.35</span><span class="p">)</span>
+                <span class="n">toSTD</span><span class="o">=</span><span class="p">[]</span>
+                <span class="k">if</span> <span class="n">rightLimSpectra</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">toSTD</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">[</span><span class="n">rightLimSpectra</span><span class="p">:])</span>
+                <span class="k">if</span> <span class="n">leftLimSpectra</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">toSTD</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">[:</span><span class="n">leftLimSpectra</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toSTD</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">'it seems your line is too large to use sigma2 weighting'</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">toSTD</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="c1">#calculating standard deviation of the ENTIRE spectrum</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">=</span><span class="n">weights</span>
+
+    <span class="c1">#</span>
+<div class="viewcode-block" id="Spectrum.velToFreq">
+<a class="viewcode-back" href="../../api.html#LineStacker.OneD_Stacker.Spectrum.velToFreq">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">velToFreq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vel</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">fEmLine</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">            Frequency of the velocity vel (km/s) relative to the frequency</span>
+<span class="sd">            fEmLine/(1+z) (z=0: the rest frequency), in the spectrum's</span>
+<span class="sd">            velConvention. Same unit as fEmLine.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">velocity_to_frequency</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="n">fEmLine</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">z</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">velConvention</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Spectrum.freqToVel">
+<a class="viewcode-back" href="../../api.html#LineStacker.OneD_Stacker.Spectrum.freqToVel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">freqToVel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">fEmLine</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">            Velocity (km/s) of the frequency freq relative to fEmLine/(1+z)</span>
+<span class="sd">            (z=0: the rest frequency), in the spectrum's velConvention.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">frequency_to_velocity</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">fEmLine</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">z</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">velConvention</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">fitAgain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velOrFreq</span><span class="o">==</span><span class="s1">'vel'</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gaussfit</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">GaussFit</span><span class="p">(</span>     <span class="n">fctToFit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">,</span>
+                                                <span class="n">fullFreq</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="p">,</span>
+                                                <span class="n">returnInfos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velCenter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gaussfit</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">round_half_up</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">velCenter</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">velBin</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velOrFreq</span><span class="o">==</span><span class="s1">'freq'</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gaussfit</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">GaussFit</span><span class="p">(</span>     <span class="n">fctToFit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">amp</span><span class="p">,</span>
+                                                <span class="n">fullFreq</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span>
+                                                <span class="n">returnInfos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velCenter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gaussfit</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">round_half_up</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">velCenter</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">freqBin</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineWidth</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gaussfit</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="velocity_to_frequency">
+<a class="viewcode-back" href="../../api.html#LineStacker.OneD_Stacker.velocity_to_frequency">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">velocity_to_frequency</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="n">fRef</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="s1">'radio'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Frequency (unit of fRef) of velocities vel (km/s) relative to fRef:</span>
+<span class="sd">    radio f = fRef (1 - v/c), optical f = fRef / (1 + v/c), relativistic</span>
+<span class="sd">    f = fRef sqrt((1 - v/c) / (1 + v/c))."""</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">c</span>
+    <span class="k">if</span> <span class="n">convention</span> <span class="o">==</span> <span class="s1">'radio'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fRef</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">convention</span> <span class="o">==</span> <span class="s1">'optical'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fRef</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">convention</span> <span class="o">==</span> <span class="s1">'relativistic'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fRef</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">b</span><span class="p">))</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'convention must be one of </span><span class="si">{0}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">VELOCITY_CONVENTIONS</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="frequency_to_velocity">
+<a class="viewcode-back" href="../../api.html#LineStacker.OneD_Stacker.frequency_to_velocity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">frequency_to_velocity</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">fRef</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="s1">'radio'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Velocity (km/s) of frequencies freq relative to fRef (inverse of</span>
+<span class="sd">    velocity_to_frequency)."""</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">fRef</span>
+    <span class="k">if</span> <span class="n">convention</span> <span class="o">==</span> <span class="s1">'radio'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">c</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">convention</span> <span class="o">==</span> <span class="s1">'optical'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">c</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">r</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">convention</span> <span class="o">==</span> <span class="s1">'relativistic'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">c</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">r</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">r</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'convention must be one of </span><span class="si">{0}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">VELOCITY_CONVENTIONS</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_set_centers</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="s1">'lineCenterIndex'</span><span class="p">,</span> <span class="n">regridFromZ</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">regridMethod</span><span class="o">=</span><span class="s1">'scaleToMin'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Fix spectrum.centerIndex for every spectrum according to the centring method."""</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">spectrum</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spectra</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">center</span><span class="o">==</span><span class="s1">'fit'</span><span class="p">:</span>
+            <span class="n">axis</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">velocities</span> <span class="k">if</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">velOrFreq</span> <span class="o">==</span> <span class="s1">'vel'</span> <span class="k">else</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">frequencies</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">step</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">velBin</span> <span class="k">if</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">velOrFreq</span> <span class="o">==</span> <span class="s1">'vel'</span> <span class="k">else</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">freqBin</span>
+                <span class="n">tempGaussfit</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">GaussFit</span><span class="p">(</span>     <span class="n">fctToFit</span><span class="o">=</span><span class="n">spectrum</span><span class="o">.</span><span class="n">amp</span><span class="p">,</span>
+                                                    <span class="n">fullFreq</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
+                                                    <span class="n">returnInfos</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">spectrum</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">round_half_up</span><span class="p">((</span><span class="n">tempGaussfit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="n">step</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tempGaussfit</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">fit</span><span class="o">.</span><span class="n">GaussFit</span><span class="p">(</span>     <span class="n">fctToFit</span><span class="o">=</span><span class="n">spectrum</span><span class="o">.</span><span class="n">amp</span><span class="p">,</span>
+                                                    <span class="n">returnInfos</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">spectrum</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">round_half_up</span><span class="p">(</span><span class="n">tempGaussfit</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">center</span><span class="o">==</span><span class="s1">'zero_vel'</span><span class="p">:</span> <span class="c1">#center on v=0km/s</span>
+            <span class="n">vel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">velocities</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vel</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"center='zero_vel' needs velocities (spectrum </span><span class="si">{0!r}</span><span class="s2"> has none)"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="n">hits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">vel</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hits</span><span class="p">):</span>
+                <span class="n">spectrum</span><span class="o">.</span><span class="n">centerIndex</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c1">#if the value 0 is not found, search closest</span>
+                <span class="n">centerIndex</span><span class="o">=-</span><span class="n">vel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">spectrum</span><span class="o">.</span><span class="n">velBin</span>
+                <span class="k">if</span> <span class="n">centerIndex</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.5</span> <span class="ow">or</span> <span class="n">centerIndex</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">vel</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'zero velocity is not in the velocities of spectrum </span><span class="si">{0!r}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="n">spectrum</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">round_half_up</span><span class="p">(</span><span class="n">centerIndex</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">center</span><span class="o">==</span><span class="s1">'center'</span><span class="p">:</span> <span class="c1">#center on the center of the array</span>
+            <span class="n">spectrum</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">center</span><span class="o">==</span><span class="s1">'lineCenterIndex'</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">centerIndex</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">'center set to lineCenterIndex but no center index is found for line '</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1">#user defined center</span>
+            <span class="n">spectrum</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">center</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">regridFromZ</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">regridMethod</span><span class="o">==</span><span class="s1">'scaleToMin'</span><span class="p">:</span>
+                    <span class="n">zToScale</span><span class="o">=</span><span class="nb">min</span><span class="p">([</span><span class="n">tempSp</span><span class="o">.</span><span class="n">z</span> <span class="k">for</span> <span class="n">tempSp</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="n">regridMethod</span><span class="o">==</span><span class="s1">'scaleToMax'</span><span class="p">:</span>
+                    <span class="n">zToScale</span><span class="o">=</span><span class="nb">max</span><span class="p">([</span><span class="n">tempSp</span><span class="o">.</span><span class="n">z</span> <span class="k">for</span> <span class="n">tempSp</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">])</span>
+                <span class="n">zRatio</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">spectrum</span><span class="o">.</span><span class="n">z</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">zToScale</span><span class="p">)</span>
+                <span class="n">spectrum</span><span class="o">.</span><span class="n">centerIndex</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">round_half_up</span><span class="p">(</span><span class="n">center</span><span class="o">*</span><span class="n">zRatio</span><span class="p">)</span>
+        <span class="n">spectrum</span><span class="o">.</span><span class="n">centerIndex</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">centerIndex</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Aligned</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""All spectra aligned on their line centre.</span>
+
+<span class="sd">    X       (nspectra, L) fluxes, NaN where a spectrum has no channel</span>
+<span class="sd">    W       (nspectra, L) weights, 0 where X is NaN</span>
+<span class="sd">    lo, hi  per spectrum: channels [lo, hi) of the full alignment are its own</span>
+<span class="sd">            'full' stack range (as computed by Stack for that spectrum alone)</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spectra</span><span class="p">,</span> <span class="n">chansStack</span><span class="o">=</span><span class="s1">'full'</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">spectra</span><span class="p">)</span>
+        <span class="n">ci</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sp</span><span class="o">.</span><span class="n">centerIndex</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">namp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">amp</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">ci</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">ci</span> <span class="o">&gt;=</span> <span class="n">namp</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'spectrum </span><span class="si">{0}</span><span class="s1"> (</span><span class="si">{1!r}</span><span class="s1">): its line centre, channel </span><span class="si">{2}</span><span class="s1">, is outside the spectrum '</span>
+                             <span class="s1">'(channels 0 to </span><span class="si">{3}</span><span class="s1">); check its z, central velocity/frequency or centerIndex'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                 <span class="n">i</span><span class="p">,</span> <span class="n">spectra</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ci</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">namp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="c1"># Stack sizes its 'full' output with the length of the spectral axis</span>
+        <span class="c1"># of the last spectrum's kind (velocities, else frequencies).</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="n">spectra</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">last</span><span class="o">.</span><span class="n">velocities</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">nspec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">velocities</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nspec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">frequencies</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chansStack</span> <span class="o">==</span> <span class="s1">'full'</span><span class="p">:</span>
+            <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ci</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">int</span><span class="p">((</span><span class="n">nspec</span> <span class="o">-</span> <span class="n">ci</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">offset0</span> <span class="o">=</span> <span class="o">-</span><span class="n">left</span>
+            <span class="n">L</span> <span class="o">=</span> <span class="n">left</span> <span class="o">+</span> <span class="n">right</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">L</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chansStack</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">offset0</span> <span class="o">=</span> <span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">L</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="o">=</span> <span class="n">L</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">full</span> <span class="o">=</span> <span class="n">chansStack</span> <span class="o">==</span> <span class="s1">'full'</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">L</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">L</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spectra</span><span class="p">):</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">ci</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>          <span class="c1"># channel of spectrum i</span>
+            <span class="n">ok</span> <span class="o">=</span> <span class="p">(</span><span class="n">src</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">src</span> <span class="o">&lt;</span> <span class="n">namp</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">amp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">amp</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">ok</span><span class="p">]</span> <span class="o">=</span> <span class="n">amp</span><span class="p">[</span><span class="n">src</span><span class="p">[</span><span class="n">ok</span><span class="p">]]</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">weights</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">ok</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">okw</span> <span class="o">=</span> <span class="n">ok</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">src</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">okw</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="n">src</span><span class="p">[</span><span class="n">okw</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>               <span class="c1"># inf counts as missing, for medians too</span>
+        <span class="c1"># channels without a finite flux (NaN, inf) carry no weight</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">[</span><span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">bad</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">W</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bad</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">bad</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'spectrum </span><span class="si">{0}</span><span class="s1"> (</span><span class="si">{1!r}</span><span class="s1">) has weight </span><span class="si">{2}</span><span class="s1">: weights must be finite and &gt;= 0'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">i</span><span class="p">,</span> <span class="n">spectra</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">bad</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+        <span class="c1"># each spectrum's own 'full' range within the alignment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lo</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">ci</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hi</span> <span class="o">=</span> <span class="p">(</span><span class="n">nspec</span> <span class="o">-</span> <span class="n">ci</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_median_sorted</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">valid_count</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Median along axis -2 of values whose NaNs are sorted last (NaN where</span>
+<span class="sd">    there is no valid value)."""</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">valid_count</span>
+    <span class="n">lo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">((</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">hi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">k</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">lo</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">hi</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">k</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">combine_counts</span><span class="p">(</span><span class="n">al</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'mean'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Stacks of many resamplings at once.</span>
+
+<span class="sd">    counts : (nsets, nspectra) how many times each spectrum enters each set</span>
+<span class="sd">    returns (stacks (nsets, L), sources-per-channel (nsets, L))</span>
+<span class="sd">    """</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">nsrc</span> <span class="o">=</span> <span class="n">counts</span> <span class="o">@</span> <span class="n">al</span><span class="o">.</span><span class="n">M</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">'mean'</span><span class="p">:</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="n">counts</span> <span class="o">@</span> <span class="p">(</span><span class="n">al</span><span class="o">.</span><span class="n">W</span> <span class="o">*</span> <span class="n">al</span><span class="o">.</span><span class="n">X0</span><span class="p">)</span>
+        <span class="n">den</span> <span class="o">=</span> <span class="n">counts</span> <span class="o">@</span> <span class="n">al</span><span class="o">.</span><span class="n">W</span>
+        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">invalid</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">,</span> <span class="n">divide</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">):</span>
+            <span class="n">stacks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">den</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num</span> <span class="o">/</span> <span class="n">den</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>       <span class="c1"># NaN: no data</span>
+        <span class="k">return</span> <span class="n">stacks</span><span class="p">,</span> <span class="n">nsrc</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">'median'</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'use combine_indices for medians'</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"method must be 'mean' or 'median'"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">combine_indices</span><span class="p">(</span><span class="n">al</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'mean'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Stacks of resamplings given as index arrays (nsets, k)."""</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">'mean'</span><span class="p">:</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">al</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">idx</span><span class="o">.</span><span class="n">ravel</span><span class="p">()),</span> <span class="mf">1.</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">combine_counts</span><span class="p">(</span><span class="n">al</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="s1">'mean'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">'median'</span><span class="p">:</span>
+        <span class="n">sel</span> <span class="o">=</span> <span class="n">al</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>                                   <span class="c1"># (nsets, k, L)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">sel</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">sel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">sel</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>                        <span class="c1"># NaNs last</span>
+        <span class="k">return</span> <span class="n">_median_sorted</span><span class="p">(</span><span class="n">sel</span><span class="p">,</span> <span class="n">k</span><span class="p">),</span> <span class="n">k</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"method must be 'mean' or 'median'"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">crop</span><span class="p">(</span><span class="n">al</span><span class="p">,</span> <span class="n">stack</span><span class="p">,</span> <span class="n">members</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Cut a full-alignment stack to the range Stack() returns for the</span>
+<span class="sd">    spectra 'members' (no-op for a fixed chansStack)."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">al</span><span class="o">.</span><span class="n">full</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">stack</span>
+    <span class="n">lo</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">al</span><span class="o">.</span><span class="n">lo</span><span class="p">[</span><span class="n">members</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+    <span class="n">hi</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">al</span><span class="o">.</span><span class="n">hi</span><span class="p">[</span><span class="n">members</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">stack</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">lo</span><span class="p">:</span><span class="n">hi</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="Stack">
+<a class="viewcode-back" href="../../api.html#LineStacker.OneD_Stacker.Stack">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">Stack</span><span class="p">(</span>  <span class="n">spectra</span><span class="p">,</span>
+            <span class="n">chansStack</span><span class="o">=</span><span class="s1">'full'</span><span class="p">,</span>
+            <span class="n">method</span><span class="o">=</span><span class="s1">'mean'</span><span class="p">,</span>
+            <span class="n">center</span><span class="o">=</span><span class="s1">'lineCenterIndex'</span><span class="p">,</span>
+            <span class="n">regridFromZ</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">regridMethod</span><span class="o">=</span><span class="s1">'scaleToMin'</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">        Stacks spectra (LineStacker.OneD_Stacker.Spectrum objects), aligned on</span>
+<span class="sd">        their lines: weighted mean or median, channel by channel.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        spectra</span>
+<span class="sd">            List of spectra (LineStacker.OneD_Stacker.Spectrum objects).</span>
+<span class="sd">        chansStack</span>
+<span class="sd">            Number of channels to stack. Set to 'full' to stack all channels from all spectra. User input (int) otherwise</span>
+<span class="sd">        method</span>
+<span class="sd">            stacking method, **'mean'** and **'median'** supported</span>
+<span class="sd">        center</span>
+<span class="sd">            Method to find central frequency of the stack, possible values are:\n</span>
+<span class="sd">            **"center"**, to stack all spectra center to center,\n</span>
+<span class="sd">            **'fit'** to use gaussian fitting on the spectrum to determine line center,\n</span>
+<span class="sd">            **'zero_vel'** to stack on velocity=0 bin,\n</span>
+<span class="sd">            **'lineCenterIndex'** use the line center initiated with the spectrum,\n</span>
+<span class="sd">            Or directly defined by the user (int)</span>
+<span class="sd">        regridFromZ</span>
+<span class="sd">            if set to True spectra will be regridded to take into account the redshift difference of the different sources. See LineStacker.analysisTools.regridFromZ1D for a more complete description.</span>
+<span class="sd">        regridMethod</span>
+<span class="sd">            Used if regridFromZ is True. Can be set either to **'scaleToMin'** or **'scaleToMax'**.</span>
+<span class="sd">            In the first case all spectra are regridded to match the smallest redshift (over-gridding), all spectra are regridded to match the highest redshift in the other case (under-gridding).</span>
+<span class="sd">        verbose</span>
+<span class="sd">            report the regridding (default: LineStacker.verbose)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            (stacked spectrum, number of spectra in each channel). Channels</span>
+<span class="sd">            without valid data (no spectrum covers them, or only blank</span>
+<span class="sd">            fluxes or zero weights) are NaN.</span>
+<span class="sd">    """</span>
+
+    <span class="k">if</span> <span class="n">chansStack</span><span class="o">!=</span><span class="s1">'full'</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chansStack</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">"chansStack must be an int or 'full' for full spectra"</span> <span class="p">)</span>
+    <span class="n">spectra</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">spectra</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">spectra</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'no spectra to stack'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'mean'</span><span class="p">,</span> <span class="s1">'median'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"method must be 'mean' or 'median'"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">regridFromZ</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">LineStacker.analysisTools</span>
+        <span class="n">spectra</span><span class="o">=</span><span class="n">LineStacker</span><span class="o">.</span><span class="n">analysisTools</span><span class="o">.</span><span class="n">regridFromZ1D</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">regridMethod</span><span class="o">=</span><span class="n">regridMethod</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">_set_centers</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">regridFromZ</span><span class="p">,</span> <span class="n">regridMethod</span><span class="p">)</span>
+    <span class="n">al</span> <span class="o">=</span> <span class="n">Aligned</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">chansStack</span><span class="p">)</span>
+    <span class="n">everyone</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spectra</span><span class="p">))[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">stacks</span><span class="p">,</span> <span class="n">nsrc</span> <span class="o">=</span> <span class="n">combine_indices</span><span class="p">(</span><span class="n">al</span><span class="p">,</span> <span class="n">everyone</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stacks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nsrc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Installation &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="_static/documentation_options.js?v=db988ed8"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="How stacking works" href="principle.html" />
+    <link rel="prev" title="LineStacker" href="index.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="index.html"><img src="_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="principle.html">How stacking works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="positions.html">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectra.html">Stacking spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_generated/examples_notebook.html">LineStacker examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">LineStacker</a></li>
+      <li>Next: <a href="principle.html" title="next chapter">How stacking works</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
+<p>LineStacker needs Python 3.9 or newer, NumPy, SciPy and astropy.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>LineStacker<span class="w">                 </span><span class="c1"># FITS cubes and 1D spectra</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"LineStacker[casa]"</span><span class="w">         </span><span class="c1"># also CASA images (casatools, casatasks)</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"LineStacker[plot]"</span><span class="w">         </span><span class="c1"># matplotlib, for the plotting options</span>
+</pre></div>
+</div>
+<p>To install the development version, clone the
+<a class="reference external" href="https://github.com/jbjolly/LineStacker">repository</a> and install it in
+editable mode:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/jbjolly/LineStacker.git
+<span class="nb">cd</span><span class="w"> </span>LineStacker
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[casa,plot]"</span>
+</pre></div>
+</div>
+<section id="casa-images">
+<h2>CASA images<a class="headerlink" href="#casa-images" title="Link to this heading">¶</a></h2>
+<p>FITS cubes are read with astropy and need no CASA. To read and write CASA
+images (<code class="docutils literal notranslate"><span class="pre">.image</span></code> directories), LineStacker uses CASA 6’s <code class="docutils literal notranslate"><span class="pre">casatools</span></code>, the
+modular CASA from PyPI (tested with CASA 6.7.6):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>casatools
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">casatools</span></code> needs CASA’s runtime data (the measures tables). By default it
+downloads them into <code class="docutils literal notranslate"><span class="pre">~/.casa/data</span></code> the first time it is imported; see
+<a class="reference external" href="https://casadocs.readthedocs.io/en/stable/notebooks/external-data.html">External data</a>
+in the CASA documentation to set another place, for example without internet
+access:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ~/.casa/config.py</span>
+<span class="n">measurespath</span> <span class="o">=</span> <span class="s2">"/path/to/casa/data"</span>
+<span class="n">measures_auto_update</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">data_auto_update</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<section id="from-the-casa-prompt">
+<h3>From the CASA prompt<a class="headerlink" href="#from-the-casa-prompt" title="Link to this heading">¶</a></h3>
+<p>LineStacker also runs inside the monolithic CASA (the CASA tarball with its
+own Python). Install its dependencies with CASA’s own <code class="docutils literal notranslate"><span class="pre">pip</span></code>, so they match
+the NumPy that CASA ships:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">PYTHONNOUSERSITE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>/path/to/casa-6.7.6/bin/pip3<span class="w"> </span>install<span class="w"> </span><span class="s2">"astropy&gt;=7.2"</span>
+<span class="nv">PYTHONNOUSERSITE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>/path/to/casa-6.7.6/bin/pip3<span class="w"> </span>install<span class="w"> </span>/path/to/LineStacker
+</pre></div>
+</div>
+<p>Mixing CASA with packages from another environment (a virtual environment on
+<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>, say) breaks when the versions disagree: CASA 6.7 ships NumPy
+2.4, which astropy older than 7.2 cannot use (the error is
+<code class="docutils literal notranslate"><span class="pre">module</span> <span class="pre">'numpy'</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">attribute</span> <span class="pre">'in1d'</span></code>). <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">LineStacker</span></code> warns when it
+finds that combination.</p>
+</section>
+<section id="casa-s-log-file">
+<h3>CASA’s log file<a class="headerlink" href="#casa-s-log-file" title="Link to this heading">¶</a></h3>
+<p>CASA is only started when LineStacker reads or writes a CASA image. When
+LineStacker starts it, CASA’s log goes to a single file in the temporary
+directory, <code class="docutils literal notranslate"><span class="pre">&lt;tmp&gt;/linestacker-casa-&lt;user&gt;.log</span></code>, and CASA’s messages go there
+rather than to the terminal: no new <code class="docutils literal notranslate"><span class="pre">casa-&lt;date&gt;.log</span></code> appears in the working
+directory at every run. Set <code class="docutils literal notranslate"><span class="pre">LineStacker.casa_logfile</span></code> before the first CASA
+image is read to change this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">LineStacker</span>
+<span class="n">LineStacker</span><span class="o">.</span><span class="n">casa_logfile</span> <span class="o">=</span> <span class="s1">'stacking.log'</span>   <span class="c1"># this file</span>
+<span class="n">LineStacker</span><span class="o">.</span><span class="n">casa_logfile</span> <span class="o">=</span> <span class="kc">None</span>             <span class="c1"># no log file</span>
+<span class="n">LineStacker</span><span class="o">.</span><span class="n">casa_logfile</span> <span class="o">=</span> <span class="s1">'casa'</span>           <span class="c1"># CASA's default, casa-&lt;date&gt;.log here</span>
+</pre></div>
+</div>
+<p>A <code class="docutils literal notranslate"><span class="pre">logfile</span></code> set in <code class="docutils literal notranslate"><span class="pre">~/.casa/config.py</span></code> is used as it is. Inside a CASA
+session, or after importing <code class="docutils literal notranslate"><span class="pre">casatools</span></code> or <code class="docutils literal notranslate"><span class="pre">casatasks</span></code> yourself, CASA’s own
+settings apply.</p>
+</section>
+</section>
+<section id="checking-the-installation">
+<h2>Checking the installation<a class="headerlink" href="#checking-the-installation" title="Link to this heading">¶</a></h2>
+<p>The tests run on synthetic cubes and spectra (the CASA tests are skipped
+when casatools is not installed):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>pytest
+python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests
+</pre></div>
+</div>
+<p>The examples in <code class="docutils literal notranslate"><span class="pre">LineStacker/Example</span></code> run on the example data of the
+repository; see <a class="reference internal" href="examples.html"><span class="std std-doc">Examples</span></a>.</p>
+</section>
+<section id="messages">
+<h2>Messages<a class="headerlink" href="#messages" title="Link to this heading">¶</a></h2>
+<p>LineStacker reports what it does: positions read, the full path of every
+file it writes, progress bars. <code class="docutils literal notranslate"><span class="pre">LineStacker.verbose</span> <span class="pre">=</span> <span class="pre">False</span></code> silences it;
+every function that prints also takes <code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> or <code class="docutils literal notranslate"><span class="pre">verbose=False</span></code> for
+one call. Possible problems (cubes collapsed for continuum stacking,
+sources with no valid noise, cubes on different pixel grids…) are Python
+warnings and show either way.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Stacking positions &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="_static/documentation_options.js?v=db988ed8"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Stacking cubes" href="cubes.html" />
+    <link rel="prev" title="How stacking works" href="principle.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="index.html"><img src="_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="principle.html">How stacking works</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectra.html">Stacking spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_generated/examples_notebook.html">LineStacker examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="principle.html" title="previous chapter">How stacking works</a></li>
+      <li>Next: <a href="cubes.html" title="next chapter">Stacking cubes</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="stacking-positions">
+<h1>Stacking positions<a class="headerlink" href="#stacking-positions" title="Link to this heading">¶</a></h1>
+<p>Every stacking function takes a list of <a class="reference internal" href="api.html#LineStacker.Coord" title="LineStacker.Coord"><code class="xref py py-class docutils literal notranslate"><span class="pre">LineStacker.Coord</span></code></a>, one per
+source. There are three ways to make it; all give the same coordinates.</p>
+<section id="from-a-catalogue">
+<h2>From a catalogue<a class="headerlink" href="#from-a-catalogue" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="api.html#LineStacker.readCatalog" title="LineStacker.readCatalog"><code class="xref py py-func docutils literal notranslate"><span class="pre">LineStacker.readCatalog()</span></code></a> reads the whole sample from one table, one
+row per source:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ra,dec,z,weight,image
+53.1475,-27.7826,6.6036,1,cubes/source_01.fits
+53.1612,-27.7791,6.5899,1,cubes/source_02.fits
+03:32:41.31,-27.46.12.4,6.6210,2,cubes/source_03.image
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">readCatalog</span><span class="p">(</span><span class="s1">'sources.csv'</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>Formats</strong>: CSV (with a header line), ECSV, FITS tables, VOTable and
+anything else <code class="docutils literal notranslate"><span class="pre">astropy.table</span></code> reads (<code class="docutils literal notranslate"><span class="pre">format=</span></code> if it cannot be guessed),
+or an astropy <code class="docutils literal notranslate"><span class="pre">Table</span></code>, a pandas <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> or a dict of columns.</p></li>
+<li><p><strong>Columns</strong>: <code class="docutils literal notranslate"><span class="pre">ra</span></code>, <code class="docutils literal notranslate"><span class="pre">dec</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code> (optional), <code class="docutils literal notranslate"><span class="pre">weight</span></code> (optional) and <code class="docutils literal notranslate"><span class="pre">image</span></code>.
+Names are matched without regard to case, and common alternatives are
+found: <code class="docutils literal notranslate"><span class="pre">RAJ2000</span></code>/<code class="docutils literal notranslate"><span class="pre">DEJ2000</span></code>, <code class="docutils literal notranslate"><span class="pre">ra_deg</span></code>/<code class="docutils literal notranslate"><span class="pre">dec_deg</span></code>, <code class="docutils literal notranslate"><span class="pre">redshift</span></code>, <code class="docutils literal notranslate"><span class="pre">zspec</span></code>,
+<code class="docutils literal notranslate"><span class="pre">cube</span></code>, <code class="docutils literal notranslate"><span class="pre">file</span></code>… Other names can be given:
+<code class="docutils literal notranslate"><span class="pre">readCatalog(cat,</span> <span class="pre">ra='alpha',</span> <span class="pre">z='zspec',</span> <span class="pre">image='file')</span></code>.</p></li>
+<li><p><strong>Positions</strong> are in degrees (or <code class="docutils literal notranslate"><span class="pre">unit='rad'</span></code>), in the unit of the column
+when the table has units (FITS, ECSV, VOTable), or sexagesimal strings with
+RA in hours (<code class="docutils literal notranslate"><span class="pre">03:32:41.31</span></code>, <code class="docutils literal notranslate"><span class="pre">03h32m41.31s</span></code>, or CASA’s dotted declination
+<code class="docutils literal notranslate"><span class="pre">-027.46.12.4</span></code>). Each value is read on its own, so one column can mix
+forms. The frame is ICRS unless <code class="docutils literal notranslate"><span class="pre">frame='fk5'</span></code> (J2000) or another
+equatorial frame is given.</p></li>
+<li><p><strong>z</strong> is the spectral value of each source: its redshift for the default
+<code class="docutils literal notranslate"><span class="pre">spectralMethod='z'</span></code>, or the observed frequency, wavelength or velocity
+for <code class="docutils literal notranslate"><span class="pre">'obsSpec'</span></code>, or the channel for <code class="docutils literal notranslate"><span class="pre">'channel'</span></code>. Without a <code class="docutils literal notranslate"><span class="pre">z</span></code> column the
+positions are for continuum stacking.</p></li>
+<li><p><strong>image</strong> names the cube of each source. Relative paths are looked up next
+to the catalogue file, then from the working directory; <code class="docutils literal notranslate"><span class="pre">imagedir=</span></code> sets
+another folder.</p></li>
+</ul>
+<p>The cube of a source is never guessed from its position: it is the one the
+catalogue names. If the catalogue has no <code class="docutils literal notranslate"><span class="pre">image</span></code> column, the stacking
+function must be given a single cube (<code class="docutils literal notranslate"><span class="pre">imagenames=['field.fits']</span></code>), which
+then holds every source.</p>
+</section>
+<section id="from-python-arrays">
+<h2>From Python arrays<a class="headerlink" href="#from-python-arrays" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="api.html#LineStacker.makeCoords" title="LineStacker.makeCoords"><code class="xref py py-func docutils literal notranslate"><span class="pre">LineStacker.makeCoords()</span></code></a> builds the same coordinates from lists, NumPy
+arrays, astropy quantities or a <code class="docutils literal notranslate"><span class="pre">SkyCoord</span></code>, for example in a notebook:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+
+<span class="n">coords</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">makeCoords</span><span class="p">(</span><span class="n">ra_deg</span><span class="p">,</span> <span class="n">dec_deg</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">redshifts</span><span class="p">,</span>
+                                <span class="n">image</span><span class="o">=</span><span class="n">cube_names</span><span class="p">)</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">makeCoords</span><span class="p">(</span><span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">'deg'</span><span class="p">),</span> <span class="n">z</span><span class="o">=</span><span class="n">redshifts</span><span class="p">,</span>
+                                <span class="n">image</span><span class="o">=</span><span class="s1">'field.fits'</span><span class="p">)</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">makeCoords</span><span class="p">(</span><span class="n">x_pix</span><span class="p">,</span> <span class="n">y_pix</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">channels</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="s1">'cube.fits'</span><span class="p">,</span>
+                                <span class="nb">type</span><span class="o">=</span><span class="s1">'pixel'</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A single value (<code class="docutils literal notranslate"><span class="pre">image='field.fits'</span></code>, <code class="docutils literal notranslate"><span class="pre">weight=1</span></code>) is used for every source.
+A <code class="docutils literal notranslate"><span class="pre">SkyCoord</span></code> in another frame, such as Galactic, is converted.</p>
+</section>
+<section id="from-coordinate-files">
+<h2>From coordinate files<a class="headerlink" href="#from-coordinate-files" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="api.html#LineStacker.readCoords" title="LineStacker.readCoords"><code class="xref py py-func docutils literal notranslate"><span class="pre">LineStacker.readCoords()</span></code></a> reads the format of LineStacker 1.x: one text
+file per cube, one line per source, with <code class="docutils literal notranslate"><span class="pre">ra,</span> <span class="pre">dec,</span> <span class="pre">z</span></code> and optionally a
+weight (<code class="docutils literal notranslate"><span class="pre">ra,</span> <span class="pre">dec</span></code> and an optional weight with <code class="docutils literal notranslate"><span class="pre">lineON=False</span></code> for continuum):</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>03:30:34.79, -027.45.34.566, 7.22611675851
+53.1475, -27.7826, 6.6036, 2.0
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">LineStacker</span><span class="o">.</span><span class="n">readCoords</span><span class="p">([</span><span class="s1">'cube_1_coord.txt'</span><span class="p">,</span> <span class="s1">'cube_2_coord.txt'</span><span class="p">])</span>
+<span class="n">LineStacker</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">imagenames</span><span class="o">=</span><span class="p">[</span><span class="s1">'cube_1.image'</span><span class="p">,</span> <span class="s1">'cube_2.image'</span><span class="p">],</span>
+                        <span class="n">fEm</span><span class="o">=</span><span class="n">fEm</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Positions can be in degrees, in sexagesimal with RA in hours (colons,
+spaces, <code class="docutils literal notranslate"><span class="pre">h</span> <span class="pre">m</span> <span class="pre">s</span></code> letters or CASA’s dots), or pixels with <code class="docutils literal notranslate"><span class="pre">type='pixel'</span></code>.
+Commas, spaces and tabs are tried as delimiters; empty lines and lines
+starting with <code class="docutils literal notranslate"><span class="pre">#</span></code> are skipped. The sources of each file belong to the
+image of the same name (<code class="docutils literal notranslate"><span class="pre">cube_1_coord.txt</span></code> to <code class="docutils literal notranslate"><span class="pre">cube_1.fits</span></code>, or the name
+given with <code class="docutils literal notranslate"><span class="pre">images=</span></code>) if that image is in <code class="docutils literal notranslate"><span class="pre">imagenames</span></code>, and otherwise to the
+image at the same position in <code class="docutils literal notranslate"><span class="pre">imagenames</span></code> as the file in the list.</p>
+</section>
+<section id="which-cube-a-source-belongs-to">
+<h2>Which cube a source belongs to<a class="headerlink" href="#which-cube-a-source-belongs-to" title="Link to this heading">¶</a></h2>
+<p>The stacking functions take the list of cubes as <code class="docutils literal notranslate"><span class="pre">imagenames</span></code>. When every
+coordinate names its cube (catalogue <code class="docutils literal notranslate"><span class="pre">image</span></code> column, <code class="docutils literal notranslate"><span class="pre">makeCoords(image=...)</span></code>),
+<code class="docutils literal notranslate"><span class="pre">imagenames</span></code> can be left out: the cubes are those the coordinates name.
+A coordinate whose cube is not in <code class="docutils literal notranslate"><span class="pre">imagenames</span></code> is an error, so a source is
+never stacked from the wrong cube.</p>
+<p><code class="docutils literal notranslate"><span class="pre">coords=None</span></code> stacks the centre of every cube in <code class="docutils literal notranslate"><span class="pre">imagenames</span></code> (spatially and
+spectrally).</p>
+</section>
+<section id="weights">
+<h2>Weights<a class="headerlink" href="#weights" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">weight</span></code> of a coordinate multiplies its contribution to mean stacks;
+the automatic weightings of <a class="reference internal" href="api.html#LineStacker.image.stack" title="LineStacker.image.stack"><code class="xref py py-func docutils literal notranslate"><span class="pre">LineStacker.image.stack()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">'sigma2'</span></code>,
+<code class="docutils literal notranslate"><span class="pre">'1/A'</span></code>…) multiply it. Weights must be finite and not negative; a weight
+of 0 leaves the source out of mean stacks. Medians ignore weights.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

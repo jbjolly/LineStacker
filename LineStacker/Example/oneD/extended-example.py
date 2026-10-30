@@ -26,66 +26,77 @@ import matplotlib.pyplot as plt
 #Finally we will perform a subsampling analysis
 #to identify these outlayers.
 
-numberOfSpectra=50
-allNames=[]
-allImages=([0 for i in range(numberOfSpectra)])
-#We start by initializing all spectra as LineStacker.OneD_Stacker.Image
-#Which is requiered to do one dimensional stacking
-for i in range(numberOfSpectra):
-    tempSpectra=np.loadtxt('dataExtended/spectra_'+str(i))
-    tempCenter=np.loadtxt('dataExtended/central_velocity_'+str(i))
-    allImages[i]=LineStacker.OneD_Stacker.Image(    spectrum=tempSpectra,
-                                                    centralVelocity=tempCenter,
-                                                    name='spectrum_'+str(i))
-    #While the name handling is not requiered it allows easier
-    #treatment and understanding of the subsampling.
-    allNames.append(allImages[i].name)
+# n_jobs=-1 spreads the Monte-Carlo iterations over all CPU cores.
+# The __main__ guard is required for that on macOS and Windows.
 
-#Here we perform the actuall stack
-stacked=LineStacker.OneD_Stacker.Stack(allImages, method='median')
-#The stack amplitude is stored for later vizualization
-stackAmp=np.max(stacked[0])
+def main():
+    numberOfSpectra=50
+    allNames=[]
+    allSpectra=([0 for i in range(numberOfSpectra)])
+    #We start by initializing all spectra as LineStacker.OneD_Stacker.Spectrum
+    #Which is requiered to do one dimensional stacking
+    for i in range(numberOfSpectra):
+        tempSpectra=np.loadtxt('dataExtended/spectra_'+str(i))
+        tempCenter=np.loadtxt('dataExtended/central_velocity_'+str(i))
+        allSpectra[i]=LineStacker.OneD_Stacker.Spectrum(    spectrum=tempSpectra,
+                                                        centralVelocity=tempCenter,
+                                                        name='spectrum_'+str(i))
+        #While the name handling is not requiered it allows easier
+        #treatment and understanding of the subsampling.
+        allNames.append(allSpectra[i].name)
 
-#==================================================
-#              bootstrapping analysis
-#==================================================
+    #Here we perform the actuall stack
+    stacked=LineStacker.OneD_Stacker.Stack(allSpectra, method='median')
+    #The stack amplitude is stored for later vizualization
+    stackAmp=np.max(stacked[0])
 
-bootstrapped=LineStacker.analysisTools.bootstraping_OneD(   allImages,
-                                                            save='amp',
-                                                            nRandom=100000,
-                                                            method='median')
+    #==================================================
+    #              bootstrapping analysis
+    #==================================================
 
-#plotting
-import matplotlib.pyplot as plt
-fig=plt.figure()
-ax=fig.add_subplot(111)
-counts, bins, patches=ax.hist(bootstrapped, bins=20)
-#for vizualization purposes...
-ax.set_xticks(bins+(bins[1]-bins[0])/2)
-ax.set_xticklabels(([str(bin)[:4] for bin in bins]))
-#A red vertical line indicates
-#the value of the amplitude of the original stack
-ax.axvline(x=stackAmp, color='red')
-ax.set_xlabel('stack amplitude')
-ax.set_ylabel('count')
-ax.set_title('Bootstrapping analysis')
-fig.show()
+    bootstrapped=LineStacker.analysisTools.bootstraping_OneD(   allSpectra,
+                                                                save='amp',
+                                                                nRandom=100000,
+                                                                method='median',
+                                                                n_jobs=-1)
 
-#==================================================
-#              subsampling analysis
-#==================================================
+    #plotting
+    import matplotlib.pyplot as plt
+    fig=plt.figure()
+    ax=fig.add_subplot(111)
+    counts, bins, patches=ax.hist(bootstrapped, bins=20)
+    #for vizualization purposes...
+    ax.set_xticks(bins+(bins[1]-bins[0])/2)
+    ax.set_xticklabels(([str(bin)[:4] for bin in bins]))
+    #A red vertical line indicates
+    #the value of the amplitude of the original stack
+    ax.axvline(x=stackAmp, color='red')
+    ax.set_xlabel('stack amplitude')
+    ax.set_ylabel('count')
+    ax.set_title('Bootstrapping analysis')
+    fig.show()
 
-subSample=LineStacker.analysisTools.subsample_OneD( allImages,
-                                                    nRandom=100000,
-                                                    method='median')
+    #==================================================
+    #              subsampling analysis
+    #==================================================
 
-#plotting
-fig=plt.figure()
-ax=fig.add_subplot(111)
-meanSub=np.mean(([subSample[i] for i in subSample]))
-ax.bar(range(len(subSample)), ([subSample[name]-meanSub for name in allNames]))
-ax.set_xticks(np.arange(len(allNames))+0.5)
-ax.set_xticklabels(allNames, rotation='vertical')
-ax.set_ylabel('Spectrum grade - average grade')
-ax.set_title('Subsampling analysis')
-fig.show()
+    subSample=LineStacker.analysisTools.subsample_OneD( allSpectra,
+                                                        nRandom=100000,
+                                                        method='median',
+                                                        n_jobs=-1)
+
+    #plotting
+    fig=plt.figure()
+    ax=fig.add_subplot(111)
+    meanSub=np.mean(([subSample[i] for i in subSample]))
+    ax.bar(range(len(subSample)), ([subSample[name]-meanSub for name in allNames]))
+    ax.set_xticks(np.arange(len(allNames))+0.5)
+    ax.set_xticklabels(allNames, rotation='vertical')
+    ax.set_ylabel('Spectrum grade - average grade')
+    ax.set_title('Subsampling analysis')
+    fig.show()
+
+
+if __name__ == '__main__':
+    main()
+    plt.show()

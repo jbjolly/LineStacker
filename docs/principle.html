@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>How stacking works &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="_static/documentation_options.js?v=db988ed8"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Stacking positions" href="positions.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="index.html"><img src="_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How stacking works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="positions.html">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectra.html">Stacking spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_generated/examples_notebook.html">LineStacker examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="positions.html" title="next chapter">Stacking positions</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="how-stacking-works">
+<h1>How stacking works<a class="headerlink" href="#how-stacking-works" title="Link to this heading">¶</a></h1>
+<p>Stacking averages the data of many sources, each at its own position and
+redshift, so that a signal too faint to be seen in any single source shows
+up in the average. Noise that is independent between sources goes down as
+1/√N for N sources of similar depth.</p>
+<a class="reference internal image-reference" href="_images/stacking_flow.svg"><img alt="The steps of a stack in data cubes" src="_images/stacking_flow.svg" style="width: 680px;" />
+</a>
+<section id="stacking-in-data-cubes">
+<h2>Stacking in data cubes<a class="headerlink" href="#stacking-in-data-cubes" title="Link to this heading">¶</a></h2>
+<p>For every source, <a class="reference internal" href="api.html#LineStacker.image.stack" title="LineStacker.image.stack"><code class="xref py py-func docutils literal notranslate"><span class="pre">LineStacker.image.stack()</span></code></a>:</p>
+<ol class="arabic simple">
+<li><p><strong>Takes its position</strong>, from a catalogue, Python arrays or coordinate
+files (<a class="reference internal" href="positions.html"><span class="std std-doc">Stacking positions</span></a>): right ascension, declination,
+a spectral value (the redshift, by default) and a weight, and the cube the
+source lies in.</p></li>
+<li><p><strong>Converts the position to pixels</strong> with the WCS of that cube. Cubes can
+be FITS files or CASA images, in any axis order.</p></li>
+<li><p><strong>Finds the channel of its line.</strong> With <code class="docutils literal notranslate"><span class="pre">spectralMethod='z'</span></code> (the
+default) the line is at the rest frequency <code class="docutils literal notranslate"><span class="pre">fEm</span></code> (or rest wavelength
+<code class="docutils literal notranslate"><span class="pre">lEm</span></code>) redshifted to the source’s z; <code class="docutils literal notranslate"><span class="pre">'obsSpec'</span></code> gives the observed
+frequency, wavelength or velocity directly, and <code class="docutils literal notranslate"><span class="pre">'channel'</span></code> the channel.
+The stack uses the nearest channel, one cube channel per stack channel,
+as LineStacker always did. With <code class="docutils literal notranslate"><span class="pre">regridFromZ=True</span></code> each spectrum is
+instead resampled so that all sources share the same rest-frame channel
+width, which corrects the narrowing of the observed lines with redshift.</p></li>
+<li><p><strong>Cuts a stamp</strong> of <code class="docutils literal notranslate"><span class="pre">stampsize</span></code> × <code class="docutils literal notranslate"><span class="pre">stampsize</span></code> pixels and <code class="docutils literal notranslate"><span class="pre">N_chans</span></code>
+channels, centred on the source and on its line. Stamps are cut on the
+cube’s own pixel grid: LineStacker does not reproject cubes. Channels
+that fall outside a source’s cube are left out of the stack for that
+source.</p></li>
+<li><p><strong>Weights it</strong> (mean stacks): the weight of the coordinate, times the
+weighting asked for: the inverse noise variance of the stamp
+(<code class="docutils literal notranslate"><span class="pre">'sigma2'</span></code>, or per channel <code class="docutils literal notranslate"><span class="pre">'sigma2F'</span></code>), the inverse noise (<code class="docutils literal notranslate"><span class="pre">'sigma'</span></code>),
+one over the line amplitude (<code class="docutils literal notranslate"><span class="pre">'1/A'</span></code>), or the squared primary-beam
+response (<code class="docutils literal notranslate"><span class="pre">'pb'</span></code>).</p></li>
+<li><p><strong>Combines all stamps</strong>, pixel by pixel and channel by channel: a
+weighted mean, or a median.</p></li>
+</ol>
+<p>The stacked cube is written as a FITS file or a CASA image, with sky axes
+as offsets from the stacked position and, for <code class="docutils literal notranslate"><span class="pre">spectralMethod='z'</span></code>, a
+spectral axis in the rest frame: the line at <code class="docutils literal notranslate"><span class="pre">fEm</span></code>. See
+<a class="reference internal" href="cubes.html"><span class="std std-doc">Stacking cubes</span></a> for the options and for what the output header
+contains.</p>
+<p>For continuum stacking (<code class="docutils literal notranslate"><span class="pre">continuum=True</span></code>), steps 3 and 4 work on images:
+cubes are collapsed over their channels in memory (a sum by default), and
+images without a spectral axis are used as they are.</p>
+</section>
+<section id="stacking-spectra">
+<h2>Stacking spectra<a class="headerlink" href="#stacking-spectra" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="api.html#LineStacker.OneD_Stacker.Stack" title="LineStacker.OneD_Stacker.Stack"><code class="xref py py-func docutils literal notranslate"><span class="pre">LineStacker.OneD_Stacker.Stack()</span></code></a> does steps 3, 5 and 6 on spectra that
+were already extracted: every spectrum is a
+<a class="reference internal" href="api.html#LineStacker.OneD_Stacker.Spectrum" title="LineStacker.OneD_Stacker.Spectrum"><code class="xref py py-class docutils literal notranslate"><span class="pre">LineStacker.OneD_Stacker.Spectrum</span></code></a> that knows where its line is
+(a channel, a velocity, a frequency, a redshift, or a Gaussian fit), and the
+spectra are aligned on their lines and averaged. See
+<a class="reference internal" href="spectra.html"><span class="std std-doc">Stacking spectra</span></a>.</p>
+</section>
+<section id="testing-a-stack">
+<h2>Testing a stack<a class="headerlink" href="#testing-a-stack" title="Link to this heading">¶</a></h2>
+<p>A stacked line can be dominated by a few bright sources, or be an artefact
+of the noise. The analysis tools (<a class="reference internal" href="analysis.html"><span class="std std-doc">Analysis tools</span></a>) resample
+the stacked sources (bootstrapping), find the sources that contribute most
+(subsampling), and stack random positions around the sources to measure how
+large a stacked signal noise alone gives.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

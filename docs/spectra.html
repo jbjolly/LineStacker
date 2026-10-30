@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Stacking spectra &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="_static/documentation_options.js?v=db988ed8"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Analysis tools" href="analysis.html" />
+    <link rel="prev" title="Stacking cubes" href="cubes.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="index.html"><img src="_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="principle.html">How stacking works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="positions.html">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Stacking spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_generated/examples_notebook.html">LineStacker examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="cubes.html" title="previous chapter">Stacking cubes</a></li>
+      <li>Next: <a href="analysis.html" title="next chapter">Analysis tools</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="stacking-spectra">
+<h1>Stacking spectra<a class="headerlink" href="#stacking-spectra" title="Link to this heading">¶</a></h1>
+<p><a class="reference internal" href="api.html#module-LineStacker.OneD_Stacker" title="LineStacker.OneD_Stacker"><code class="xref py py-mod docutils literal notranslate"><span class="pre">LineStacker.OneD_Stacker</span></code></a> stacks spectra that were already extracted.
+Each spectrum is a <a class="reference internal" href="api.html#LineStacker.OneD_Stacker.Spectrum" title="LineStacker.OneD_Stacker.Spectrum"><code class="xref py py-class docutils literal notranslate"><span class="pre">LineStacker.OneD_Stacker.Spectrum</span></code></a>, which knows
+where its line is; <a class="reference internal" href="api.html#LineStacker.OneD_Stacker.Stack" title="LineStacker.OneD_Stacker.Stack"><code class="xref py py-func docutils literal notranslate"><span class="pre">LineStacker.OneD_Stacker.Stack()</span></code></a> aligns the spectra
+on their lines and averages them channel by channel.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">LineStacker.OneD_Stacker</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">OneD</span>
+
+<span class="n">spectra</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">'data/spectra_</span><span class="si">%d</span><span class="s1">'</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>        <span class="c1"># columns: velocity, flux</span>
+    <span class="n">centre</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">'data/central_velocity_</span><span class="si">%d</span><span class="s1">'</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+    <span class="n">spectra</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OneD</span><span class="o">.</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">spectrum</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">centralVelocity</span><span class="o">=</span><span class="n">centre</span><span class="p">,</span>
+                                 <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+
+<span class="n">stack</span><span class="p">,</span> <span class="n">nspectra</span> <span class="o">=</span> <span class="n">OneD</span><span class="o">.</span><span class="n">Stack</span><span class="p">(</span><span class="n">spectra</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Stack</span></code> returns the stacked spectrum and the number of spectra in each of
+its channels. Channels without data (no spectrum covers them, or only
+blank fluxes or spectra of weight 0) are NaN.</p>
+<section id="spectra">
+<h2>Spectra<a class="headerlink" href="#spectra" title="Link to this heading">¶</a></h2>
+<p>A spectrum is given either as a two-column array, spectral values then flux
+(shape <code class="docutils literal notranslate"><span class="pre">[N,</span> <span class="pre">2]</span></code> or <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">N]</span></code>): <code class="docutils literal notranslate"><span class="pre">Spectrum(spectrum=data)</span></code>; or as fluxes alone,
+with or without their spectral values: <code class="docutils literal notranslate"><span class="pre">Spectrum(amp=flux,</span> <span class="pre">velocities=v)</span></code>. <code class="docutils literal notranslate"><span class="pre">velOrFreq='vel'</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">'freq'</span></code> says whether the
+spectral values are velocities or frequencies. Velocities are in km/s.
+The spectral values must increase or decrease evenly (within 5% of a
+channel, so values rounded in a text file are fine): channels are located
+with one channel width, the mean spacing. Resample spectra on other grids
+(log-spaced, with gaps) to an even grid first.</p>
+<p>The line centre comes from, in this order:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">z=</span></code> and <code class="docutils literal notranslate"><span class="pre">fEmLine=</span></code>, the redshift and the rest frequency of the line. For
+frequency spectra the line is at <code class="docutils literal notranslate"><span class="pre">fEmLine/(1+z)</span></code>. For velocity spectra the
+velocities are relative to the rest frequency (as a CASA spectrum made with
+<code class="docutils literal notranslate"><span class="pre">restfreq=fEmLine</span></code>), and the line is at v = c z/(1+z) in the radio
+convention (<code class="docutils literal notranslate"><span class="pre">velConvention='radio'</span></code>, default, as CASA uses), c z with
+<code class="docutils literal notranslate"><span class="pre">'optical'</span></code>, or the relativistic velocity with <code class="docutils literal notranslate"><span class="pre">'relativistic'</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">centralVelocity=</span></code> or <code class="docutils literal notranslate"><span class="pre">centralFrequency=</span></code>, the observed line centre;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">centerIndex=</span></code>, its channel;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fit=True</span></code>: a Gaussian fit of the spectrum, which overrides the above.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">weights</span></code> is the weight of the spectrum in mean stacks: a number (default 1),
+an array of one weight per channel, <code class="docutils literal notranslate"><span class="pre">'sigma2'</span></code> (1/σ² of the spectrum, or of
+the channels outside the line if <code class="docutils literal notranslate"><span class="pre">fit=True</span></code>), or <code class="docutils literal notranslate"><span class="pre">'1/A'</span></code> (one over the line
+amplitude: the maximum, or the fitted amplitude). Channels whose flux is not
+finite (NaN, inf) are left out. A spectrum needs at least two channels, and
+as many spectral values as fluxes. <code class="docutils literal notranslate"><span class="pre">name</span></code> labels the spectrum, for subsampling for instance.</p>
+</section>
+<section id="stack">
+<h2>Stack<a class="headerlink" href="#stack" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stack</span><span class="p">,</span> <span class="n">nspectra</span> <span class="o">=</span> <span class="n">OneD</span><span class="o">.</span><span class="n">Stack</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'median'</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="s1">'fit'</span><span class="p">,</span>
+                             <span class="n">chansStack</span><span class="o">=</span><span class="mi">41</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">method</span></code>: <code class="docutils literal notranslate"><span class="pre">'mean'</span></code> (weighted) or <code class="docutils literal notranslate"><span class="pre">'median'</span></code> (unweighted).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">center</span></code>: <code class="docutils literal notranslate"><span class="pre">'lineCenterIndex'</span></code> (default) uses the centre each spectrum was
+given; <code class="docutils literal notranslate"><span class="pre">'fit'</span></code> fits a Gaussian to every spectrum; <code class="docutils literal notranslate"><span class="pre">'zero_vel'</span></code> uses the
+channel at velocity 0; <code class="docutils literal notranslate"><span class="pre">'center'</span></code> the middle channel; an integer, that
+channel for all spectra.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chansStack</span></code>: <code class="docutils literal notranslate"><span class="pre">'full'</span></code> (default) covers every channel of every spectrum,
+aligned on the lines; an integer stacks that many channels around the line.
+The line centre of every spectrum must be one of its channels (an error
+says which spectrum it is not).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">regridFromZ=True</span></code> resamples the spectra so that all have the same
+rest-frame channel width (see <a class="reference internal" href="api.html#LineStacker.analysisTools.regridFromZ1D" title="LineStacker.analysisTools.regridFromZ1D"><code class="xref py py-func docutils literal notranslate"><span class="pre">LineStacker.analysisTools.regridFromZ1D()</span></code></a>);
+every spectrum then needs its <code class="docutils literal notranslate"><span class="pre">z</span></code>. Channels and line centres are scaled by
+(1+z)/(1+z_ref); with <code class="docutils literal notranslate"><span class="pre">'scaleToMin'</span></code> the last channels of the regridded
+spectra can fall beyond their data and are then NaN.</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

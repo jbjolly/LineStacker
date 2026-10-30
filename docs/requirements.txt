@@ -1,0 +1,6 @@
+# To build the documentation (make -C docs html)
+sphinx>=7
+myst-nb>=1.0
+numpy
+scipy
+astropy

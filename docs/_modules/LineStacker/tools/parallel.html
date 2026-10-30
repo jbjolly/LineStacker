@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LineStacker.tools.parallel &#8212; LineStacker 2.0.0</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=253e9916" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <script src="../../../_static/documentation_options.js?v=db988ed8"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="icon" href="../../../_static/LineStacker-icon.svg"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../_static/favicon-32.png">
+  <link rel="apple-touch-icon" href="../../../_static/apple-touch-icon.png">
+  
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="smallicon"><a href="../../../index.html"><img src="../../../_static/LineStacker-icon.svg" alt="LineStacker" width="56" height="56"></a></p>
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/LineStacker-logo.svg" alt="Logo" />
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Stacking of spectral lines in data cubes and spectra</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../principle.html">How stacking works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../positions.html">Stacking positions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cubes.html">Stacking cubes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../spectra.html">Stacking spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../analysis.html">Analysis tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_generated/examples_notebook.html">LineStacker examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changes.html">LineStacker 2.0: Python 3 / CASA 6 port</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../../LineStacker.html">LineStacker</a><ul>
+  <li><a href="../tools.html">LineStacker.tools</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for LineStacker.tools.parallel</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">Small helper to spread Monte-Carlo iterations (bootstraps, subsamples, random</span>
+<span class="sd">stacks) over several CPU cores.</span>
+
+<span class="sd">Every function in LineStacker that accepts ``n_jobs`` draws all its random</span>
+<span class="sd">numbers up front, in the calling process, and only distributes the</span>
+<span class="sd">deterministic work. Results are therefore identical whatever ``n_jobs`` or</span>
+<span class="sd">``backend`` is, and reproducible with ``seed``.</span>
+
+<span class="sd">``backend='process'`` (default) runs workers in separate processes and is the</span>
+<span class="sd">right choice for Python-heavy work such as Gaussian fits. ``backend='thread'``</span>
+<span class="sd">avoids starting processes and copying data; it helps when the work is mostly</span>
+<span class="sd">large numpy operations (e.g. median stacks of big cubes).</span>
+
+<span class="sd">When using processes from a script on macOS or Windows, protect the script's</span>
+<span class="sd">entry point::</span>
+
+<span class="sd">    if __name__ == '__main__':</span>
+<span class="sd">        main()</span>
+
+<span class="sd">otherwise each worker re-runs the script while starting.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">contextvars</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">LineStacker.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_n_jobs</span>
+
+<span class="n">_DEFAULT_BACKEND</span> <span class="o">=</span> <span class="s1">'process'</span>
+<span class="n">_BLAS_THREAD_VARS</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'OMP_NUM_THREADS'</span><span class="p">,</span> <span class="s1">'OPENBLAS_NUM_THREADS'</span><span class="p">,</span> <span class="s1">'MKL_NUM_THREADS'</span><span class="p">,</span>
+                     <span class="s1">'VECLIB_MAXIMUM_THREADS'</span><span class="p">,</span> <span class="s1">'NUMEXPR_NUM_THREADS'</span><span class="p">)</span>
+
+<span class="c1"># Large read-only inputs of the running map_chunks call. A context variable,</span>
+<span class="c1"># so that map_chunks calls running at the same time in different threads</span>
+<span class="c1"># each see their own; worker processes set it once (_init_worker), so the</span>
+<span class="c1"># inputs are not pickled with every task.</span>
+<span class="n">_shared</span> <span class="o">=</span> <span class="n">contextvars</span><span class="o">.</span><span class="n">ContextVar</span><span class="p">(</span><span class="s1">'linestacker_shared'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="c1"># Process jobs set BLAS thread variables while their workers start: one at a</span>
+<span class="c1"># time, so concurrent jobs do not restore each other's values.</span>
+<span class="n">_env_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="set_default_backend">
+<a class="viewcode-back" href="../../../api.html#LineStacker.tools.parallel.set_default_backend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">set_default_backend</span><span class="p">(</span><span class="n">backend</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Set the backend used when a function is called with backend=None</span>
+<span class="sd">    ('process' or 'thread')."""</span>
+    <span class="k">global</span> <span class="n">_DEFAULT_BACKEND</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'process'</span><span class="p">,</span> <span class="s1">'thread'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"backend must be 'process' or 'thread'"</span><span class="p">)</span>
+    <span class="n">_DEFAULT_BACKEND</span> <span class="o">=</span> <span class="n">backend</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_init_worker</span><span class="p">(</span><span class="n">shared</span><span class="p">):</span>
+    <span class="n">_shared</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">shared</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="get_shared">
+<a class="viewcode-back" href="../../../api.html#LineStacker.tools.parallel.get_shared">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_shared</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Access, from a worker function, an object passed through ``shared``."""</span>
+    <span class="n">current</span> <span class="o">=</span> <span class="n">_shared</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">current</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">'get_shared() is only available inside a function run by map_chunks'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">current</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">chunk_slices</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">nchunks</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Split range(n) into at most nchunks contiguous slices."""</span>
+    <span class="n">nchunks</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">nchunks</span><span class="p">))</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">nchunks</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">edges</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nchunks</span><span class="p">)</span> <span class="k">if</span> <span class="n">edges</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">edges</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+
+
+<div class="viewcode-block" id="map_chunks">
+<a class="viewcode-back" href="../../../api.html#LineStacker.tools.parallel.map_chunks">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">map_chunks</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shared</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">        Apply ``func`` to every element of ``tasks`` and return the results in</span>
+<span class="sd">        order. ``func`` must be a module-level function (so it can be sent to</span>
+<span class="sd">        worker processes). Large inputs common to all tasks go in ``shared``</span>
+<span class="sd">        (a dict); workers read them with :func:`get_shared`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        func</span>
+<span class="sd">            function taking one task and returning its result</span>
+<span class="sd">        tasks</span>
+<span class="sd">            list of tasks (usually slices of iterations)</span>
+<span class="sd">        n_jobs</span>
+<span class="sd">            number of workers; 1 runs serially, -1 uses all cores</span>
+<span class="sd">        backend</span>
+<span class="sd">            'process' or 'thread' (None uses the default, see set_default_backend)</span>
+<span class="sd">        shared</span>
+<span class="sd">            dict of read-only objects made available to func via get_shared</span>
+<span class="sd">        progress</span>
+<span class="sd">            show LineStacker's progress bar</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">LineStacker.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProgressBar</span>
+    <span class="n">tasks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
+    <span class="n">n_jobs</span> <span class="o">=</span> <span class="n">resolve_n_jobs</span><span class="p">(</span><span class="n">n_jobs</span><span class="p">)</span>
+    <span class="n">shared</span> <span class="o">=</span> <span class="n">shared</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">backend</span> <span class="o">=</span> <span class="n">backend</span> <span class="ow">or</span> <span class="n">_DEFAULT_BACKEND</span>
+    <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="n">_shared</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">shared</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tasks</span><span class="p">):</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">progress</span><span class="p">:</span>
+                    <span class="n">ProgressBar</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tasks</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">out</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">_shared</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">'process'</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">_env_lock</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_run_pool</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">shared</span><span class="p">,</span> <span class="n">progress</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_run_pool</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">shared</span><span class="p">,</span> <span class="n">progress</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_run_pool</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">shared</span><span class="p">,</span> <span class="n">progress</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">LineStacker.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProgressBar</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cf</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    <span class="n">saved_env</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">'process'</span><span class="p">:</span>
+        <span class="c1"># Each worker would otherwise start one BLAS thread per core: share</span>
+        <span class="c1"># the cores out instead (workers inherit the environment when spawned).</span>
+        <span class="n">per_worker</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">n_jobs</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">_BLAS_THREAD_VARS</span><span class="p">:</span>
+            <span class="n">saved_env</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">per_worker</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">'thread'</span><span class="p">:</span>
+        <span class="c1"># each task runs in a copy of this context, which holds `shared`</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="n">_shared</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">shared</span><span class="p">))</span>
+        <span class="n">executor</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">'process'</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mp</span>
+        <span class="c1"># 'spawn' everywhere: forking a process that holds CASA's C++ tools</span>
+        <span class="c1"># (and macOS system libraries) is unsafe.</span>
+        <span class="n">executor</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">mp_context</span><span class="o">=</span><span class="n">mp</span><span class="o">.</span><span class="n">get_context</span><span class="p">(</span><span class="s1">'spawn'</span><span class="p">),</span>
+                                          <span class="n">initializer</span><span class="o">=</span><span class="n">_init_worker</span><span class="p">,</span> <span class="n">initargs</span><span class="o">=</span><span class="p">(</span><span class="n">shared</span><span class="p">,))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"backend must be 'process' or 'thread'"</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">'thread'</span><span class="p">:</span>
+                <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">contextvars</span><span class="o">.</span><span class="n">copy_context</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">]</span>
+            <span class="n">done</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">cf</span><span class="o">.</span><span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">progress</span><span class="p">:</span>
+                    <span class="n">ProgressBar</span><span class="p">(</span><span class="n">done</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">futures</span><span class="p">))</span>
+                <span class="n">done</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">result</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">futures</span><span class="p">]</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_shared</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">saved_env</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2019-2026, Jean-Baptiste Jolly.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
